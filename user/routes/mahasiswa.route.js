@@ -11,10 +11,14 @@ module.exports = function(app) {
     });
 
     app.post(
-        "/api/mhs/acc/signup", validation.signUpValidation, validation.runValidation, mahasiswaController.signUp
+        "/api/mhs/acc/signup", 
+        validation.signUpValidation, validation.runValidation, 
+        mahasiswaController.signUp
     );
 
     app.post(
-        "/api/mhs/acc/signin", validation.signInValidation, validation.runValidation, mahasiswaController.signIn
+        "/api/mhs/acc/signin", 
+        validation.signInValidation, 
+        validation.runValidation, mahasiswaController.signIn
     );        
 }    

@@ -11,10 +11,14 @@ module.exports = function(app) {
     });
 
     app.post(
-        "/api/panitia/acc/signup", validation.signUpValidation, validation.runValidation, panitaController.signUp
+        "/api/panitia/acc/signup", 
+        validation.signUpValidation, validation.runValidation, 
+        panitaController.signUp
     );
 
     app.post(
-        "/api/panitia/acc/signin", validation.signInValidation, validation.runValidation, panitaController.signIn
+        "/api/panitia/acc/signin", 
+        validation.signInValidation, validation.runValidation, 
+        panitaController.signIn
     );        
 }    

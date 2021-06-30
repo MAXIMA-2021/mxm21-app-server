@@ -12,7 +12,7 @@ require('./user/routes/mahasiswa.route')(app);
 require('./user/routes/panitia.route')(app);
 require('./home/routes/home.route')(app);
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, ()=>{
     console.log(`Listening to the server ${PORT}`);
-});
+}); 

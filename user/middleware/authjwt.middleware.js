@@ -16,27 +16,33 @@ exports.verifyToken = (req, res, next) => {
     })
 }
 
-exports.isMahasiswa = (req, res, next)=>{
+exports.isMahasiswa = async (req, res, next)=>{
     const nim = req.nim;
-    mahasiswa.query().select('nim').where('nim', nim).then(result=>{
-        if(result.length === 0) return res.status(401).send({message: 'Unauthorized'});
 
+    try{
+        const result = await mahasiswa.query().where('nim', nim);
+
+        if(result.length === 0) return res.status(401).send({message: 'Unauthorized'});
+    
         next();
-    })
-    .catch(err=>{
+    }
+    catch(err){
         return res.status(500).send({message: err.message});
-    })
+    }
 }
 
 
-exports.isPanitia = (req, res, next)=>{
+exports.isPanitia = async (req, res, next)=>{
     const nim = req.nim;
-    panitia.query().select('nim').where('nim', nim).then(result=>{
-        if(result.length === 0) return res.status(401).send({message: 'Unauthorized'});
+    
+    try{
+        const result = await panitia.query().where('nim', nim);
 
+        if(result.length === 0) return res.status(401).send({message: 'Unauthorized'});
+    
         next();
-    })
-    .catch(err=>{
+    }
+    catch(err){
         return res.status(500).send({message: err.message});
-    })
+    }
 }
