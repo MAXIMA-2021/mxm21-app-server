@@ -12,7 +12,7 @@ exports.signUpValidation = [
 
 exports.signInValidation = [
     check("nim").notEmpty().withMessage("Nim tidak boleh kosong"),
-    check("tanggal_lahir").notEmpty().withMessage("Tanggal Lahir tidak boleh kosong")
+    check("password").notEmpty().withMessage("Password tidak boleh kosong")
 ]
 
 exports.runValidation = (req, res, next)=>{

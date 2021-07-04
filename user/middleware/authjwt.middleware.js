@@ -18,11 +18,14 @@ exports.verifyToken = (req, res, next) => {
 
 exports.isMahasiswa = async (req, res, next)=>{
     const nim = req.nim;
+    
+    req.query.nim = nim;
+    req.roleID = 1;
 
     try{
         const result = await mahasiswa.query().where('nim', nim);
 
-        if(result.length === 0) return res.status(401).send({message: 'Unauthorized'});
+        if(result.length === 0) return res.status(401).send({message: 'Maaf selain mahasiswa tidak diperkenankan untuk mengaksesnya'});
     
         next();
     }
@@ -31,14 +34,15 @@ exports.isMahasiswa = async (req, res, next)=>{
     }
 }
 
-
 exports.isPanitia = async (req, res, next)=>{
     const nim = req.nim;
+
+    req.roleID = 2;
     
     try{
         const result = await panitia.query().where('nim', nim);
 
-        if(result.length === 0) return res.status(401).send({message: 'Unauthorized'});
+        if(result.length === 0) return res.status(401).send({message: 'Maaf selain panitia tidak diperkenankan untuk mengaksesnya'});
     
         next();
     }

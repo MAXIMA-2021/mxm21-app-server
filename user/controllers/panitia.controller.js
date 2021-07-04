@@ -1,6 +1,7 @@
 const panitia = require('../models/panitia.model');
 const jwt = require('jsonwebtoken');
 const authConfig = require('../../config/auth.config');
+const helper = require('../helpers/helper');
 
 exports.signUp = async (req, res)=>{        
     const{nama, nim, no_hp, email, user_ig, id_line, tanggal_lahir, GoogleID} = req.body;
@@ -11,14 +12,14 @@ exports.signUp = async (req, res)=>{
         if(result.length !== 0) return res.status(409).send({message: "nim sudah terdaftar"});
 
         const insertResult = await panitia.query().insert({
-            nama: nama,
-            nim: nim,
-            no_hp: no_hp,
-            email: email,
-            user_ig: user_ig,
-            id_line: id_line,
-            tanggal_lahir: tanggal_lahir,
-            GoogleID: GoogleID
+            nama,
+            nim,
+            no_hp,
+            email,
+            user_ig,
+            id_line,
+            tanggal_lahir,
+            GoogleID
         });
 
         res.status(200).send({
@@ -32,32 +33,18 @@ exports.signUp = async (req, res)=>{
 }
 
 exports.signIn = async (req, res) => {
-    const { nim, tanggal_lahir } = req.body;
-    const password = tanggal_lahir;
+    const { nim, password } = req.body;
 
     try{
-        const result = await panitia.query().select('nim', 'tanggal_lahir').where('nim', nim);
-    
-        const checkResult = result[0];
-
-        //Change yyyy-mm-dd into dd-mm-yyyy
-        let date = checkResult.tanggal_lahir;
-        let dd = String(date.getDate()).padStart(2, '0');
-        let mm = String(date.getMonth() + 1).padStart(2, '0'); 
-        let yyyy = date.getFullYear();
-
-        date = [];
-        date.push(dd);
-        date.push(mm);
-        date.push(yyyy);
-    
-        const password2 = date.join('');
+        const dbPanitia = await panitia.query().select('nim', 'tanggal_lahir').where('nim', nim);
+        
+        const password2 = helper.createPassword(dbPanitia);
     
         if(password !== password2){
             return res.status(400).send({message: 'Password is invalid'});
         }
     
-        const token = jwt.sign({nim: checkResult.nim}, authConfig.jwt_key, {
+        const token = jwt.sign({nim: dbPanitia[0].nim}, authConfig.jwt_key, {
             expiresIn: 86400 
         });
     
