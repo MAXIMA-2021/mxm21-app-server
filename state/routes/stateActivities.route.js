@@ -18,14 +18,14 @@ module.exports = function(app){
     app.post(
         "/api/state/activities",
         authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
-        validation.createActivitiesValidation, validation.stateLogoValidation, validation.runValidation,
+        validation.createActivitiesValidation, validation.logoValidation, validation.runValidation,
         stateActivitiesController.addState 
     );
 
     app.put(
         "/api/state/activities/:stateID",
         authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
-        validation.updateActivitiesValidation, validation.runValidation,
+        validation.updateActivitiesValidation, validation.logoValidation, validation.runValidation,
         stateActivitiesController.updateState
     );
 

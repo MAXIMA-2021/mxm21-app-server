@@ -1,6 +1,6 @@
 const stateActivities = require('../models/stateActivities.model');
 const stateRegistration = require('../models/stateRegistration.model');
-const helper = require('../helpers/helper');
+const helper = require('../../helpers/helper');
 
 exports.getRegistration = async (req, res)=>{
     const {stateID, nim} = req.query;
@@ -11,8 +11,8 @@ exports.getRegistration = async (req, res)=>{
         if(stateID === undefined && nim === undefined){
             result = await stateRegistration.query();
         }
-
-        if(stateID !== undefined){
+        else if(stateID !== undefined){
+            
             if(req.roleID === 2){
                 result = await stateRegistration.query().where({stateID});
             }
@@ -21,21 +21,22 @@ exports.getRegistration = async (req, res)=>{
                     message: "Maaf selain panitia tidak diperkenankan untuk mengaksesnya"
                 }
             }
-        }
 
-        if(nim !== undefined){
+        }
+        else if(nim !== undefined){
             result = await stateRegistration.query().where({nim});
         }
-
-        if(stateID !== undefined && nim !== undefined){
+        else if(stateID !== undefined && nim !== undefined){
+            
             if(req.roleID === 2){
-                result = await stateRegistration.query().where({stateID});
+                result = await stateRegistration.query().where({stateID, nim});
             }
             else{
                 result = {
                     message: "Maaf selain panitia tidak diperkenankan untuk mengaksesnya"
                 }
             }
+
         }
 
         return res.status(200).send(result);

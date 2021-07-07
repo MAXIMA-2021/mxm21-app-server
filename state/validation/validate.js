@@ -8,7 +8,7 @@ exports.createActivitiesValidation = [
     check("attendanceCode").notEmpty().withMessage("code kehadiran tidak boleh kosong") 
 ];
 
-exports.stateLogoValidation = (req, res, next)=>{
+exports.logoValidation = (req, res, next)=>{
     const logoErrors = [];
     if(!req.files){
         logoErrors.push({
@@ -29,6 +29,7 @@ exports.stateLogoValidation = (req, res, next)=>{
         }
     }
     req.logoErrors = logoErrors;
+
     next();
 }
 
@@ -52,7 +53,9 @@ exports.createRegisterValidation = async (req, res, next)=>{
     const {stateID} = req.body;
     const nim = req.query.nim; 
 
-    const dbRegistration = await stateRegistration.query()
+    const dbRegistrationNim = await stateRegistration.query().where({nim});
+
+    const dbRegistrationDay = await stateRegistration.query()
     .select('state_activities.day')
     .where('state_registration.nim', nim)
     .join(
@@ -63,13 +66,20 @@ exports.createRegisterValidation = async (req, res, next)=>{
 
     const dbActivities = await stateActivities.query().where('stateID', stateID);
 
+    //Validasi State penuh
+    if(dbActivities[0].registered >= dbActivities[0].quota){
+        return res.status(500).send({
+            message: "Maaf, State sudah penuh!"
+        })
+    }
+
     //Validasi State 1 orang tidak bisa pesan di hari yang sama
     let registeredDay = [];
-    for(let i = 0; i < dbRegistration.length; i++){
-        registeredDay.push(dbRegistration[i].day)
+    for(let i = 0; i < dbRegistrationDay.length; i++){
+        registeredDay.push(dbRegistrationDay[i].day)
     }
     
-    for(let i = 0; i < dbRegistration.length; i++){
+    for(let i = 0; i < dbRegistrationDay.length; i++){
         if(registeredDay[i] === dbActivities[0].day){
             return res.status(500).send({
                 message: "Anda hanya dapat mendaftar satu state pada hari yang sama"
@@ -77,10 +87,10 @@ exports.createRegisterValidation = async (req, res, next)=>{
         }
     }
     
-    //Validasi State penuh
-    if(dbActivities[0].registered >= dbActivities[0].quota){
+    //Validasi 1 orang hanya bisa pesan maks 3 state
+    if(dbRegistrationNim.length >= 3){
         return res.status(500).send({
-            message: "Maaf, State sudah penuh!"
+            message: "Maaf Anda hanya dapat memesan maksimal 3 state"
         })
     }
 
@@ -102,10 +112,10 @@ exports.runValidation = (req, res, next)=>{
         })
     }
     
-    if(logoErrors !== undefined){
+    if(logoErrors.length !== 0){
         listErrors.push(logoErrors[0]);
     }
-
+    
     if(listErrors.length !== 0) return res.status(500).send(listErrors)
 
     next();
