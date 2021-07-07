@@ -1,7 +1,7 @@
 const panitia = require('../models/panitia.model');
 const jwt = require('jsonwebtoken');
 const authConfig = require('../../config/auth.config');
-const helper = require('../helpers/helper');
+const helper = require('../../helpers/helper');
 
 exports.signUp = async (req, res)=>{        
     const{nama, nim, no_hp, email, user_ig, id_line, tanggal_lahir, GoogleID} = req.body;
