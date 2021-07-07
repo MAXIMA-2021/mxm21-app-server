@@ -11,6 +11,7 @@
   "author": "MAXIMA-2021",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/storage": "^5.8.5",
     "@hapi/joi": "^17.1.1",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
