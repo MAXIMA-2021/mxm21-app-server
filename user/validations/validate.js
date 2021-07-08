@@ -25,7 +25,7 @@ exports.runValidation = (req, res, next)=>{
                 message: error.msg
             })
         })
-        return res.status(500).send(listErrors);
+        return res.status(400).send(listErrors);
     }
     next();
 }

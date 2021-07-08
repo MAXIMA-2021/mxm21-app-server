@@ -25,7 +25,7 @@ module.exports = function(app){
     app.put(
         "/api/state/activities/:stateID",
         authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
-        validation.updateActivitiesValidation, validation.logoValidation, validation.runValidation,
+        validation.updateActivitiesValidation, validation.logoUpdateValidation, validation.runValidation,
         stateActivitiesController.updateState
     );
 

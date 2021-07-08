@@ -42,7 +42,7 @@ exports.signIn = async (req, res) => {
         const password2 = helper.createPassword(dbMahasiswa);
     
         if(password !== password2){
-            return res.status(400).send({message: 'Password is invalid'});
+            return res.status(401).send({message: 'Password is invalid'});
         }
     
         const token = jwt.sign({nim: dbMahasiswa[0].nim}, authConfig.jwt_key, {

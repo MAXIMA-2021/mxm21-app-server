@@ -33,6 +33,25 @@ exports.logoValidation = (req, res, next)=>{
     next();
 }
 
+exports.logoUpdateValidation = (req, res, next)=>{
+    const logoErrors = [];
+    if(req.files){
+        if(req.files.stateLogo.mimetype !== 'image/png'){
+            if(req.files.stateLogo.mimetype !== 'image/jpg'){
+                if(req.files.stateLogo.mimetype !== 'image/jpeg'){
+                    logoErrors.push({
+                        key: "stateLogo",
+                        message: "Harap menggunakan tipe file png, jpg, atau jpeg"
+                    })
+                }
+            }
+        }
+    }
+
+    req.logoErrors = logoErrors;
+    next();
+}
+
 exports.updateActivitiesValidation = [
     check("name").notEmpty().withMessage("Nama tidak boleh kosong"),
     check("zoomLink").notEmpty().withMessage("Link zoom tidak boleh kosong"),
@@ -53,48 +72,61 @@ exports.createRegisterValidation = async (req, res, next)=>{
     const {stateID} = req.body;
     const nim = req.query.nim; 
 
-    const dbRegistrationNim = await stateRegistration.query().where({nim});
+    try{
+        const dbRegistrationNim = await stateRegistration.query().where({nim});
 
-    const dbRegistrationDay = await stateRegistration.query()
-    .select('state_activities.day')
-    .where('state_registration.nim', nim)
-    .join(
-        'state_activities', 
-        'state_activities.stateID', 
-        'state_registration.stateID'
-    );
-
-    const dbActivities = await stateActivities.query().where('stateID', stateID);
-
-    //Validasi State penuh
-    if(dbActivities[0].registered >= dbActivities[0].quota){
-        return res.status(500).send({
-            message: "Maaf, State sudah penuh!"
-        })
-    }
-
-    //Validasi State 1 orang tidak bisa pesan di hari yang sama
-    let registeredDay = [];
-    for(let i = 0; i < dbRegistrationDay.length; i++){
-        registeredDay.push(dbRegistrationDay[i].day)
-    }
+        const dbRegistrationDay = await stateRegistration.query()
+        .select('state_activities.day')
+        .where('state_registration.nim', nim)
+        .join(
+            'state_activities', 
+            'state_activities.stateID', 
+            'state_registration.stateID'
+        );
     
-    for(let i = 0; i < dbRegistrationDay.length; i++){
-        if(registeredDay[i] === dbActivities[0].day){
-            return res.status(500).send({
-                message: "Anda hanya dapat mendaftar satu state pada hari yang sama"
+        const dbActivities = await stateActivities.query().where('stateID', stateID);
+    
+        //Validasi apakah ada statenya atau tidak
+        if(dbActivities.length === 0){
+            return res.status(404).send({
+                message: "Maaf state belum tersedia"
+            });
+        }
+
+        //Validasi State penuh
+        if(dbActivities[0].registered >= dbActivities[0].quota){
+            return res.status(409).send({
+                message: "Maaf, State sudah penuh!"
             })
         }
-    }
     
-    //Validasi 1 orang hanya bisa pesan maks 3 state
-    if(dbRegistrationNim.length >= 3){
-        return res.status(500).send({
-            message: "Maaf Anda hanya dapat memesan maksimal 3 state"
-        })
+        //Validasi State 1 orang tidak bisa pesan di hari yang sama
+        let registeredDay = [];
+        for(let i = 0; i < dbRegistrationDay.length; i++){
+            registeredDay.push(dbRegistrationDay[i].day)
+        }
+        
+        for(let i = 0; i < dbRegistrationDay.length; i++){
+            if(registeredDay[i] === dbActivities[0].day){
+                return res.status(409).send({
+                    message: "Anda hanya dapat mendaftar satu state pada hari yang sama"
+                })
+            }
+        }
+        
+        //Validasi 1 orang hanya bisa pesan maks 3 state
+        if(dbRegistrationNim.length >= 3){
+            return res.status(409).send({
+                message: "Maaf Anda hanya dapat memesan maksimal 3 state"
+            })
+        }
+    
+        next();
+    }
+    catch(err){
+        return res.status(500).send({message: err.message});
     }
 
-    next();
 }
 
 exports.runValidation = (req, res, next)=>{
@@ -111,12 +143,14 @@ exports.runValidation = (req, res, next)=>{
             })
         })
     }
-    
-    if(logoErrors.length !== 0){
-        listErrors.push(logoErrors[0]);
+
+    if(logoErrors !== undefined){
+        if(logoErrors.length !== 0){
+            listErrors.push(logoErrors[0]);
+        }
     }
     
-    if(listErrors.length !== 0) return res.status(500).send(listErrors)
+    if(listErrors.length !== 0) return res.status(400).send(listErrors)
 
     next();
 }

@@ -16,7 +16,7 @@ exports.getStateData = async (req, res)=>{
         return res.status(200).send(result);
     }
     catch(err){
-        return res.status(400).send({message: err.message});
+        return res.status(500).send({message: err.message});
     }
 }
 
@@ -36,7 +36,7 @@ exports.getStatebyParam = async (req, res)=>{
         return res.status(200).send(result);
     }
     catch(err){
-        return res.status(400).send({message: err.message});
+        return res.status(500).send({message: err.message});
     }
 }
 
@@ -92,28 +92,65 @@ exports.updateState = async (req, res)=>{
 
     const isProvide = await stateActivities.query().where('stateID', stateID);
 
-    if(isProvide.length === 0) return res.status(400).send({message: "State tidak ditemukan"});
+    if(isProvide.length === 0) return res.status(404).send({message: "State tidak ditemukan"});
 
     const {name, zoomLink, day, quota, registered, attendanceCode} = req.body;
-    const {stateLogo} = req.files;
+    
+    let stateLogo = null;
+    let dateFile = '';
+    let timeFile = '';
+    let fileName = '';
+    let uploadPath = '';
+    let bucket_name = '';
+    let url_file = '';
+    
+    if(req.files){
+        stateLogo = req.files.stateLogo;   
+        dateFile = (helper.createAttendanceTime().split(' ')[0].split('-').join(''));
+        timeFile = (helper.createAttendanceTime().split(' ')[1].split(':').join(''));
 
-    const uploadPath = './stateLogo/' + name + '_' + stateLogo.name;
+        fileName = name + "_" + dateFile.concat(timeFile) + "_" +  stateLogo.name;
+
+        uploadPath = './stateLogo/' + fileName;
+
+        bucket_name = "mxm21-bucket-playground";
+
+        url_file = `https://storage.googleapis.com/${bucket_name}/${fileName}`;
+    } 
 
     try{
-        const insertResult = await stateActivities.query().where('stateID', stateID).patch({
-            name,
-            zoomLink,
-            day,
-            stateLogo: `${name}_${stateLogo.name}`,
-            quota,
-            registered,
-            attendanceCode
-        });
+        if(uploadPath){
+        
+            const insertResult = await stateActivities.query().where('stateID', stateID).patch({
+                name,
+                zoomLink,
+                day,
+                stateLogo: url_file,
+                quota,
+                registered,
+                attendanceCode
+            });
 
-        stateLogo.mv(uploadPath, (err)=>{
-            if(err) return res.status(500).send({message: err.messsage});
-        })
+            stateLogo.mv(uploadPath, (err)=>{
+                if(err) return res.status(500).send({message: err.messsage});
+            })
 
+            res_bucket = await storage.bucket(bucket_name).upload(uploadPath);
+
+            fs.unlink(uploadPath, (err)=>{
+                if(err) return res.status(500).send({message: err.message});
+            })
+        }
+        else{
+            const insertResult = await stateActivities.query().where('stateID', stateID).patch({
+                name,
+                zoomLink,
+                day,
+                quota,
+                registered,
+                attendanceCode
+            });
+        }
         return res.status(200).send({
             message: "Data berhasil diupdate",
         });
@@ -121,20 +158,20 @@ exports.updateState = async (req, res)=>{
     catch(err){
         return res.status(500).send({message: err.message});
     }
-}
+} 
 
 exports.deleteState = async (req, res)=>{
     const stateID = req.params.stateID;
 
     const isProvide = await stateActivities.query().where('stateID', stateID);
 
-    if(isProvide.length === 0) return res.status(400).send({message: "State tidak ditemukan"});
+    if(isProvide.length === 0) return res.status(404).send({message: "State tidak ditemukan"});
 
     try{
         const result = await stateActivities.query().delete().where('stateID', stateID) 
         return res.status(200).send({message: "Data State Berhasil Dihapus"});
     }
     catch(err){
-        return res.status(400).send({message: err.message});
+        return res.status(500).send({message: err.message});
     }
 }

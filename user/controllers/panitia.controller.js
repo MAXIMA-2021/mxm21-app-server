@@ -17,7 +17,7 @@ exports.signUp = async (req, res)=>{
             no_hp,
             email,
             user_ig,
-            id_line,
+            id_line, 
             tanggal_lahir,
             GoogleID
         });
@@ -41,7 +41,7 @@ exports.signIn = async (req, res) => {
         const password2 = helper.createPassword(dbPanitia);
     
         if(password !== password2){
-            return res.status(400).send({message: 'Password is invalid'});
+            return res.status(401).send({message: 'Password is invalid'});
         }
     
         const token = jwt.sign({nim: dbPanitia[0].nim}, authConfig.jwt_key, {
