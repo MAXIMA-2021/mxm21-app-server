@@ -6,13 +6,15 @@ const helper = require('../../helpers/helper');
 exports.signUp = async (req, res)=>{        
     const{nama, nim, no_hp, email, user_ig, id_line, tanggal_lahir, GoogleID} = req.body;
     
+    const titleName = helper.toTitleCase(nama);
+    
     try{
         const result = await mahasiswa.query().where('nim', nim);
 
         if(result.length !== 0) return res.status(409).send({message: "nim sudah terdaftar"});
 
         const insertResult = await mahasiswa.query().insert({
-            nama,
+            nama: titleName,
             nim,
             no_hp,
             email,
