@@ -1,9 +1,9 @@
 exports.createPassword = (dbMahasiswa)=>{
     //Change yyyy-mm-dd into dd-mm-yyyy
     let date = dbMahasiswa[0].tanggal_lahir;
-    let dd = String(date.getDate()).padStart(2, '0');
-    let mm = String(date.getMonth() + 1).padStart(2, '0'); 
-    let yyyy = date.getFullYear();
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0'); 
+    const yyyy = date.getFullYear();
 
     date = [];
     date.push(dd);
@@ -16,15 +16,23 @@ exports.createPassword = (dbMahasiswa)=>{
 }
 
 exports.createAttendanceTime = ()=>{
-    let today = new Date();
-    let dd = String(today.getDate()).padStart(2, '0');
-    let mm = String(today.getMonth() + 1).padStart(2, '0'); 
-    let yyyy = today.getFullYear();
-    let hour = today.getHours(); 
-    let minute = today.getMinutes(); 
-    let second = today.getSeconds(); 
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+    const yyyy = today.getFullYear();
+    const hour = today.getHours(); 
+    const minute = today.getMinutes(); 
+    const second = today.getSeconds(); 
 
-    const attendanceTime = yyyy + '-' + mm + '-' + dd + ' ' + hour + ':' + minute + ':' + second;
+    const attendanceTime = `${yyyy}-${mm}-${dd} ${hour}:${minute}:${second}`;
 
     return attendanceTime;
+}
+
+exports.toTitleCase = (name)=>{
+    return name.replace(
+        /\w\S*/g, (txt)=>{
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        }
+    )
 }

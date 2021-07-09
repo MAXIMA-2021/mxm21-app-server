@@ -10,6 +10,7 @@ exports.createActivitiesValidation = [
 
 exports.logoValidation = (req, res, next)=>{
     const logoErrors = [];
+    const acceptedType = ['image/png', 'image/jpg', 'image/jpeg'];
     if(!req.files){
         logoErrors.push({
             key: "stateLogo",
@@ -17,34 +18,27 @@ exports.logoValidation = (req, res, next)=>{
         })
     }
     else{
-        if(req.files.stateLogo.mimetype !== 'image/png'){
-            if(req.files.stateLogo.mimetype !== 'image/jpg'){
-                if(req.files.stateLogo.mimetype !== 'image/jpeg'){
-                    logoErrors.push({
-                        key: "stateLogo",
-                        message: "Harap menggunakan tipe file png, jpg, atau jpeg"
-                    })
-                }
-            }
+        if(!acceptedType.includes(req.files.stateLogo.mimetype)){
+            logoErrors.push({
+                key: "stateLogo",
+                message: "Harap menggunakan tipe file png, jpg, atau jpeg"
+            })
         }
     }
     req.logoErrors = logoErrors;
-
+    
     next();
 }
 
 exports.logoUpdateValidation = (req, res, next)=>{
     const logoErrors = [];
+    const acceptedType = ['image/png', 'image/jpg', 'image/jpeg'];
     if(req.files){
-        if(req.files.stateLogo.mimetype !== 'image/png'){
-            if(req.files.stateLogo.mimetype !== 'image/jpg'){
-                if(req.files.stateLogo.mimetype !== 'image/jpeg'){
-                    logoErrors.push({
-                        key: "stateLogo",
-                        message: "Harap menggunakan tipe file png, jpg, atau jpeg"
-                    })
-                }
-            }
+        if(!acceptedType.includes(req.files.stateLogo.mimetype)){
+            logoErrors.push({
+                key: "stateLogo",
+                message: "Harap menggunakan tipe file png, jpg, atau jpeg"
+            })
         }
     }
 
@@ -101,7 +95,7 @@ exports.createRegisterValidation = async (req, res, next)=>{
         }
     
         //Validasi State 1 orang tidak bisa pesan di hari yang sama
-        let registeredDay = [];
+        const registeredDay = [];
         for(let i = 0; i < dbRegistrationDay.length; i++){
             registeredDay.push(dbRegistrationDay[i].day)
         }
@@ -133,7 +127,7 @@ exports.runValidation = (req, res, next)=>{
 
     const errors = validationResult(req).errors;
     const logoErrors = req.logoErrors;
-    let listErrors = [];
+    const listErrors = [];
 
     if(errors.length !== 0){
         errors.map(error=>{
