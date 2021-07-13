@@ -46,5 +46,4 @@ module.exports = function(app){
         authjwtMiddleware.verifyToken, authjwtMiddleware.isMahasiswa,
         stateRegistrationController.deleteRegistration
     );
-
 }

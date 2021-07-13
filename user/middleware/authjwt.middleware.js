@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const authConfig = require("../../config/auth.config");
 const mahasiswa = require('../models/mahasiswa.model');
 const panitia = require('../models/panitia.model');
+const organizator = require('../models/organizator.model');
 
 exports.verifyToken = async (req, res, next) => {
     try{
@@ -12,6 +13,10 @@ exports.verifyToken = async (req, res, next) => {
         jwt.verify(token, authConfig.jwt_key, (err, decoded) => {
             if(err) return res.status(403).send({message: "Token Invalid"});
             
+            if(decoded.stateID){
+                req.query.param = decoded.stateID;
+            }
+
             req.nim = decoded.nim;
             next();
         })
@@ -48,6 +53,23 @@ exports.isPanitia = async (req, res, next)=>{
         const result = await panitia.query().where('nim', nim);
 
         if(result.length === 0) return res.status(403).send({message: 'Maaf selain panitia tidak diperkenankan untuk mengaksesnya'});
+    
+        next();
+    }
+    catch(err){
+        return res.status(500).send({message: err.message});
+    }
+}
+
+exports.isOrganizator = async (req, res, next)=>{
+    const nim = req.nim;
+
+    req.roleID = 3;
+    
+    try{
+        const result = await organizator.query().where('nim', nim);
+
+        if(result.length === 0) return res.status(403).send({message: 'Maaf selain organizator tidak diperkenankan untuk mengaksesnya'});
     
         next();
     }

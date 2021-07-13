@@ -12,7 +12,7 @@ module.exports = function(app) {
 
     app.post(
         "/api/mhs/acc/signup", 
-        validation.signUpValidation, validation.runValidation, 
+        validation.mhsSignUpValidation, validation.runValidation, 
         mahasiswaController.signUp
     );
 

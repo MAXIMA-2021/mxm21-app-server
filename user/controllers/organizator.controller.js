@@ -1,17 +1,18 @@
-const panitia = require('../models/panitia.model');
-const divisi = require('../models/divisi.model');
+const organizator = require('../models/organizator.model');
+const stateActivities = require('../../state/models/stateActivities.model');
 const jwt = require('jsonwebtoken');
 const authConfig = require('../../config/auth.config');
 const helper = require('../../helpers/helper');
 const bcrypt = require('bcryptjs');
 
-exports.signUp = async (req, res)=>{        
+
+exports.signUp = async (req, res) => {
     const{ 
         nim, 
         name, 
         email, 
         password, 
-        divisiID, 
+        stateID, 
     } = req.body;
 
     const verified = 0;
@@ -19,24 +20,24 @@ exports.signUp = async (req, res)=>{
     const fixName = helper.toTitleCase(name);
 
     try{
-        const result = await panitia.query().where('nim', nim);
+        const result = await organizator.query().where('nim', nim);
 
         if(result.length !== 0) 
             return res.status(409).send({message: "nim sudah terdaftar"});
 
-        const checkDivisi = await divisi.query().where('divisiID', divisiID)
+        const checkState = await stateActivities.query().where('stateID', stateID)
 
-        if(checkDivisi.length === 0)
-            return res.status(404).send({message: "Divisi tidak tersedia"});
+        if(checkState.length === 0)
+            return res.status(404).send({message: "State tidak terdaftar"});
         
         const fixPassword = bcrypt.hashSync(password, 8);
 
-        const insertResult = await panitia.query().insert({
+        const insertResult = await organizator.query().insert({
             nim,
             name: fixName,
             email,
             password: fixPassword,
-            divisiID, 
+            stateID, 
             verified
         });
 
@@ -54,22 +55,20 @@ exports.signIn = async (req, res) => {
     const { nim, password } = req.body;
 
     try{
-        const dbPanitia = await panitia.query().where('nim', nim);
+        const dbOrganizator = await organizator.query().where('nim', nim);
 
-        if(dbPanitia.length === 0)
+        if(dbOrganizator.length === 0)
             return res.status(404).send({message: "nim tidak terdaftar"});
 
-        if(dbPanitia[0].verified !== 1)
-            return res.status(401).send({
-                message: "Maaf akun anda belum diverifikasi oleh pihak pusat"
-            });
+        if(dbOrganizator[0].verified === 0)
+            return res.status(401).send({message: "Maaf akun anda belum diverifikasi oleh pihak pusat"});
 
-        const isPasswordValid = bcrypt.compareSync(password, dbPanitia[0].password);
+        const isPasswordValid = bcrypt.compareSync(password, dbOrganizator[0].password);
 
         if(!isPasswordValid)
             return res.status(401).send({message: "Password Invalid"});
 
-        const token = jwt.sign({nim: dbPanitia[0].nim}, authConfig.jwt_key, {
+        const token = jwt.sign({nim: dbOrganizator[0].nim, stateID: dbOrganizator[0].stateID}, authConfig.jwt_key, {
             expiresIn: 86400 
         });
     
@@ -82,4 +81,3 @@ exports.signIn = async (req, res) => {
         res.status(500).send({message: err.message});
     }
 }
-

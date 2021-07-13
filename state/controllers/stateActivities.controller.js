@@ -1,4 +1,5 @@
 const stateActivities = require('../models/stateActivities.model');
+const panitia = require('../../user/models/panitia.model');
 const fs = require('fs');
 const helper = require('../../helpers/helper');
 
@@ -9,31 +10,26 @@ const storage = new Storage({
 });
 
 exports.getStateData = async (req, res)=>{
-    const {nim, stateID} = req.query;
+    const param = `${req.query.param}`;
 
     try{
-        const result = await stateActivities.query();
-        return res.status(200).send(result);
-    }
-    catch(err){
-        return res.status(500).send({message: err.message});
-    }
-}
-
-exports.getStatebyParam = async (req, res)=>{
-    const param = `%${req.params.param}%`;
- 
-    try{
-        const result = await stateActivities.query()
-        .where('stateID', 'like', param)
-        .orWhere('name', 'like', param)
-
-        if(result.length === 0){
-            const result2 = await stateActivities.query()
-            return res.status(200).send(result2);
+        if(param === undefined){
+            result = await stateActivities.query();
+            return res.status(200).send(result);
         }
+        else{
+            result = await stateActivities.query()
+            .where('stateID', param)
+            .orWhere('name', param)
 
-        return res.status(200).send(result);
+            if(result.length === 0){
+                result = await stateActivities.query();
+                return res.status(200).send(result);
+            }
+            else{
+                return res.status(200).send(result)
+            }
+        }
     }
     catch(err){
         return res.status(500).send({message: err.message});
@@ -41,6 +37,17 @@ exports.getStatebyParam = async (req, res)=>{
 }
 
 exports.addState = async (req, res)=>{
+    const nim = req.nim;
+    
+    const checkDivisi = await panitia.query().where({nim});
+
+    const acceptedDivisi = ["D01", "D02", "D03"];
+
+    if(!acceptedDivisi.includes(checkDivisi[0].divisiID))
+        return res.status(403).send({
+            message: "Maaf divisi anda tidak diizinkan untuk mengaksesnya"
+        });
+
     const {name, zoomLink, day, quota, attendanceCode} = req.body;
     const {stateLogo} = req.files;
 
@@ -88,6 +95,17 @@ exports.addState = async (req, res)=>{
 }
 
 exports.updateState = async (req, res)=>{
+    const nim = req.nim;
+    
+    const checkDivisi = await panitia.query().where({nim});
+
+    const acceptedDivisi = ["D01", "D02", "D03"];
+
+    if(!acceptedDivisi.includes(checkDivisi[0].divisiID))
+        return res.status(403).send({
+            message: "Maaf divisi anda tidak diizinkan untuk mengaksesnya"
+        });
+
     const stateID = req.params.stateID;
 
     const isProvide = await stateActivities.query().where('stateID', stateID);
@@ -161,6 +179,13 @@ exports.updateState = async (req, res)=>{
 } 
 
 exports.deleteState = async (req, res)=>{
+    const acceptedDivisi = ["D01", "D02"];
+
+    if(!acceptedDivisi.includes(checkDivisi[0].divisiID))
+        return res.status(403).send({
+            message: "Maaf divisi anda tidak diizinkan untuk mengaksesnya"
+        });
+
     const stateID = req.params.stateID;
 
     const isProvide = await stateActivities.query().where('stateID', stateID);

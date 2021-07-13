@@ -10,9 +10,11 @@ app.use(file());
 
 require('./user/routes/mahasiswa.route')(app);
 require('./user/routes/panitia.route')(app);
+require('./user/routes/organizator.route')(app);
 require('./home/routes/home.route')(app);
 require('./state/routes/stateActivities.route')(app);
 require('./state/routes/stateRegistration.route')(app);
+require('./malpun/routes/malpun.route')(app);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, ()=>{
