@@ -39,6 +39,12 @@ exports.getRegistration = async (req, res)=>{
 
         }
 
+        if(result.length === 0){
+            return res.status(404).send({
+                message: "Registratsi tidak dapat ditemukan"
+            })
+        }
+
         return res.status(200).send(result);
     }
     catch(err){
@@ -97,7 +103,7 @@ exports.attendanceState = async (req, res)=>{
         });
 
         if(checkRegistration.length === 0){
-            return res.status(404).send({message: "Anda belum mendaftar"});
+            return res.status(404).send({message: "Anda tidak terdaftar1"});
         }
 
         const updateResult = await stateRegistration.query()
@@ -154,8 +160,8 @@ exports.verifyAttendanceCode = async (req, res) => {
     const exitAttendance = 1;
     
     try{
-        const stateAttendanceCode = await stateRegistration.query()
-        .select('state_activities.attendanceCode')
+        const stateAttendanceDB = await stateRegistration.query()
+        .select('state_activities.attendanceCode', 'state_registration.inEventAttendance')
         .where({
             'state_registration.stateID': stateID,
             'state_registration.nim': nim
@@ -166,13 +172,17 @@ exports.verifyAttendanceCode = async (req, res) => {
             'state_registration.stateID'
         );
 
-        if(stateAttendanceCode.length === 0)
+        if(stateAttendanceDB.length === 0)
             return res.status(404).send({
                 message: "Anda belum mendaftar"
             });
         
-        
-        if(attendanceCode === stateAttendanceCode[0].attendanceCode){
+        if(stateAttendanceDB[0].inEventAttendance === 0)
+            return res.status(403).send({
+                message: "Anda tidak mengikuti state hingga akhir"
+            })
+
+        if(attendanceCode === stateAttendanceDB[0].attendanceCode){
             const updateResult = await stateRegistration.query()
             .patch({exitAttendance})
             .where({stateID,nim});
@@ -191,7 +201,7 @@ exports.verifyAttendanceCode = async (req, res) => {
 exports.deleteRegistration = async (req, res)=>{
     const {stateID} = req.params;
     const {nim} = req.query;
-    
+
     try{
         const checkRegistration = await stateRegistration.query()
         .where({nim, stateID});

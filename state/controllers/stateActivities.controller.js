@@ -10,7 +10,7 @@ const storage = new Storage({
 });
 
 exports.getStateData = async (req, res)=>{
-    const param = `${req.query.param}`;
+    const param = req.query.param; 
 
     try{
         if(param === undefined){
@@ -23,9 +23,11 @@ exports.getStateData = async (req, res)=>{
             .orWhere('name', param)
 
             if(result.length === 0){
-                result = await stateActivities.query();
-                return res.status(200).send(result);
+                return res.status(404).send({
+                    message: "State Tidak Ditemukan"
+                })
             }
+
             else{
                 return res.status(200).send(result)
             }

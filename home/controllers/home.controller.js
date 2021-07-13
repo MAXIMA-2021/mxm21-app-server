@@ -11,9 +11,9 @@ const storage = new Storage({
 });
 
 exports.getHomeData = async (req, res) =>{
-    const{organisator} = req.query;
+    const{organizator} = req.query;
 
-    if(organisator === undefined){
+    if(organizator === undefined){
         const dbHomeAll = await homeInformation.query();
 
         for(let i = 0; i < dbHomeAll.length; i++){
@@ -27,7 +27,7 @@ exports.getHomeData = async (req, res) =>{
         return res.status(200).send(dbHomeAll)   
     }
     else{
-        const dbHome = await homeInformation.query().where({search_key: organisator});
+        const dbHome = await homeInformation.query().where({search_key: organizator});
         
         if(dbHome.length === 0)
             return res.status(404).send({
@@ -312,9 +312,20 @@ exports.updateHome = async (req,res)=>{
 }
 
 exports.updateLinkMedia = async(req, res) => {
+    const acceptedDivision = ["D01", "D02", "D03"];
+
+    const nim = req.nim;
+
     const {photoID} = req.params;
 
     try{
+        const checkNim = await panitia.query().where({nim});
+
+        if(!acceptedDivision.includes(checkNim[0].divisiID))
+            return res.status(403).send({
+                message: "Maaf divisi anda tidak diizinkan unuk mengaksesnya"
+            })
+
         const dbMedia = await homeMedia.query().where({photoID});
 
         const dbHome = await homeInformation.query().where({homeID : dbMedia[0].homeID});
