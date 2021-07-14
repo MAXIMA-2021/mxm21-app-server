@@ -2,9 +2,9 @@ const {Model} = require('objection');
 const knex = require('../../config/knex.config');
 Model.knex(knex);
 
-class Panitia extends Model {
-    static get tableName() {
-        return 'panitia';
+class Organizator extends Model {
+    static get tableName(){
+        return 'organizator';
     }
 
     static get relationMappings(){
@@ -16,11 +16,14 @@ class Panitia extends Model {
                 modelClass: PasswordReset,
                 join:{
                     from: 'passwordReset.nim',
-                    to: 'panitia.nim'
+                    to: 'organizator.nim'
                 }
             },
         }
     }
 }
 
-module.exports = Panitia;
+module.exports = Organizator;
+
+
+

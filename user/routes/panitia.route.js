@@ -12,7 +12,7 @@ module.exports = function(app) {
 
     app.post(
         "/api/panitia/acc/signup", 
-        validation.signUpValidation, validation.runValidation, 
+        validation.panitiaSignUpValidation, validation.runValidation, 
         panitaController.signUp
     );
 

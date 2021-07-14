@@ -9,12 +9,6 @@ module.exports = function(app){
         stateActivitiesController.getStateData
     );
 
-    app.get(
-        "/api/state/activities/:param",
-        authjwtMiddleware.verifyToken, 
-        stateActivitiesController.getStatebyParam
-    );
-
     app.post(
         "/api/state/activities",
         authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,

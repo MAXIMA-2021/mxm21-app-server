@@ -6,14 +6,14 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "lint": "eslint . ",
-    "lint:fix": "eslint . --fix"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "MAXIMA-2021",
   "license": "ISC",
   "dependencies": {
     "@google-cloud/storage": "^5.8.5",
     "@hapi/joi": "^17.1.1",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
@@ -24,12 +24,5 @@
     "knex": "^0.95.6",
     "mysql2": "^2.2.5",
     "objection": "^2.2.15"
-  },
-  "devDependencies": {
-    "eslint": "^7.30.0",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.23.4",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.0"
   }
 }

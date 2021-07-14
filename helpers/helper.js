@@ -1,6 +1,6 @@
 exports.createPassword = (dbMahasiswa)=>{
     //Change yyyy-mm-dd into dd-mm-yyyy
-    let date = dbMahasiswa[0].tanggal_lahir;
+    let date = dbMahasiswa[0].tanggalLahir;
     const dd = String(date.getDate()).padStart(2, '0');
     const mm = String(date.getMonth() + 1).padStart(2, '0'); 
     const yyyy = date.getFullYear();

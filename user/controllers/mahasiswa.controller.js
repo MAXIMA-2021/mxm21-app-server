@@ -4,9 +4,21 @@ const authConfig = require('../../config/auth.config');
 const helper = require('../../helpers/helper');
 
 exports.signUp = async (req, res)=>{        
-    const{nama, nim, no_hp, email, user_ig, id_line, tanggal_lahir, GoogleID} = req.body;
+    const{
+        nim,
+        GoogleID,
+        name,
+        email,
+        tempatLahir,
+        tanggalLahir,
+        jenisKelamin,
+        prodi,
+        whatsapp,
+        idLine,
+        idInstagram
+    } = req.body;
     
-    const titleName = helper.toTitleCase(nama);
+    const fixName = helper.toTitleCase(name);
     
     try{
         const result = await mahasiswa.query().where('nim', nim);
@@ -14,14 +26,17 @@ exports.signUp = async (req, res)=>{
         if(result.length !== 0) return res.status(409).send({message: "nim sudah terdaftar"});
 
         const insertResult = await mahasiswa.query().insert({
-            nama: titleName,
             nim,
-            no_hp,
+            GoogleID,
+            name: fixName,
             email,
-            user_ig,
-            id_line,
-            tanggal_lahir,
-            GoogleID
+            tempatLahir,
+            tanggalLahir,
+            jenisKelamin,
+            prodi,
+            whatsapp,
+            idLine,
+            idInstagram
         });
         
         res.status(200).send({
@@ -32,14 +47,16 @@ exports.signUp = async (req, res)=>{
     catch(err){
         res.status(500).send({message: err.message});
     }
-
 }
 
 exports.signIn = async (req, res) => {
     const { nim, password } = req.body;
 
     try{
-        const dbMahasiswa = await mahasiswa.query().select('nim', 'tanggal_lahir').where('nim', nim);
+        const dbMahasiswa = await mahasiswa.query().select('nim', 'tanggalLahir').where('nim', nim);
+
+        if(dbMahasiswa.length === 0)
+            return res.status(404).send({message: "nim tidak terdaftar"});
         
         const password2 = helper.createPassword(dbMahasiswa);
     
