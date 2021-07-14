@@ -8,6 +8,9 @@ app.use(express.json());
 app.use(cors());
 app.use(file());
 
+app.get("/", (req,res) => {
+    res.status(200).send({ message: "API is running."});
+})
 require('./user/routes/mahasiswa.route')(app);
 require('./user/routes/panitia.route')(app);
 require('./home/routes/home.route')(app);
