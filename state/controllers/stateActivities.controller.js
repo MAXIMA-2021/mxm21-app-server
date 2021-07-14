@@ -83,8 +83,7 @@ exports.addState = async (req, res)=>{
         res_bucket = await storage.bucket(bucket_name).upload(uploadPath);
         
         res.status(200).send({
-            message: "Data berhasil ditambahkan",
-            data: insertResult, 
+            message: "Data berhasil ditambahkan" 
         });
 
         fs.unlink(uploadPath, (err)=>{

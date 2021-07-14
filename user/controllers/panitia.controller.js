@@ -41,8 +41,7 @@ exports.signUp = async (req, res)=>{
         });
 
         res.status(200).send({
-            message: "Data berhasil ditambahkan",
-            data: insertResult
+            message: "Data berhasil ditambahkan"
         });
     }
     catch(err){

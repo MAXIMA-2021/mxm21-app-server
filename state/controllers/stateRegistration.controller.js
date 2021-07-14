@@ -82,7 +82,6 @@ exports.addRegistration = async (req, res)=>{
 
         return res.status(200).send({
             message: "Anda berhasil mendaftar",
-            data: insertResult
         });
     }
     catch(err){
