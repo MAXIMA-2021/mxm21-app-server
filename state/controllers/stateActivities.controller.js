@@ -1,207 +1,205 @@
-const stateActivities = require('../models/stateActivities.model');
-const panitia = require('../../user/models/panitia.model');
-const fs = require('fs');
-const helper = require('../../helpers/helper');
-const { v4: uuidv4 } = require('uuid');
+const stateActivities = require('../models/stateActivities.model')
+const panitia = require('../../user/models/panitia.model')
+const fs = require('fs')
+const helper = require('../../helpers/helper')
+const { v4: uuidv4 } = require('uuid')
 
-//Google Cloud Storage Library and Keys
-const {Storage} = require('@google-cloud/storage');
+// Google Cloud Storage Library and Keys
+const { Storage } = require('@google-cloud/storage')
 const storage = new Storage({
-    keyFilename: './keys/maxima-umn-2021-bucket-playground-key.json'
-});
+  keyFilename: './keys/maxima-umn-2021-bucket-playground-key.json'
+})
 
-exports.getStateData = async (req, res)=>{
-    const param = req.query.param; 
+exports.getStateData = async (req, res) => {
+  const param = req.query.param
 
-    try{
-        if(param === undefined){
-            result = await stateActivities.query();
-            return res.status(200).send(result);
-        }
-        else{
-            result = await stateActivities.query()
-            .where('stateID', param)
-            .orWhere('name', param)
+  try {
+    if (param === undefined) {
+      const result = await stateActivities.query()
+      return res.status(200).send(result)
+    } else {
+      const result = await stateActivities.query()
+        .where('stateID', param)
+        .orWhere('name', param)
 
-            if(result.length === 0){
-                return res.status(404).send({
-                    message: "State Tidak Ditemukan"
-                })
-            }
-
-            else{
-                return res.status(200).send(result)
-            }
-        }
+      if (result.length === 0) {
+        return res.status(404).send({
+          message: 'State Tidak Ditemukan'
+        })
+      } else {
+        return res.status(200).send(result)
+      }
     }
-    catch(err){
-        return res.status(500).send({message: err.message});
-    }
+  } catch (err) {
+    return res.status(500).send({ message: err.message })
+  }
 }
 
-exports.addState = async (req, res)=>{
-    const nim = req.nim;
-    
-    const checkDivisi = await panitia.query().where({nim});
+exports.addState = async (req, res) => {
+  const nim = req.nim
 
-    const acceptedDivisi = ["D01", "D02", "D03"];
+  const checkDivisi = await panitia.query().where({ nim })
 
-    if(!acceptedDivisi.includes(checkDivisi[0].divisiID))
-        return res.status(403).send({
-            message: "Maaf divisi anda tidak diizinkan untuk mengaksesnya"
-        });
+  const acceptedDivisi = ['D01', 'D02', 'D03']
 
-    const {
-        name, 
-        zoomLink, 
-        day, 
-        quota, 
-    } = req.body;
+  if (!acceptedDivisi.includes(checkDivisi[0].divisiID)) {
+    return res.status(403).send({
+      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
+    })
+  }
 
-    const {stateLogo} = req.files;
+  const {
+    name,
+    zoomLink,
+    day,
+    quota
+  } = req.body
 
-    const attendanceCode = helper.createAttendanceCode(name)
+  const { stateLogo } = req.files
 
-    //format filename = nama state + nama file + datetime upload file
+  const attendanceCode = helper.createAttendanceCode(name)
+
+  // format filename = nama state + nama file + datetime upload file
+  const uuid = uuidv4()
+  const fileName = `${name}_${uuid}_${stateLogo.name}`
+
+  const uploadPath = './stateLogo/' + fileName
+
+  const bucketName = 'mxm21-bucket-playground'
+
+  const urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
+
+  try {
+    const insertResult = await stateActivities.query().insert({
+      name,
+      zoomLink,
+      day,
+      stateLogo: urlFile,
+      quota,
+      registered: 0,
+      attendanceCode
+    })
+
+    stateLogo.mv(uploadPath, (err) => {
+      if (err) return res.status(500).send({ message: err.messsage })
+    })
+
+    res_bucket = await storage.bucket(bucketName).upload(uploadPath)
+
+    res.status(200).send({
+      message: 'Data berhasil ditambahkan'
+    })
+
+    fs.unlink(uploadPath, (err) => {
+      if (err) return res.status(500).send({ message: err.messsage })
+    })
+  } catch (err) {
+    return res.status(500).send({ message: err.message })
+  }
+}
+
+exports.updateState = async (req, res) => {
+  const nim = req.nim
+
+  const checkDivisi = await panitia.query().where({ nim })
+
+  const acceptedDivisi = ['D01', 'D02', 'D03']
+
+  if (!acceptedDivisi.includes(checkDivisi[0].divisiID)) {
+    return res.status(403).send({
+      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
+    })
+  }
+
+  const stateID = req.params.stateID
+
+  const isProvide = await stateActivities.query().where('stateID', stateID)
+
+  if (isProvide.length === 0) return res.status(404).send({ message: 'State tidak ditemukan' })
+
+  const { name, zoomLink, day, quota, registered, attendanceCode } = req.body
+
+  let stateLogo = null
+  let fileName = ''
+  let uploadPath = ''
+  let bucketName = ''
+  let urlFile = ''
+
+  if (req.files) {
+    stateLogo = req.files.stateLogo
+
     const uuid = uuidv4()
-    const fileName = `${name}_${uuid}_${stateLogo.name}`
-   
-    const uploadPath = './stateLogo/' + fileName;
+    fileName = `${name}_${uuid}_${stateLogo.name}`
 
-    const bucketName = "mxm21-bucket-playground";
+    uploadPath = './stateLogo/' + fileName
 
-    const urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+    bucketName = 'mxm21-bucket-playground'
 
-    try{
-        const insertResult = await stateActivities.query().insert({
-            name, 
-            zoomLink,
-            day,
-            stateLogo: urlFile,
-            quota,
-            registered: 0, 
-            attendanceCode
-        });
+    urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
+  }
 
-        stateLogo.mv(uploadPath, (err)=>{
-            if(err) return res.status(500).send({message: err.messsage});
-        })
+  try {
+    if (uploadPath) {
+      const insertResult = await stateActivities.query().where('stateID', stateID).patch({
+        name,
+        zoomLink,
+        day,
+        stateLogo: urlFile,
+        quota,
+        registered,
+        attendanceCode
+      })
 
-        res_bucket = await storage.bucket(bucketName).upload(uploadPath);
-        
-        res.status(200).send({
-            message: "Data berhasil ditambahkan" 
-        });
+      stateLogo.mv(uploadPath, (err) => {
+        if (err) return res.status(500).send({ message: err.messsage })
+      })
 
-        fs.unlink(uploadPath, (err)=>{
-            if(err) return res.status(500).send({message: err.messsage});
-        })
+      res_bucket = await storage.bucket(bucketName).upload(uploadPath)
+
+      fs.unlink(uploadPath, (err) => {
+        if (err) return res.status(500).send({ message: err.message })
+      })
+    } else {
+      const insertResult = await stateActivities.query().where('stateID', stateID).patch({
+        name,
+        zoomLink,
+        day,
+        quota,
+        registered,
+        attendanceCode
+      })
     }
-    catch(err){
-        return res.status(500).send({message: err.message});
-    }
+    return res.status(200).send({
+      message: 'Data berhasil diupdate'
+    })
+  } catch (err) {
+    return res.status(500).send({ message: err.message })
+  }
 }
 
-exports.updateState = async (req, res)=>{
-    const nim = req.nim;
-    
-    const checkDivisi = await panitia.query().where({nim});
+exports.deleteState = async (req, res) => {
+  const nim = req.nim
 
-    const acceptedDivisi = ["D01", "D02", "D03"];
+  const acceptedDivisi = ['D01', 'D02']
 
-    if(!acceptedDivisi.includes(checkDivisi[0].divisiID))
-        return res.status(403).send({
-            message: "Maaf divisi anda tidak diizinkan untuk mengaksesnya"
-        });
+  const checkDivisi = await panitia.query().where({ nim })
 
-    const stateID = req.params.stateID;
+  if (!acceptedDivisi.includes(checkDivisi[0].divisiID)) {
+    return res.status(403).send({
+      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
+    })
+  }
 
-    const isProvide = await stateActivities.query().where('stateID', stateID);
+  const stateID = req.params.stateID
 
-    if(isProvide.length === 0) return res.status(404).send({message: "State tidak ditemukan"});
+  const isProvide = await stateActivities.query().where('stateID', stateID)
 
-    const {name, zoomLink, day, quota, registered, attendanceCode} = req.body;
-    
-    let stateLogo = null;
-    let fileName = '';
-    let uploadPath = '';
-    let bucketName = '';
-    let urlFile = '';
-    
-    if(req.files){
-        stateLogo = req.files.stateLogo;   
-        
-        uuid = uuidv4()
-        fileName = `${name}_${uuid}_${stateLogo.name}`
-        
-        uploadPath = './stateLogo/' + fileName;
+  if (isProvide.length === 0) return res.status(404).send({ message: 'State tidak ditemukan' })
 
-        bucketName = "mxm21-bucket-playground";
-
-        urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`;
-    } 
-
-    try{
-        if(uploadPath){
-        
-            const insertResult = await stateActivities.query().where('stateID', stateID).patch({
-                name,
-                zoomLink,
-                day,
-                stateLogo: urlFile,
-                quota,
-                registered,
-                attendanceCode
-            });
-
-            stateLogo.mv(uploadPath, (err)=>{
-                if(err) return res.status(500).send({message: err.messsage});
-            })
-
-            res_bucket = await storage.bucket(bucketName).upload(uploadPath);
-
-            fs.unlink(uploadPath, (err)=>{
-                if(err) return res.status(500).send({message: err.message});
-            })
-        }
-        else{
-            const insertResult = await stateActivities.query().where('stateID', stateID).patch({
-                name,
-                zoomLink,
-                day,
-                quota,
-                registered,
-                attendanceCode
-            });
-        }
-        return res.status(200).send({
-            message: "Data berhasil diupdate",
-        });
-    }
-    catch(err){
-        return res.status(500).send({message: err.message});
-    }
-} 
-
-exports.deleteState = async (req, res)=>{
-    const acceptedDivisi = ["D01", "D02"];
-
-    if(!acceptedDivisi.includes(checkDivisi[0].divisiID))
-        return res.status(403).send({
-            message: "Maaf divisi anda tidak diizinkan untuk mengaksesnya"
-        });
-
-    const stateID = req.params.stateID;
-
-    const isProvide = await stateActivities.query().where('stateID', stateID);
-
-    if(isProvide.length === 0) return res.status(404).send({message: "State tidak ditemukan"});
-
-    try{
-        const result = await stateActivities.query().delete().where('stateID', stateID) 
-        return res.status(200).send({message: "Data State Berhasil Dihapus"});
-    }
-    catch(err){
-        return res.status(500).send({message: err.message});
-    }
+  try {
+    const result = await stateActivities.query().delete().where('stateID', stateID)
+    return res.status(200).send({ message: 'Data State Berhasil Dihapus' })
+  } catch (err) {
+    return res.status(500).send({ message: err.message })
+  }
 }

@@ -2,16 +2,16 @@ const malpunController = require('../controllers/malpun.controller')
 const authjwtMiddleware = require('../../user/middleware/authjwt.middleware')
 const validation = require('../validation/validate')
 
-module.exports = function(app){
-    app.get(
-        '/api/panit/malpun',
-        authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
-        malpunController.getMalpunData
-    );
+module.exports = function (app) {
+  app.get(
+    '/api/panit/malpun',
+    authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
+    malpunController.getMalpunData
+  )
 
-    app.post(
-        '/api/public/malpun',
-        validation.registerMalpun, validation.runValidation,
-        malpunController.registerMalpun
-    );
+  app.post(
+    '/api/public/malpun',
+    validation.registerMalpun, validation.runValidation,
+    malpunController.registerMalpun
+  )
 }

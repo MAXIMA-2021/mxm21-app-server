@@ -1,11 +1,11 @@
-const{Model} = require('objection');
-const knex = require('../../config/knex.config');
-Model.knex(knex);
+const { Model } = require('objection')
+const knex = require('../../config/knex.config')
+Model.knex(knex)
 
-class malpun extends Model{
-    static get tableName(){
-        return 'malpun_attendance';
-    }
+class malpun extends Model {
+  static get tableName () {
+    return 'malpun_attendance'
+  }
 }
 
-module.exports = malpun;
+module.exports = malpun

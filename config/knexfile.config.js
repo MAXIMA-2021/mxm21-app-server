@@ -1,10 +1,10 @@
 module.exports = {
   development: {
-      client: `${process.env.DB_CLIENT}`,
-      connection: {
+    client: `${process.env.DB_CLIENT}`,
+    connection: {
       host: `${process.env.DB_HOST}`,
       user: `${process.env.DB_USER}`, // replace with your mysql username
-      password: ``, // replace with your mysql password
+      password: '', // replace with your mysql password
       database: `${process.env.DB_NAME}`
     },
     debug: true
@@ -13,4 +13,4 @@ module.exports = {
     min: 2,
     max: 5
   }
-};
+}
