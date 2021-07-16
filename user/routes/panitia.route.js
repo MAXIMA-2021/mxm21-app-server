@@ -1,5 +1,6 @@
 const panitaController = require('../controllers/panitia.controller')
 const validation = require('../validations/validate')
+const authJwt = require('../middleware/authjwt.middleware')
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -9,6 +10,18 @@ module.exports = function (app) {
     )
     next()
   })
+
+  app.get(
+    '/api/panitia/acc/getPanitia',
+    authJwt.verifyToken, authJwt.isPanitia,
+    panitaController.getPanitia
+  )
+
+  app.put(
+    '/api/panitia/acc/verify/:nim',
+    authJwt.verifyToken, authJwt.isPanitia,
+    panitaController.verifyNim
+  )
 
   app.post(
     '/api/panitia/acc/signup',

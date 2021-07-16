@@ -1,9 +1,54 @@
+/* eslint no-unused-vars: "off" */
+
 const panitia = require('../models/panitia.model')
 const divisi = require('../models/divisi.model')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const bcrypt = require('bcryptjs')
+
+exports.getPanitia = async (req, res) => {
+  const { param } = req.query
+
+  try {
+    if (param === undefined) {
+      const dbPanitia = await panitia.query()
+        .join('divisi', 'divisi.divisiID', 'panitia.divisiID')
+        .select(
+          'panitia.name',
+          'panitia.nim',
+          'divisi.name as divisi',
+          'panitia.verified'
+        )
+
+      return res.status(200).send(dbPanitia)
+    }
+
+    const dbPanitia = await panitia.query()
+      .join('divisi', 'divisi.divisiID', 'panitia.divisiID')
+      .select(
+        'panitia.name',
+        'panitia.nim',
+        'divisi.name as divisi',
+        'panitia.verified'
+      )
+      .where('divisi.name', param)
+      .orWhere('panitia.name', param)
+      .orWhere('panitia.nim', param)
+
+    if (dbPanitia.length === 0) {
+      return res.status(404).send({
+        message: 'Akun Tidak Ditemukan'
+      })
+    }
+
+    return res.status(200).send(dbPanitia)
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
 
 exports.signUp = async (req, res) => {
   const {
@@ -74,5 +119,50 @@ exports.signIn = async (req, res) => {
     })
   } catch (err) {
     res.status(500).send({ message: err.message })
+  }
+}
+
+exports.verifyNim = async (req, res) => {
+  const nimPanitia = req.params.nim
+
+  const nim = req.nim
+
+  const acceptedDivision = 'D01'
+
+  let verified = 1
+
+  try {
+    const checkNim = await panitia.query().where({ nim })
+
+    if (checkNim[0].divisiID !== acceptedDivision) {
+      return res.status(403).send({
+        message: 'Divisi anda tidak memiliki akses'
+      })
+    }
+
+    const dbPanitia = await panitia.query().where('nim', nimPanitia)
+
+    if (dbPanitia.length === 0) {
+      return res.status(404).send({
+        message: 'nim tidak terdaftar'
+      })
+    }
+
+    if (dbPanitia[0].verified === 1) {
+      verified = 0
+    }
+
+    const verifyPanitia = await panitia.query().where('nim', nimPanitia)
+      .patch({
+        verified
+      })
+
+    return res.status(200).send({
+      message: 'data berhasil diupdate'
+    })
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
   }
 }
