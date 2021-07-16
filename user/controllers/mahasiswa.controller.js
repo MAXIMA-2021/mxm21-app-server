@@ -6,7 +6,6 @@ const helper = require('../../helpers/helper');
 exports.signUp = async (req, res)=>{        
     const{
         nim,
-        GoogleID,
         name,
         email,
         tempatLahir,
@@ -27,7 +26,7 @@ exports.signUp = async (req, res)=>{
 
         const insertResult = await mahasiswa.query().insert({
             nim,
-            GoogleID,
+            GoogleID: '',
             name: fixName,
             email,
             tempatLahir,
@@ -64,7 +63,7 @@ exports.signIn = async (req, res) => {
         }
     
         const token = jwt.sign({nim: dbMahasiswa[0].nim}, authConfig.jwt_key, {
-            expiresIn: 86400 
+            expiresIn: 21600 
         });
     
         res.status(200).send({

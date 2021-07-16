@@ -3,6 +3,7 @@ const homeMedia = require('../models/homeMedia.model');
 const panitia = require('../../user/models/panitia.model');
 const helper = require('../../helpers/helper');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 //Configure Google Cloud Storage
 const {Storage} = require('@google-cloud/storage');
@@ -73,15 +74,14 @@ exports.createHome = async (req, res)=>{
     
     let {linkMedia} = req.files;
 
-    const dateFile = (helper.createAttendanceTime().split(' ')[0].split('-').join(''));
-    const timeFile = (helper.createAttendanceTime().split(' ')[1].split(':').join(''));
-
     const bucketName = "mxm21-bucket-playground";
 
-    //format file logo
-    const logoFileName = `${name}_${dateFile.concat(timeFile)}_${linkLogo.name}`;
+    const logoUuid = uuidv4();
 
-    const logoUploadPath = `./homeLogo/${logoFileName}`;
+    //format file logo
+    const logoFileName = `${name}_${logoUuid}_${linkLogo.name}`
+
+    const logoUploadPath = `./homeLogo/${logoFileName}`
   
     const logoUrlFile = `https://storage.googleapis.com/${bucketName}/${logoFileName}`
 
@@ -96,7 +96,8 @@ exports.createHome = async (req, res)=>{
         }
 
         for(let i = 0; i < linkMedia.length; i++){
-            mediaFileName.push(linkMedia[i].name);
+            const mediaUuid = uuidv4();
+            mediaFileName.push(`${name}_${mediaUuid}_${linkMedia[i].name}`);
             mediaUploadPath.push(`./homeMedia/${mediaFileName[i]}`);
             mediaUrlFile.push(`https://storage.googleapis.com/${bucketName}/${mediaFileName[i]}`);
         }
@@ -149,22 +150,23 @@ exports.createHome = async (req, res)=>{
             const dbHomeID = await homeInformation.query()
             .select('homeID')
             .where({search_key: searchKey})
-        
+
             for(let i = 0; i < linkMedia.length; i++){
+                console.log(mediaUploadPath[i]);
                 const insertHomeMedia = await homeMedia.query().insert({
                     homeID: dbHomeID[0].homeID,
                     linkMedia: mediaUrlFile[i]
                 })
-    
+        
                 linkMedia[i].mv(mediaUploadPath[i], (err)=>{
                     if(err)
                         return res.status(500).send({
                             message: err.message
                         })
                 })
-    
+        
                 res_bucket = await storage.bucket(bucketName).upload(mediaUploadPath[i]);
-    
+        
                 fs.unlink(mediaUploadPath[i], (err)=>{
                     if(err)
                         return res.status(500).send({
@@ -318,6 +320,13 @@ exports.updateLinkMedia = async(req, res) => {
 
     const {photoID} = req.params;
 
+    const bucketName = "mxm21-bucket-playground";
+
+    let linkMedia = ''
+
+    if(req.files)
+        linkMedia = req.files.linkMedia;
+
     try{
         const checkNim = await panitia.query().where({nim});
 
@@ -325,55 +334,46 @@ exports.updateLinkMedia = async(req, res) => {
             return res.status(403).send({
                 message: "Maaf divisi anda tidak diizinkan unuk mengaksesnya"
             })
+        
+        const dbHome = await homeMedia.query()
+        .select("home_information.*")
+        .join(
+            "home_information", 
+            "home_information.homeID", 
+            "home_media.homeID"
+        )
+        .where('home_media.photoID', photoID)
 
-        const dbMedia = await homeMedia.query().where({photoID});
+        if(linkMedia){
+            const uuid = uuidv4();
+        
+            const fileName = `${dbHome[0].name}_${uuid}_${linkMedia.name}`
+            const uploadPath = `./homeMedia/${fileName}`
+            const urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
 
-        const dbHome = await homeInformation.query().where({homeID : dbMedia[0].homeID});
+            const updateMedia = await homeMedia.query()
+            .where({photoID})
+            .update({
+                linkMedia: urlFile
+            })
 
-        const bucketName = "mxm21-bucket-playground";
+            linkMedia.mv(uploadPath, (err)=>{
+                if(err)
+                    return res.status(500).send({
+                        message: err.message
+                    })
+            })
 
-        if(dbMedia.length === 0){
-            return res.status(404).send({
-                message: "Foto tidak dapat ditemukan"
+            res_bucket = await storage.bucket(bucketName).upload(uploadPath)
+
+            fs.unlink(uploadPath, (err)=>{
+                if(err)
+                return res.status(500).send({
+                    message: err.message
+                })
             })
         }
 
-        if(req.files){
-            const linkMedia = req.files.linkMedia;
-    
-            const dateFile = (helper.createAttendanceTime().split(' ')[0].split('-').join(''));
-            const timeFile = (helper.createAttendanceTime().split(' ')[1].split(':').join(''));
-    
-            const mediaFileName = `${dbHome[0].name}_${dateFile.concat(timeFile)}_${linkMedia.name}`;
-    
-            const mediaUploadPath = `./homeMedia/${mediaFileName}`;
-
-            const mediaUrlFile = `https://storage.googleapis.com/${bucketName}/${mediaFileName}`
-
-            if(mediaUploadPath){
-                const updateHomeMedia = await homeMedia.query()
-                .where({photoID})
-                .patch({
-                    linkMedia : mediaUrlFile
-                });
-    
-                linkMedia.mv(mediaUploadPath, (err)=>{
-                    if(err)
-                        return res.status(500).send({
-                            message: err.message
-                        })
-                })
-        
-                res_bucket = await storage.bucket(bucketName).upload(mediaUploadPath);
-        
-                fs.unlink(mediaUploadPath, (err)=>{
-                    if(err)
-                        return res.status(500).send({
-                            message: err.message
-                        })
-                })
-            }
-        }
         return res.status(200).send({
             message: "HomeMedia berhasil diupdate"
         })
@@ -382,6 +382,37 @@ exports.updateLinkMedia = async(req, res) => {
         return res.status(500).send({
             message: err.message
         })
+    }
+}
+
+exports.deleteMedia = async (req, res)=>{
+    const acceptedDivision = ["D01", "D02"]
+  
+    const nim = req.nim
+
+    const {photoID} = req.params
+    
+    try{
+        const checkNim = await panitia.query().where({nim});
+
+        if(!acceptedDivision.includes(checkNim[0].divisiID))
+            return res.status(403).send({
+                message: "Maaf divisi anda tidak diizinkan unuk mengaksesnya"
+            })
+
+        const isProvide = await homeMedia.query().where({photoID});
+
+        if(isProvide.length === 0) 
+            return res.status(404).send({message: "Media tidak ditemukan"})
+
+        const deleteMedia = await homeMedia.query().delete().where({photoID});
+    
+        return res.status(200).send({
+            message: "linkMedia berhasil dihapus"
+        })
+    }
+    catch(err){
+        return res.status(500).send({message: err.message});
     }
 }
 

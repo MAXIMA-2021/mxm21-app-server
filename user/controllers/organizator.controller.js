@@ -68,7 +68,7 @@ exports.signIn = async (req, res) => {
             return res.status(401).send({message: "Password Invalid"});
 
         const token = jwt.sign({nim: dbOrganizator[0].nim, stateID: dbOrganizator[0].stateID}, authConfig.jwt_key, {
-            expiresIn: 86400 
+            expiresIn: 21600  
         });
     
         res.status(200).send({

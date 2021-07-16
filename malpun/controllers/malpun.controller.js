@@ -1,6 +1,7 @@
 const malpun = require('../models/malpun.model');
 const mahasiswa = require('../../user/models/mahasiswa.model');
 const panitia = require('../../user/models/panitia.model');
+const helper = require('../../helpers/helper');
 
 exports.getMalpunData = async (req, res) => {
     const nim = req.nim;
@@ -25,24 +26,19 @@ exports.getMalpunData = async (req, res) => {
 }
 
 exports.registerMalpun = async (req, res)=>{
-    const {nim} = req.query;
+    const{
+        name,
+        email,
+        phoneNumber
+    } = req.body;
+
+    const fixName = helper.toTitleCase(name);
 
     try{
-        const dbMahasiswa = await mahasiswa.query().where({nim});
-
-        const checkResult = await malpun.query().where({
-            email: dbMahasiswa[0].email
-        });
-
-        if(checkResult.length !== 0) 
-            return res.status(409).send({
-                message: "Maaf nama anda sudah terdaftar sebelumnya"
-            });
-
         const insertMalpun = await malpun.query().insert({
-            email: dbMahasiswa[0].email,
-            name: dbMahasiswa[0].nama,
-            phoneNumber: dbMahasiswa[0].no_hp
+            email,
+            name,
+            phoneNumber
         });
 
         return res.status(200).send({
@@ -54,5 +50,4 @@ exports.registerMalpun = async (req, res)=>{
             message: err.message
         });
     }
-    
 }

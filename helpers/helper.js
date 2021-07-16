@@ -36,3 +36,13 @@ exports.toTitleCase = (name)=>{
         }
     )
 }
+
+exports.createAttendanceCode = (name)=>{
+    const randomNumber = Math.floor(Math.random()*(999-100+1)+100)
+
+    const code = name.split(' ').join('').slice(0, 3)
+
+    const attendanceCode = `${code}${randomNumber}`
+
+    return attendanceCode
+}

@@ -2,6 +2,7 @@ const stateActivities = require('../models/stateActivities.model');
 const panitia = require('../../user/models/panitia.model');
 const fs = require('fs');
 const helper = require('../../helpers/helper');
+const { v4: uuidv4 } = require('uuid');
 
 //Google Cloud Storage Library and Keys
 const {Storage} = require('@google-cloud/storage');
@@ -50,27 +51,33 @@ exports.addState = async (req, res)=>{
             message: "Maaf divisi anda tidak diizinkan untuk mengaksesnya"
         });
 
-    const {name, zoomLink, day, quota, attendanceCode} = req.body;
+    const {
+        name, 
+        zoomLink, 
+        day, 
+        quota, 
+    } = req.body;
+
     const {stateLogo} = req.files;
 
-    const dateFile = (helper.createAttendanceTime().split(' ')[0].split('-').join(''))
-    const timeFile = (helper.createAttendanceTime().split(' ')[1].split(':').join(''))
-       
+    const attendanceCode = helper.createAttendanceCode(name)
+
     //format filename = nama state + nama file + datetime upload file
-    const fileName = name + "_" + dateFile.concat(timeFile) + "_" +  stateLogo.name;
+    const uuid = uuidv4()
+    const fileName = `${name}_${uuid}_${stateLogo.name}`
    
     const uploadPath = './stateLogo/' + fileName;
 
-    const bucket_name = "mxm21-bucket-playground";
+    const bucketName = "mxm21-bucket-playground";
 
-    const url_file = `https://storage.googleapis.com/${bucket_name}/${fileName}`;
+    const urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`;
 
     try{
         const insertResult = await stateActivities.query().insert({
             name, 
             zoomLink,
             day,
-            stateLogo: url_file,
+            stateLogo: urlFile,
             quota,
             registered: 0, 
             attendanceCode
@@ -80,7 +87,7 @@ exports.addState = async (req, res)=>{
             if(err) return res.status(500).send({message: err.messsage});
         })
 
-        res_bucket = await storage.bucket(bucket_name).upload(uploadPath);
+        res_bucket = await storage.bucket(bucketName).upload(uploadPath);
         
         res.status(200).send({
             message: "Data berhasil ditambahkan" 
@@ -116,25 +123,22 @@ exports.updateState = async (req, res)=>{
     const {name, zoomLink, day, quota, registered, attendanceCode} = req.body;
     
     let stateLogo = null;
-    let dateFile = '';
-    let timeFile = '';
     let fileName = '';
     let uploadPath = '';
-    let bucket_name = '';
-    let url_file = '';
+    let bucketName = '';
+    let urlFile = '';
     
     if(req.files){
         stateLogo = req.files.stateLogo;   
-        dateFile = (helper.createAttendanceTime().split(' ')[0].split('-').join(''));
-        timeFile = (helper.createAttendanceTime().split(' ')[1].split(':').join(''));
-
-        fileName = name + "_" + dateFile.concat(timeFile) + "_" +  stateLogo.name;
-
+        
+        uuid = uuidv4()
+        fileName = `${name}_${uuid}_${stateLogo.name}`
+        
         uploadPath = './stateLogo/' + fileName;
 
-        bucket_name = "mxm21-bucket-playground";
+        bucketName = "mxm21-bucket-playground";
 
-        url_file = `https://storage.googleapis.com/${bucket_name}/${fileName}`;
+        urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`;
     } 
 
     try{
@@ -144,7 +148,7 @@ exports.updateState = async (req, res)=>{
                 name,
                 zoomLink,
                 day,
-                stateLogo: url_file,
+                stateLogo: urlFile,
                 quota,
                 registered,
                 attendanceCode
@@ -154,7 +158,7 @@ exports.updateState = async (req, res)=>{
                 if(err) return res.status(500).send({message: err.messsage});
             })
 
-            res_bucket = await storage.bucket(bucket_name).upload(uploadPath);
+            res_bucket = await storage.bucket(bucketName).upload(uploadPath);
 
             fs.unlink(uploadPath, (err)=>{
                 if(err) return res.status(500).send({message: err.message});

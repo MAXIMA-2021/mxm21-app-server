@@ -4,8 +4,7 @@ exports.createActivitiesValidation = [
     check("name").notEmpty().withMessage("Nama tidak boleh kosong"),
     check("zoomLink").notEmpty().withMessage("Link zoom tidak boleh kosong"),
     check("day").notEmpty().withMessage("Day tidak boleh kosong"),
-    check("quota").notEmpty().withMessage("Jumlah quota tidak boleh kosong"),
-    check("attendanceCode").notEmpty().withMessage("code kehadiran tidak boleh kosong") 
+    check("quota").notEmpty().withMessage("Jumlah quota tidak boleh kosong")
 ];
 
 exports.logoValidation = (req, res, next)=>{
@@ -51,8 +50,7 @@ exports.updateActivitiesValidation = [
     check("zoomLink").notEmpty().withMessage("Link zoom tidak boleh kosong"),
     check("day").notEmpty().withMessage("Day tidak boleh kosong"),
     check("quota").notEmpty().withMessage("Jumlah quota tidak boleh kosong"),
-    check("registered").notEmpty().withMessage("Jumlah yang terdaftar tidak boleh kosong"),
-    check("attendanceCode").notEmpty().withMessage("code kehadiran tidak boleh kosong") 
+    check("registered").notEmpty().withMessage("Jumlah yang terdaftar tidak boleh kosong")
 ]
 
 exports.verifyAttendanceValidation = [
