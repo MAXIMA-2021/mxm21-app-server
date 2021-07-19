@@ -1,82 +1,173 @@
-const organizator = require('../models/organizator.model');
-const stateActivities = require('../../state/models/stateActivities.model');
-const jwt = require('jsonwebtoken');
-const authConfig = require('../../config/auth.config');
-const helper = require('../../helpers/helper');
-const bcrypt = require('bcryptjs');
+/* eslint no-unused-vars: "off" */
 
+const organizator = require('../models/organizator.model')
+const stateActivities = require('../../state/models/stateActivities.model')
+const jwt = require('jsonwebtoken')
+const authConfig = require('../../config/auth.config')
+const helper = require('../../helpers/helper')
+const bcrypt = require('bcryptjs')
+const panitia = require('../models/panitia.model')
+
+exports.getOrganizator = async (req, res) => {
+  const { param } = req.query
+
+  try {
+    if (param === undefined) {
+      const dbOrganizator = await organizator.query()
+        .join('state_activities', 'state_activities.stateID', 'organizator.stateID')
+        .select(
+          'organizator.name',
+          'organizator.nim',
+          'state_activities.name as state',
+          'organizator.verified'
+        )
+
+      return res.status(200).send(dbOrganizator)
+    }
+
+    const dbOrganizator = await organizator.query()
+      .join('state_activities', 'state_activities.stateID', 'organizator.stateID')
+      .select(
+        'organizator.name',
+        'organizator.nim',
+        'state_activities.name as state',
+        'organizator.verified'
+      )
+      .where('organizator.name', param)
+      .orWhere('organizator.nim', param)
+      .orWhere('state_activities.name', param)
+
+    if (dbOrganizator.length === 0) {
+      return res.status(404).send({
+        message: 'Akun Tidak Ditemukan'
+      })
+    }
+
+    return res.status(200).send(dbOrganizator)
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
 
 exports.signUp = async (req, res) => {
-    const{ 
-        nim, 
-        name, 
-        email, 
-        password, 
-        stateID, 
-    } = req.body;
+  const {
+    nim,
+    name,
+    email,
+    password,
+    stateID
+  } = req.body
 
-    const verified = 0;
-        
-    const fixName = helper.toTitleCase(name);
+  const verified = 0
 
-    try{
-        const result = await organizator.query().where('nim', nim);
+  const fixName = helper.toTitleCase(name)
 
-        if(result.length !== 0) 
-            return res.status(409).send({message: "nim sudah terdaftar"});
+  try {
+    const result = await organizator.query().where('nim', nim)
 
-        const checkState = await stateActivities.query().where('stateID', stateID)
-
-        if(checkState.length === 0)
-            return res.status(404).send({message: "State tidak terdaftar"});
-        
-        const fixPassword = bcrypt.hashSync(password, 8);
-
-        const insertResult = await organizator.query().insert({
-            nim,
-            name: fixName,
-            email,
-            password: fixPassword,
-            stateID, 
-            verified
-        });
-
-        res.status(200).send({
-            message: "Data berhasil ditambahkan"
-        });
+    if (result.length !== 0) {
+      return res.status(409).send({
+        message: 'nim sudah terdaftar'
+      })
     }
-    catch(err){
-        res.status(500).send({message: err.message});
+
+    const checkState = await stateActivities.query().where('stateID', stateID)
+
+    if (checkState.length === 0) {
+      return res.status(404).send({
+        message: 'State tidak terdaftar'
+      })
     }
+
+    const fixPassword = bcrypt.hashSync(password, 8)
+
+    const insertResult = await organizator.query().insert({
+      nim,
+      name: fixName,
+      email,
+      password: fixPassword,
+      stateID,
+      verified
+    })
+
+    res.status(200).send({
+      message: 'Data berhasil ditambahkan'
+    })
+  } catch (err) {
+    res.status(500).send({ message: err.message })
+  }
 }
 
 exports.signIn = async (req, res) => {
-    const { nim, password } = req.body;
+  const { nim, password } = req.body
 
-    try{
-        const dbOrganizator = await organizator.query().where('nim', nim);
+  try {
+    const dbOrganizator = await organizator.query().where('nim', nim)
 
-        if(dbOrganizator.length === 0)
-            return res.status(404).send({message: "nim tidak terdaftar"});
+    if (dbOrganizator.length === 0) { return res.status(404).send({ message: 'nim tidak terdaftar' }) }
 
-        if(dbOrganizator[0].verified === 0)
-            return res.status(401).send({message: "Maaf akun anda belum diverifikasi oleh pihak pusat"});
+    if (dbOrganizator[0].verified === 0) { return res.status(401).send({ message: 'Maaf akun anda belum diverifikasi oleh pihak pusat' }) }
 
-        const isPasswordValid = bcrypt.compareSync(password, dbOrganizator[0].password);
+    const isPasswordValid = bcrypt.compareSync(password, dbOrganizator[0].password)
 
-        if(!isPasswordValid)
-            return res.status(401).send({message: "Password Invalid"});
+    if (!isPasswordValid) { return res.status(401).send({ message: 'Password Invalid' }) }
 
-        const token = jwt.sign({nim: dbOrganizator[0].nim, stateID: dbOrganizator[0].stateID}, authConfig.jwt_key, {
-            expiresIn: 86400 
-        });
-    
-        res.status(200).send({
-            message: "Berhasil Login",
-            token: token
-        });
+    const token = jwt.sign({ nim: dbOrganizator[0].nim, stateID: dbOrganizator[0].stateID }, authConfig.jwt_key, {
+      expiresIn: 21600
+    })
+
+    res.status(200).send({
+      message: 'Berhasil Login',
+      token: token
+    })
+  } catch (err) {
+    res.status(500).send({ message: err.message })
+  }
+}
+
+exports.verifyNim = async (req, res) => {
+  const nimOrganizator = req.params.nim
+
+  const nim = req.nim
+
+  const acceptedDivision = 'D01'
+
+  let verified = 1
+
+  try {
+    const checkNim = await panitia.query().where({ nim })
+
+    if (checkNim[0].divisiID !== acceptedDivision) {
+      return res.status(403).send({
+        message: 'Anda tidak memiliki akses'
+      })
     }
-    catch(err){
-        res.status(500).send({message: err.message});
+
+    const dbOrganizator = await organizator.query().where('nim', nimOrganizator)
+
+    if (dbOrganizator.length === 0) {
+      return res.status(404).send({
+        message: 'nim tidak terdaftar'
+      })
     }
+
+    if (dbOrganizator[0].verified === 1) {
+      verified = 0
+    }
+
+    const verifyOrganizator = await organizator.query().where('nim', nimOrganizator)
+      .patch({
+        verified
+      })
+
+    return res.status(200).send({
+      message: 'Data berhasil diupdate'
+    })
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
+  }
 }
