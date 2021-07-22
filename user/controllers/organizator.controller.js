@@ -7,6 +7,8 @@ const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const bcrypt = require('bcryptjs')
 const panitia = require('../models/panitia.model')
+const logging = require('../../mongoose/logging.mongoose')
+const address = require('address')
 
 exports.getOrganizator = async (req, res) => {
   const { param } = req.query
@@ -103,6 +105,8 @@ exports.signUp = async (req, res) => {
 exports.signIn = async (req, res) => {
   const { nim, password } = req.body
 
+  const ip = address.ip()
+
   try {
     const dbOrganizator = await organizator.query().where('nim', nim)
 
@@ -117,6 +121,8 @@ exports.signIn = async (req, res) => {
     const token = jwt.sign({ nim: dbOrganizator[0].nim, stateID: dbOrganizator[0].stateID }, authConfig.jwt_key, {
       expiresIn: 21600
     })
+
+    const loginLogging = logging.loginLogging(nim, ip)
 
     res.status(200).send({
       message: 'Berhasil Login',

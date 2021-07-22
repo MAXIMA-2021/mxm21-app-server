@@ -20,9 +20,9 @@ exports.createAttendanceTime = () => {
   const dd = String(today.getDate()).padStart(2, '0')
   const mm = String(today.getMonth() + 1).padStart(2, '0')
   const yyyy = today.getFullYear()
-  const hour = today.getHours()
-  const minute = today.getMinutes()
-  const second = today.getSeconds()
+  const hour = `${today.getHours()}`.padStart(2, '0')
+  const minute = `${today.getMinutes()}`.padStart(2, '0')
+  const second = `${today.getSeconds()}`.padStart(2, '0')
 
   const attendanceTime = `${yyyy}-${mm}-${dd} ${hour}:${minute}:${second}`
 

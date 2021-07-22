@@ -1,7 +1,23 @@
+/* eslint no-unused-vars: "off" */
+
 const mahasiswa = require('../models/mahasiswa.model')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
+const logging = require('../../mongoose/logging.mongoose')
+const address = require('address')
+
+exports.getMahasiswa = async (req, res) => {
+  try {
+    const result = await mahasiswa.query()
+
+    return res.status(200).send(result)
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
 
 exports.signUp = async (req, res) => {
   const {
@@ -49,6 +65,8 @@ exports.signUp = async (req, res) => {
 exports.signIn = async (req, res) => {
   const { nim, password } = req.body
 
+  const ip = address.ip()
+
   try {
     const dbMahasiswa = await mahasiswa.query().select('nim', 'tanggalLahir').where('nim', nim)
 
@@ -63,6 +81,8 @@ exports.signIn = async (req, res) => {
     const token = jwt.sign({ nim: dbMahasiswa[0].nim }, authConfig.jwt_key, {
       expiresIn: 21600
     })
+
+    const loginLogging = logging.loginLogging(nim, ip)
 
     res.status(200).send({
       message: 'Berhasil Login',

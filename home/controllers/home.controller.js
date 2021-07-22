@@ -6,6 +6,7 @@ const panitia = require('../../user/models/panitia.model')
 const helper = require('../../helpers/helper')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
+const logging = require('../../mongoose/logging.mongoose')
 
 // Configure Google Cloud Storage
 const { Storage } = require('@google-cloud/storage')
@@ -47,7 +48,7 @@ exports.getHomeData = async (req, res) => {
   }
 }
 
-exports.createHome = async (req, res) => {
+exports.createHomeInformation = async (req, res) => {
   const acceptedDivision = ['D01', 'D02', 'D03']
 
   const nim = req.nim
@@ -68,13 +69,15 @@ exports.createHome = async (req, res) => {
     })
   }
 
+  const type = 'insert/HoME_Information'
+
+  const dateTime = helper.createAttendanceTime()
+
   const fixName = helper.toTitleCase(name)
 
   const searchKey = name.toLowerCase().replace(' ', '-')
 
   const { linkLogo } = req.files
-
-  let { linkMedia } = req.files
 
   const bucketName = 'mxm21-bucket-playground'
 
@@ -87,23 +90,7 @@ exports.createHome = async (req, res) => {
 
   const logoUrlFile = `https://storage.googleapis.com/${bucketName}/${logoFileName}`
 
-  // format file media
-  const mediaFileName = []
-  const mediaUploadPath = []
-  const mediaUrlFile = []
-
-  if (linkMedia !== undefined) {
-    if (linkMedia.length === undefined) {
-      linkMedia = [linkMedia]
-    }
-
-    for (let i = 0; i < linkMedia.length; i++) {
-      const mediaUuid = uuidv4()
-      mediaFileName.push(`${name}_${mediaUuid}_${linkMedia[i].name}`)
-      mediaUploadPath.push(`./homeMedia/${mediaFileName[i]}`)
-      mediaUrlFile.push(`https://storage.googleapis.com/${bucketName}/${mediaFileName[i]}`)
-    }
-  }
+  let objectData = []
 
   try {
     const checkNim = await panitia.query().where({ nim })
@@ -152,40 +139,110 @@ exports.createHome = async (req, res) => {
       }
     })
 
-    if (mediaUploadPath.length !== 0) {
-      const dbHomeID = await homeInformation.query()
-        .select('homeID')
-        .where({ search_key: searchKey })
-
-      for (let i = 0; i < linkMedia.length; i++) {
-        console.log(mediaUploadPath[i])
-        const insertHomeMedia = await homeMedia.query().insert({
-          homeID: dbHomeID[0].homeID,
-          linkMedia: mediaUrlFile[i]
-        })
-
-        linkMedia[i].mv(mediaUploadPath[i], (err) => {
-          if (err) {
-            return res.status(500).send({
-              message: err.message
-            })
-          }
-        })
-
-        res_bucket = await storage.bucket(bucketName).upload(mediaUploadPath[i])
-
-        fs.unlink(mediaUploadPath[i], (err) => {
-          if (err) {
-            return res.status(500).send({
-              message: err.message
-            })
-          }
-        })
-      }
+    objectData = {
+      search_key: searchKey,
+      linkLogo: logoUrlFile,
+      name: fixName,
+      kategori: kategori,
+      shortDesc: shortDesc,
+      longDesc: longDesc,
+      instagram: instagram,
+      lineID: lineID,
+      linkYoutube: linkYoutube,
+      homeMedia: []
     }
+
+    const homeLogging = logging.homeLogging(type, nim, objectData, dateTime)
 
     return res.status(200).send({
       message: 'Home berhasil terdaftar'
+    })
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
+
+exports.createHomeMedia = async (req, res, next) => {
+  const { homeID } = req.params
+
+  const nim = req.nim
+
+  const mediaFileName = []
+  const mediaUploadPath = []
+  const mediaUrlFile = []
+
+  let { linkMedia } = req.files
+
+  const type = 'insert/HoME_Media'
+
+  const dateTime = helper.createAttendanceTime()
+
+  const dbHome = await homeInformation.query().where({ homeID })
+
+  const dbHomeMedia = await homeMedia.query().where({ homeID })
+
+  if (dbHome.length === 0) {
+    return res.status(500).send({
+      message: 'Maaf Home tidak tersedia'
+    })
+  }
+
+  if (dbHomeMedia.length !== 0) {
+    return res.status(500).send({
+      message: 'Maaf Media pada Home ini sudah tersedia'
+    })
+  }
+
+  const bucketName = 'mxm21-bucket-playground'
+
+  let objectData = []
+
+  if (linkMedia && linkMedia.length === undefined) {
+    linkMedia = [linkMedia]
+  }
+
+  for (let i = 0; i < linkMedia.length; i++) {
+    const mediaUuid = uuidv4()
+    mediaFileName.push(`${dbHome[0].name}_${mediaUuid}_${linkMedia[i].name}`)
+    mediaUploadPath.push(`./homeMedia/${mediaFileName[i]}`)
+    mediaUrlFile.push(`https://storage.googleapis.com/${bucketName}/${mediaFileName[i]}`)
+  }
+
+  try {
+    for (let i = 0; i < mediaUploadPath.length; i++) {
+      const insertMedia = await homeMedia.query().insert({
+        homeID,
+        linkMedia: mediaUrlFile[i]
+      })
+
+      linkMedia[i].mv(mediaUploadPath[i], (err) => {
+        if (err) {
+          return res.status(500).send({ message: err.message })
+        }
+      })
+
+      res_bucket = await storage.bucket(bucketName).upload(mediaUploadPath[i])
+
+      fs.unlink(mediaUploadPath[i], (err) => {
+        if (err) {
+          return res.status(500).send({
+            message: err.message
+          })
+        }
+      })
+    }
+
+    objectData = {
+      homeID: homeID,
+      homeMedia: mediaUrlFile
+    }
+
+    const homeLogging = logging.homeLogging(type, nim, objectData, dateTime)
+
+    return res.status(200).send({
+      message: 'Media Berhasil Ditambahkan'
     })
   } catch (err) {
     return res.status(500).send({
@@ -228,6 +285,12 @@ exports.updateHome = async (req, res) => {
   let logoUrlFile = ''
 
   const bucketName = 'mxm21-bucket-playground'
+
+  const type = 'update/HoME_Information'
+
+  const dateTime = helper.createAttendanceTime()
+
+  let objectData = []
 
   if (req.files) {
     linkLogo = req.files.linkLogo
@@ -295,6 +358,19 @@ exports.updateHome = async (req, res) => {
           })
         }
       })
+
+      objectData = {
+        homeID: homeID,
+        search_key: searchKey,
+        linkLogo: logoUrlFile,
+        name: name,
+        kategori: kategori,
+        shortDesc: shortDesc,
+        longDesc: longDesc,
+        instagram: instagram,
+        lineID: lineID,
+        linkYoutube: linkYoutube
+      }
     } else {
       const updateHomeInformation = await homeInformation.query()
         .where({ homeID })
@@ -308,7 +384,21 @@ exports.updateHome = async (req, res) => {
           lineID,
           linkYoutube
         })
+
+      objectData = {
+        homeID: homeID,
+        search_key: searchKey,
+        name: name,
+        kategori: kategori,
+        shortDesc: shortDesc,
+        longDesc: longDesc,
+        instagram: instagram,
+        lineID: lineID,
+        linkYoutube: linkYoutube
+      }
     }
+
+    const homeLogging = logging.homeLogging(type, nim, objectData, dateTime)
 
     return res.status(200).send({
       message: 'Home berhasil diupdate'
@@ -329,7 +419,13 @@ exports.updateLinkMedia = async (req, res) => {
 
   const bucketName = 'mxm21-bucket-playground'
 
+  const type = 'update/HoME_Media'
+
+  const dateTime = helper.createAttendanceTime()
+
   let linkMedia = ''
+
+  let objectData = []
 
   if (req.files) { linkMedia = req.files.linkMedia }
 
@@ -381,7 +477,14 @@ exports.updateLinkMedia = async (req, res) => {
           })
         }
       })
+
+      objectData = {
+        photoID: photoID,
+        linkMedia: urlFile
+      }
     }
+
+    const homeLogging = logging.homeLogging(type, nim, objectData, dateTime)
 
     return res.status(200).send({
       message: 'HomeMedia berhasil diupdate'

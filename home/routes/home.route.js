@@ -13,9 +13,16 @@ module.exports = function (app) {
     authJwt.verifyToken, authJwt.isPanitia,
     validation.insertHomeValidation,
     validation.insertLogoValidation,
+    validation.runValidation,
+    homeController.createHomeInformation
+  )
+
+  app.post(
+    '/api/panit/home/:homeID',
+    authJwt.verifyToken, authJwt.isPanitia,
     validation.insertMediaValidation,
     validation.runValidation,
-    homeController.createHome
+    homeController.createHomeMedia
   )
 
   app.put(

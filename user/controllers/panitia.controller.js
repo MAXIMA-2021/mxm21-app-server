@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const bcrypt = require('bcryptjs')
+const logging = require('../../mongoose/logging.mongoose')
+const address = require('address')
 
 exports.getPanitia = async (req, res) => {
   const { param } = req.query
@@ -94,6 +96,8 @@ exports.signUp = async (req, res) => {
 exports.signIn = async (req, res) => {
   const { nim, password } = req.body
 
+  const ip = address.ip()
+
   try {
     const dbPanitia = await panitia.query().where('nim', nim)
 
@@ -112,6 +116,8 @@ exports.signIn = async (req, res) => {
     const token = jwt.sign({ nim: dbPanitia[0].nim }, authConfig.jwt_key, {
       expiresIn: 21600
     })
+
+    const loginLogging = logging.loginLogging(nim, ip)
 
     res.status(200).send({
       message: 'Berhasil Login',

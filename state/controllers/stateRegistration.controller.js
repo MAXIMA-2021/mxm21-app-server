@@ -1,6 +1,7 @@
 const stateActivities = require('../models/stateActivities.model')
 const stateRegistration = require('../models/stateRegistration.model')
 const helper = require('../../helpers/helper')
+const logging = require('../../mongoose/logging.mongoose')
 
 exports.getRegistration = async (req, res) => {
   const { stateID, nim } = req.query
@@ -113,6 +114,10 @@ exports.updateAttendance = async (req, res) => {
   const { stateID, nim } = req.params
   const { inEventAttendance } = req.body
 
+  const type = 'update_presensi_state_inevent'
+
+  const nim_panit = req.nim
+
   try {
     const checkRegistration = await stateRegistration.query().where({
       stateID,
@@ -123,13 +128,16 @@ exports.updateAttendance = async (req, res) => {
       return res.status(404).send({ message: 'Peserta belum mendaftar' })
     }
 
-    const updateAttendance = await stateRegistration.query().where({
-      stateID,
-      nim
-    })
+    const updateAttendance = await stateRegistration.query()
+      .where({
+        stateID,
+        nim
+      })
       .patch({
         inEventAttendance: inEventAttendance
       })
+
+    const attendanceLogging = logging.attendancelogging(type, nim_panit, nim, stateID, inEventAttendance)
 
     return res.status(200).send({ message: 'Sudah diupdate' })
   } catch (err) {

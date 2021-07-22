@@ -1,5 +1,6 @@
 const mahasiswaController = require('../controllers/mahasiswa.controller')
 const validation = require('../validations/validate')
+const authJWT = require('../middleware/authjwt.middleware')
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -9,6 +10,12 @@ module.exports = function (app) {
     )
     next()
   })
+
+  app.get(
+    '/api/panitia/acc/getMahasiswa',
+    authJWT.verifyToken, authJWT.isPanitia,
+    mahasiswaController.getMahasiswa
+  )
 
   app.post(
     '/api/mhs/acc/signup',

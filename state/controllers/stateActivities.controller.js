@@ -1,8 +1,11 @@
 const stateActivities = require('../models/stateActivities.model')
+const stateRegistration = require('../models/stateRegistration.model')
 const panitia = require('../../user/models/panitia.model')
+const organizator = require('../../user/models/organizator.model')
 const fs = require('fs')
 const helper = require('../../helpers/helper')
 const { v4: uuidv4 } = require('uuid')
+const logging = require('../../mongoose/logging.mongoose')
 
 // Google Cloud Storage Library and Keys
 const { Storage } = require('@google-cloud/storage')
@@ -35,6 +38,19 @@ exports.getStateData = async (req, res) => {
   }
 }
 
+exports.getPublicStateData = async (req, res) => {
+  try {
+    const result = await stateActivities.query()
+      .select('stateID', 'name', 'stateLogo')
+
+    return res.status(200).send(result)
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
+
 exports.addState = async (req, res) => {
   const nim = req.nim
 
@@ -58,6 +74,10 @@ exports.addState = async (req, res) => {
   const { stateLogo } = req.files
 
   const attendanceCode = helper.createAttendanceCode(name)
+
+  const dateTime = helper.createAttendanceTime()
+
+  const type = 'insert/STATE'
 
   // format filename = nama state + nama file + datetime upload file
   const uuid = uuidv4()
@@ -86,6 +106,8 @@ exports.addState = async (req, res) => {
 
     res_bucket = await storage.bucket(bucketName).upload(uploadPath)
 
+    const stateLogging = logging.stateLogging(type, nim, insertResult, dateTime)
+
     res.status(200).send({
       message: 'Data berhasil ditambahkan'
     })
@@ -99,6 +121,8 @@ exports.addState = async (req, res) => {
 }
 
 exports.updateState = async (req, res) => {
+  const { name, zoomLink, day, quota } = req.body
+
   const nim = req.nim
 
   const checkDivisi = await panitia.query().where({ nim })
@@ -111,13 +135,25 @@ exports.updateState = async (req, res) => {
     })
   }
 
+  const type = 'update/STATE'
+
+  const dateTime = helper.createAttendanceTime()
+
   const stateID = req.params.stateID
 
   const isProvide = await stateActivities.query().where('stateID', stateID)
 
-  if (isProvide.length === 0) return res.status(404).send({ message: 'State tidak ditemukan' })
+  const checkName = await stateActivities.query().where('name', name)
 
-  const { name, zoomLink, day, quota, registered, attendanceCode } = req.body
+  let attendanceCode = isProvide[0].attendanceCode
+
+  if (checkName[0] && checkName[0].name !== isProvide[0].name) {
+    return res.status(409).send({
+      message: 'Maaf nama State sudah terdaftar'
+    })
+  } else if (!checkName[0]) {
+    attendanceCode = helper.createAttendanceCode(name)
+  }
 
   let stateLogo = null
   let fileName = ''
@@ -138,15 +174,16 @@ exports.updateState = async (req, res) => {
     urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
   }
 
+  let objectData = []
+
   try {
     if (uploadPath) {
-      const insertResult = await stateActivities.query().where('stateID', stateID).patch({
+      const updateResult = await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
         day,
         stateLogo: urlFile,
         quota,
-        registered,
         attendanceCode
       })
 
@@ -159,16 +196,35 @@ exports.updateState = async (req, res) => {
       fs.unlink(uploadPath, (err) => {
         if (err) return res.status(500).send({ message: err.message })
       })
+
+      objectData = {
+        name: name,
+        zoomLink: zoomLink,
+        day: day,
+        stateLogo: urlFile,
+        quota: quota,
+        attendanceCode: attendanceCode
+      }
     } else {
-      const insertResult = await stateActivities.query().where('stateID', stateID).patch({
+      const updateResult = await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
         day,
         quota,
-        registered,
         attendanceCode
       })
+
+      objectData = {
+        name: name,
+        zoomLink: zoomLink,
+        day: day,
+        quota: quota,
+        attendanceCode: attendanceCode
+      }
     }
+
+    const stateLogging = logging.stateLogging(type, nim, objectData, dateTime)
+
     return res.status(200).send({
       message: 'Data berhasil diupdate'
     })
@@ -197,8 +253,21 @@ exports.deleteState = async (req, res) => {
   if (isProvide.length === 0) return res.status(404).send({ message: 'State tidak ditemukan' })
 
   try {
-    const result = await stateActivities.query().delete().where('stateID', stateID)
-    return res.status(200).send({ message: 'Data State Berhasil Dihapus' })
+    const deleteStateRegistration = await stateRegistration.query()
+      .delete()
+      .where('stateID', stateID)
+
+    const deleteOrganizator = await organizator.query()
+      .delete()
+      .where('stateID', stateID)
+
+    const deleteStateActivities = await stateActivities.query()
+      .delete()
+      .where('stateID', stateID)
+
+    return res.status(200).send({
+      message: 'Data State Berhasil Dihapus'
+    })
   } catch (err) {
     return res.status(500).send({ message: err.message })
   }

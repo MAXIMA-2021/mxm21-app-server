@@ -9,6 +9,9 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors())
 app.use(file())
 
+// Configure Mongo DB
+require('./config/mongo.config')()
+
 require('./user/routes/mahasiswa.route')(app)
 require('./user/routes/panitia.route')(app)
 require('./user/routes/organizator.route')(app)

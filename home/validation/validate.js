@@ -26,15 +26,20 @@ exports.insertLogoValidation = (req, res, next) => {
   next()
 }
 
-exports.insertMediaValidation = (req, res, next) => {
+exports.insertMediaValidation = async (req, res, next) => {
   const mediaErrors = []
   const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
 
   let linkMedia = []
 
-  if (req.files && req.files.linkMedia && req.files.linkMedia.length === undefined) {
-    linkMedia.push(req.files.linkMedia)
-  } else if (req.files && req.files.linkMedia && req.files.linkMedia.length !== undefined) {
+  if (!req.files) {
+    mediaErrors.push({
+      key: 'linkMedia',
+      message: 'Media Tidak Boleh Kosong'
+    })
+  } else if (req.files.linkMedia.length === undefined) {
+    linkMedia = [req.files.linkMedia]
+  } else if (req.files.linkMedia.length !== undefined) {
     linkMedia = req.files.linkMedia
   }
 
@@ -69,7 +74,7 @@ exports.updateLogoValidation = (req, res, next) => {
     })
   }
 
-  req.fileErrors = fileErrors
+  req.logoErrors = fileErrors
 
   next()
 }
@@ -91,14 +96,24 @@ exports.updateMediaValidation = (req, res, next) => {
     })
   }
 
-  req.fileErrors = fileErrors
+  req.mediaErrors = fileErrors
 
   next()
 }
 
 exports.runValidation = (req, res, next) => {
   const errors = validationResult(req).errors
+
+  if (!req.logoErrors) {
+    req.logoErrors = []
+  }
+
+  if (!req.mediaErrors) {
+    req.mediaErrors = []
+  }
+
   const fileErrors = req.logoErrors.concat(req.mediaErrors)
+
   let listErrors = []
 
   if (errors.length !== 0) {
