@@ -4,7 +4,7 @@ module.exports = {
     connection: {
       host: `${process.env.DB_HOST}`,
       user: `${process.env.DB_USER}`, // replace with your mysql username
-      password: '', // replace with your mysql password
+      password: `${process.env.DB_PASS}`, // replace with your mysql password
       database: `${process.env.DB_NAME}`
     },
     debug: true
