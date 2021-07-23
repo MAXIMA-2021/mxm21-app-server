@@ -7,7 +7,7 @@ const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const bcrypt = require('bcryptjs')
 const panitia = require('../models/panitia.model')
-const logging = require('../../mongoose/logging.mongoose')
+const logging = require('../../mongoose/controllers/logging.mongoose')
 const address = require('address')
 
 exports.getOrganizator = async (req, res) => {
@@ -47,6 +47,7 @@ exports.getOrganizator = async (req, res) => {
 
     return res.status(200).send(dbOrganizator)
   } catch (err) {
+    const errorLogging = logging.errorLogging('getOrganizator', 'Organizator', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -61,6 +62,8 @@ exports.signUp = async (req, res) => {
     password,
     stateID
   } = req.body
+
+  const type = 'signUp/Organizator'
 
   const verified = 0
 
@@ -98,6 +101,7 @@ exports.signUp = async (req, res) => {
       message: 'Data berhasil ditambahkan'
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('signUp', 'Organizator', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -106,6 +110,8 @@ exports.signIn = async (req, res) => {
   const { nim, password } = req.body
 
   const ip = address.ip()
+
+  const type = 'signIn/Organizator'
 
   try {
     const dbOrganizator = await organizator.query().where('nim', nim)
@@ -129,6 +135,7 @@ exports.signIn = async (req, res) => {
       token: token
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('signIn', 'Organizator', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -141,6 +148,8 @@ exports.verifyNim = async (req, res) => {
   const acceptedDivision = 'D01'
 
   let verified = 1
+
+  const type = 'verify/Organizator'
 
   try {
     const checkNim = await panitia.query().where({ nim })
@@ -172,6 +181,7 @@ exports.verifyNim = async (req, res) => {
       message: 'Data berhasil diupdate'
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('verifyNim', 'Organizator', err.message)
     return res.status(500).send({
       message: err.message
     })

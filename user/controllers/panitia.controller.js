@@ -6,11 +6,13 @@ const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const bcrypt = require('bcryptjs')
-const logging = require('../../mongoose/logging.mongoose')
+const logging = require('../../mongoose/controllers/logging.mongoose')
 const address = require('address')
 
 exports.getPanitia = async (req, res) => {
   const { param } = req.query
+
+  const type = 'read/Panitia'
 
   try {
     if (param === undefined) {
@@ -46,6 +48,7 @@ exports.getPanitia = async (req, res) => {
 
     return res.status(200).send(dbPanitia)
   } catch (err) {
+    const errorLogging = logging.errorLogging('getPanitia', 'Panitia', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -62,6 +65,8 @@ exports.signUp = async (req, res) => {
   } = req.body
 
   const verified = 0
+
+  const type = 'signUp/Panitia'
 
   const fixName = helper.toTitleCase(name)
 
@@ -89,6 +94,7 @@ exports.signUp = async (req, res) => {
       message: 'Data berhasil ditambahkan'
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('signUp', 'Panitia', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -97,6 +103,8 @@ exports.signIn = async (req, res) => {
   const { nim, password } = req.body
 
   const ip = address.ip()
+
+  const type = 'signIn/Panitia'
 
   try {
     const dbPanitia = await panitia.query().where('nim', nim)
@@ -124,6 +132,7 @@ exports.signIn = async (req, res) => {
       token: token
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('signIn', 'Panitia', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -134,6 +143,8 @@ exports.verifyNim = async (req, res) => {
   const nim = req.nim
 
   const acceptedDivision = 'D01'
+
+  const type = 'verify/Panitia'
 
   let verified = 1
 
@@ -167,6 +178,7 @@ exports.verifyNim = async (req, res) => {
       message: 'data berhasil diupdate'
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('verifyNim', 'Panitia', err.message)
     return res.status(500).send({
       message: err.message
     })

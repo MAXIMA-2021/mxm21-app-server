@@ -3,6 +3,7 @@ const authConfig = require('../../config/auth.config')
 const mahasiswa = require('../models/mahasiswa.model')
 const panitia = require('../models/panitia.model')
 const organizator = require('../models/organizator.model')
+const logging = require('../../mongoose/controllers/logging.mongoose')
 
 exports.verifyToken = async (req, res, next) => {
   try {
@@ -21,6 +22,7 @@ exports.verifyToken = async (req, res, next) => {
       next()
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('verifyToken', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -38,6 +40,7 @@ exports.isMahasiswa = async (req, res, next) => {
 
     next()
   } catch (err) {
+    const errorLogging = logging.errorLogging('isMahasiswa', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -54,12 +57,15 @@ exports.isPanitia = async (req, res, next) => {
 
     next()
   } catch (err) {
+    const errorLogging = logging.errorLogging('isPanitia', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
 
 exports.isOrganizator = async (req, res, next) => {
   const nim = req.nim
+
+  const type = 'isOrganizator/JWT'
 
   req.roleID = 3
 
@@ -70,6 +76,7 @@ exports.isOrganizator = async (req, res, next) => {
 
     next()
   } catch (err) {
+    const errorLogging = logging.errorLogging('isOrganizator', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }

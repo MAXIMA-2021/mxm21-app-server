@@ -5,7 +5,7 @@ const organizator = require('../../user/models/organizator.model')
 const fs = require('fs')
 const helper = require('../../helpers/helper')
 const { v4: uuidv4 } = require('uuid')
-const logging = require('../../mongoose/logging.mongoose')
+const logging = require('../../mongoose/controllers/logging.mongoose')
 
 // Google Cloud Storage Library and Keys
 const { Storage } = require('@google-cloud/storage')
@@ -34,17 +34,21 @@ exports.getStateData = async (req, res) => {
       }
     }
   } catch (err) {
+    const errorLogging = logging.errorLogging('getStateData', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
 
 exports.getPublicStateData = async (req, res) => {
+  const type = 'getPublicStateData'
+
   try {
     const result = await stateActivities.query()
       .select('stateID', 'name', 'stateLogo')
 
     return res.status(200).send(result)
   } catch (err) {
+    const errorLogging = logging.errorLogging('getPublicStateData', 'State_Activities', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -77,8 +81,6 @@ exports.addState = async (req, res) => {
 
   const dateTime = helper.createAttendanceTime()
 
-  const type = 'insert/STATE'
-
   // format filename = nama state + nama file + datetime upload file
   const uuid = uuidv4()
   const fileName = `${name}_${uuid}_${stateLogo.name}`
@@ -101,21 +103,24 @@ exports.addState = async (req, res) => {
     })
 
     stateLogo.mv(uploadPath, (err) => {
+      const errorLogging = logging.errorLogging('State_Activities', err.message)
       if (err) return res.status(500).send({ message: err.messsage })
     })
 
     res_bucket = await storage.bucket(bucketName).upload(uploadPath)
 
-    const stateLogging = logging.stateLogging(type, nim, insertResult, dateTime)
+    const stateLogging = logging.stateLogging('insert/STATE', nim, insertResult, dateTime)
 
     res.status(200).send({
       message: 'Data berhasil ditambahkan'
     })
 
     fs.unlink(uploadPath, (err) => {
+      const errorLogging = logging.errorLogging('addState', 'State_Activities', err.message)
       if (err) return res.status(500).send({ message: err.messsage })
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('addState', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -134,8 +139,6 @@ exports.updateState = async (req, res) => {
       message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
     })
   }
-
-  const type = 'update/STATE'
 
   const dateTime = helper.createAttendanceTime()
 
@@ -188,12 +191,14 @@ exports.updateState = async (req, res) => {
       })
 
       stateLogo.mv(uploadPath, (err) => {
+        const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
         if (err) return res.status(500).send({ message: err.messsage })
       })
 
       res_bucket = await storage.bucket(bucketName).upload(uploadPath)
 
       fs.unlink(uploadPath, (err) => {
+        const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
         if (err) return res.status(500).send({ message: err.message })
       })
 
@@ -223,12 +228,13 @@ exports.updateState = async (req, res) => {
       }
     }
 
-    const stateLogging = logging.stateLogging(type, nim, objectData, dateTime)
+    const stateLogging = logging.stateLogging('update/STATE', nim, objectData, dateTime)
 
     return res.status(200).send({
       message: 'Data berhasil diupdate'
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -269,6 +275,7 @@ exports.deleteState = async (req, res) => {
       message: 'Data State Berhasil Dihapus'
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('deleteState', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }

@@ -1,7 +1,7 @@
 const stateActivities = require('../models/stateActivities.model')
 const stateRegistration = require('../models/stateRegistration.model')
 const helper = require('../../helpers/helper')
-const logging = require('../../mongoose/logging.mongoose')
+const logging = require('../../mongoose/controllers/logging.mongoose')
 
 exports.getRegistration = async (req, res) => {
   const { stateID, nim } = req.query
@@ -39,6 +39,7 @@ exports.getRegistration = async (req, res) => {
 
     return res.status(200).send(result)
   } catch (err) {
+    const errorLogging = logging.errorLogging('getRegistration', 'State_Registration', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -75,6 +76,7 @@ exports.addRegistration = async (req, res) => {
       message: 'Anda berhasil mendaftar'
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('addRegistration', 'State_Registration', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -104,6 +106,7 @@ exports.attendanceState = async (req, res) => {
 
     return res.status(200).send({ message: 'Hadir' })
   } catch (err) {
+    const errorLogging = logging.errorLogging('attendanceState', 'State_Registration', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -113,8 +116,6 @@ exports.attendanceState = async (req, res) => {
 exports.updateAttendance = async (req, res) => {
   const { stateID, nim } = req.params
   const { inEventAttendance } = req.body
-
-  const type = 'update_presensi_state_inevent'
 
   const nim_panit = req.nim
 
@@ -137,10 +138,11 @@ exports.updateAttendance = async (req, res) => {
         inEventAttendance: inEventAttendance
       })
 
-    const attendanceLogging = logging.attendancelogging(type, nim_panit, nim, stateID, inEventAttendance)
+    const attendanceLogging = logging.attendancelogging('update_presensi_state_inevent', nim_panit, nim, stateID, inEventAttendance)
 
     return res.status(200).send({ message: 'Sudah diupdate' })
   } catch (err) {
+    const errorLogging = logging.errorLogging('updateAttendance', 'State_Registration', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -188,6 +190,7 @@ exports.verifyAttendanceCode = async (req, res) => {
       return res.status(406).send({ message: 'Kode presensi salah' })
     }
   } catch (err) {
+    const errorLogging = logging.errorLogging('verifyAttendance', 'State_Registration', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -220,6 +223,7 @@ exports.deleteRegistration = async (req, res) => {
 
     return res.status(200).send({ message: 'Data Registrasi Berhasil Dihapus' })
   } catch (err) {
+    const errorLogging = logging.errorLogging('deleteRegistration', 'State_Registration', err.message)
     return res.status(500).send({ message: err.message })
   }
 }

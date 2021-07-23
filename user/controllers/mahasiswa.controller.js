@@ -4,7 +4,7 @@ const mahasiswa = require('../models/mahasiswa.model')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
-const logging = require('../../mongoose/logging.mongoose')
+const logging = require('../../mongoose/controllers/logging.mongoose')
 const address = require('address')
 
 exports.getMahasiswa = async (req, res) => {
@@ -13,6 +13,7 @@ exports.getMahasiswa = async (req, res) => {
 
     return res.status(200).send(result)
   } catch (err) {
+    const errorLogging = logging.errorLogging('getMahasiswa', 'Mahasiswa', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -58,6 +59,7 @@ exports.signUp = async (req, res) => {
       message: 'Data berhasil ditambahkan'
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('signUp', 'Mahasiswa', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -89,6 +91,7 @@ exports.signIn = async (req, res) => {
       token: token
     })
   } catch (err) {
+    const errorLogging = logging.errorLogging('signIn', 'Mahasiswa', err.message)
     res.status(500).send({ message: err.message })
   }
 }

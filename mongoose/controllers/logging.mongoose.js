@@ -1,9 +1,9 @@
-const LoginLogging = require('../user/models/loginLogging.model')
-const AttendanceLogging = require('../state/models/stateAttendanceLogging.model')
-const StateLogging = require('../state/models/stateLogging.model')
-const HomeLogging = require('../home/models/homeLogging.model')
-const ErrorLogging = require('./model/error.model')
-const helper = require('../helpers/helper')
+const LoginLogging = require('../models/loginLogging.model')
+const AttendanceLogging = require('../models/stateAttendanceLogging.model')
+const StateLogging = require('../models/stateLogging.model')
+const HomeLogging = require('../models/homeLogging.model')
+const ErrorLogging = require('../models/errorLogging.model')
+const helper = require('../../helpers/helper')
 
 exports.loginLogging = async (nim, ip) => {
   try {
@@ -64,11 +64,13 @@ exports.homeLogging = async (type, nim, data, date_time) => {
   }
 }
 
-exports.errorLogging = async (type, err) => {
+exports.errorLogging = async (functions, services, err) => {
   try {
     const logging = new ErrorLogging({
-      type: type,
-      error: err
+      type: 'error',
+      services: services,
+      function: functions,
+      error_message: err
     })
 
     await logging.save()
