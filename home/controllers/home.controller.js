@@ -96,7 +96,7 @@ exports.createHomeInformation = async (req, res) => {
 
   const fixName = helper.toTitleCase(name)
 
-  const searchKey = name.toLowerCase().replace(' ', '-')
+  const searchKey = name.toLowerCase().split(' ').join('-')
 
   const { linkLogo } = req.files
 
