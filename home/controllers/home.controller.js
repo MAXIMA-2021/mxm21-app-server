@@ -309,7 +309,7 @@ exports.updateHome = async (req, res) => {
     })
   }
 
-  const searchKey = name.toLowerCase().replace(' ', '-')
+  const searchKey = name.toLowerCase().split(' ').join('-')
 
   let linkLogo = null
   const linkMedia = null
