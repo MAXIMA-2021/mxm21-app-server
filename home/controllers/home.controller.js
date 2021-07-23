@@ -14,24 +14,26 @@ const storage = new Storage({
   keyFilename: './keys/maxima-umn-2021-bucket-playground-key.json'
 })
 
-exports.getHomeData = async (req, res) => {
+exports.getPublicHomeData = async (req, res) => {
   const { organizator } = req.query
 
+  const { kategori } = req.params
+
+  let dbHome
+
   try {
-    if (organizator === undefined) {
-      const dbHomeAll = await homeInformation.query()
+    if (organizator === undefined && kategori === undefined) {
+      dbHome = await homeInformation.query()
 
-      for (let i = 0; i < dbHomeAll.length; i++) {
-        const dbHomeMediaAll = await homeMedia.query()
+      for (let i = 0; i < dbHome.length; i++) {
+        const dbHomeMedia = await homeMedia.query()
           .select('photoID', 'linkMedia')
-          .where({ homeID: dbHomeAll[i].homeID })
+          .where({ homeID: dbHome[i].homeID })
 
-        dbHomeAll[i].home_media = dbHomeMediaAll
+        dbHome[i].home_media = dbHomeMedia
       }
-
-      return res.status(200).send(dbHomeAll)
-    } else {
-      const dbHome = await homeInformation.query().where({ search_key: organizator })
+    } else if (organizator !== undefined) {
+      dbHome = await homeInformation.query().where({ search_key: organizator })
 
       if (dbHome.length === 0) {
         return res.status(404).send({
@@ -44,11 +46,25 @@ exports.getHomeData = async (req, res) => {
         .where({ homeID: dbHome[0].homeID })
 
       dbHome[0].home_media = dbHomeMedia
+    } else if (kategori !== undefined) {
+      dbHome = await homeInformation.query().where({ kategori })
 
-      return res.status(200).send(dbHome)
+      if (dbHome.length === 0) {
+        return res.status(404).send({
+          message: 'Home tidak tersedia'
+        })
+      }
+
+      const dbHomeMedia = await homeMedia.query()
+        .select('photoID', 'linkMedia')
+        .where({ homeID: dbHome[0].homeID })
+
+      dbHome[0].home_media = dbHomeMedia
     }
+
+    return res.status(200).send(dbHome)
   } catch (err) {
-    const errorLogging = logging.errorLogging('getHomeData', 'HoME', err.message)
+    const errorLogging = logging.errorLogging('getPublicHomeData', 'HoME', err.message)
     return res.status(500).send({
       message: err.message
     })

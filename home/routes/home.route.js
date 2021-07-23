@@ -5,7 +5,12 @@ const authJwt = require('../../user/middleware/authjwt.middleware')
 module.exports = function (app) {
   app.get(
     '/api/public/home',
-    homeController.getHomeData
+    homeController.getPublicHomeData
+  )
+
+  app.get(
+    '/api/public/home/:kategori',
+    homeController.getPublicHomeData
   )
 
   app.post(
