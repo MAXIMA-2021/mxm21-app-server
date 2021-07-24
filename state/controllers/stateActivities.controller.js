@@ -70,7 +70,7 @@ exports.addState = async (req, res) => {
 
   const {
     name,
-    // zoomLink,
+    zoomLink,
     day,
     quota
   } = req.body
@@ -94,7 +94,7 @@ exports.addState = async (req, res) => {
   try {
     const insertResult = await stateActivities.query().insert({
       name,
-      zoomLink: 'default',
+      zoomLink,
       day,
       stateLogo: urlFile,
       quota,
@@ -103,8 +103,10 @@ exports.addState = async (req, res) => {
     })
 
     stateLogo.mv(uploadPath, (err) => {
-      const errorLogging = logging.errorLogging('State_Activities', err.message)
-      if (err) return res.status(500).send({ message: err.messsage })
+      if (err) {
+        const errorLogging = logging.errorLogging('State_Activities', err.message)
+        return res.status(500).send({ message: err.messsage })
+      }
     })
 
     res_bucket = await storage.bucket(bucketName).upload(uploadPath)
@@ -116,8 +118,10 @@ exports.addState = async (req, res) => {
     })
 
     fs.unlink(uploadPath, (err) => {
-      const errorLogging = logging.errorLogging('addState', 'State_Activities', err.message)
-      if (err) return res.status(500).send({ message: err.messsage })
+      if (err) {
+        const errorLogging = logging.errorLogging('addState', 'State_Activities', err.message)
+        return res.status(500).send({ message: err.messsage })
+      }
     })
   } catch (err) {
     const errorLogging = logging.errorLogging('addState', 'State_Activities', err.message)
