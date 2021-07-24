@@ -41,4 +41,10 @@ module.exports = function (app) {
     validation.panitiaUpdatedValidation, validation.runValidation,
     panitiaController.update
   )
+
+  app.get(
+    '/api/panitia/acc/checkToken',
+    authJwt.verifyToken, authJwt.isPanitia,
+    panitiaController.checkToken
+  )
 }

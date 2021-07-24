@@ -41,4 +41,10 @@ module.exports = function (app) {
     validation.organizatorUpdatedValidation, validation.runValidation,
     organizatorController.update
   )
+
+  app.get(
+    '/api/organizator/acc/checkToken',
+    authJwt.verifyToken, authJwt.isOrganizator,
+    organizatorController.checkToken
+  )
 }

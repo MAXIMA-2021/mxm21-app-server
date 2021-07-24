@@ -36,8 +36,9 @@ exports.isMahasiswa = async (req, res, next) => {
   try {
     const result = await mahasiswa.query().where('nim', nim)
 
-    if (result.length === 0) return res.status(403).send({ message: 'Maaf selain mahasiswa tidak diperkenankan untuk mengaksesnya' })
+    if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
 
+    req.status = true
     next()
   } catch (err) {
     const errorLogging = logging.errorLogging('isMahasiswa', 'JWT', err.message)
@@ -53,8 +54,9 @@ exports.isPanitia = async (req, res, next) => {
   try {
     const result = await panitia.query().where('nim', nim)
 
-    if (result.length === 0) return res.status(403).send({ message: 'Maaf selain panitia tidak diperkenankan untuk mengaksesnya' })
+    if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
 
+    req.status = true
     next()
   } catch (err) {
     const errorLogging = logging.errorLogging('isPanitia', 'JWT', err.message)
@@ -72,8 +74,9 @@ exports.isOrganizator = async (req, res, next) => {
   try {
     const result = await organizator.query().where('nim', nim)
 
-    if (result.length === 0) return res.status(403).send({ message: 'Maaf selain organizator tidak diperkenankan untuk mengaksesnya' })
+    if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
 
+    req.status = true
     next()
   } catch (err) {
     const errorLogging = logging.errorLogging('isOrganizator', 'JWT', err.message)

@@ -35,4 +35,10 @@ module.exports = function (app) {
     validation.mhsUpdatedValidation, validation.runValidation,
     mahasiswaController.update
   )
+
+  app.get(
+    '/api/mahasiswa/acc/checkToken',
+    authJWT.verifyToken, authJWT.isMahasiswa,
+    mahasiswaController.checkToken
+  )
 }
