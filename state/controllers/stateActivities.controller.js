@@ -70,7 +70,7 @@ exports.addState = async (req, res) => {
 
   const {
     name,
-    zoomLink,
+    // zoomLink,
     day,
     quota
   } = req.body
@@ -94,7 +94,7 @@ exports.addState = async (req, res) => {
   try {
     const insertResult = await stateActivities.query().insert({
       name,
-      zoomLink,
+      zoomLink: 'default',
       day,
       stateLogo: urlFile,
       quota,

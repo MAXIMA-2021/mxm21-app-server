@@ -2,7 +2,7 @@ const { check, validationResult } = require('express-validator')
 
 exports.createActivitiesValidation = [
   check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
-  check('zoomLink').notEmpty().withMessage('Link zoom tidak boleh kosong'),
+  // check('zoomLink').notEmpty().withMessage('Link zoom tidak boleh kosong'),
   check('day').notEmpty().withMessage('Day tidak boleh kosong'),
   check('quota').notEmpty().withMessage('Jumlah quota tidak boleh kosong')
 ]

@@ -95,3 +95,42 @@ exports.signIn = async (req, res) => {
     res.status(500).send({ message: err.message })
   }
 }
+
+exports.update = async (req, res) => {
+  const nim = req.nim
+
+  const {
+    name,
+    tempatLahir,
+    tanggalLahir,
+    jenisKelamin,
+    prodi,
+    whatsapp,
+    idLine,
+    idInstagram
+  } = req.body
+
+  try {
+    const updateMahasiswa = await mahasiswa.query()
+      .update({
+        name,
+        tempatLahir,
+        tanggalLahir,
+        jenisKelamin,
+        prodi,
+        whatsapp,
+        idLine,
+        idInstagram
+      })
+      .where({ nim })
+
+    return res.status(200).send({
+      message: 'Update Profile Berhasil'
+    })
+  } catch (err) {
+    const errorLogging = logging.errorLogging('update', 'Mahasiswa', err.message)
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}

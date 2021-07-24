@@ -28,4 +28,10 @@ module.exports = function (app) {
     validation.signInValidation,
     validation.runValidation, mahasiswaController.signIn
   )
+
+  app.put(
+    '/api/mhs/acc/editProfile',
+    authJWT.verifyToken, authJWT.isMahasiswa,
+    mahasiswaController.update
+  )
 }
