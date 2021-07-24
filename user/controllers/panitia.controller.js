@@ -156,21 +156,21 @@ exports.verifyNim = async (req, res) => {
 
   const nim = req.nim
 
-  const acceptedDivision = 'D01'
+  const acceptedDivision = ['D01']
+
+  const division = req.division
+
+  if (acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Divisi anda tidak memiliki akses'
+    })
+  }
 
   const type = 'verify/Panitia'
 
   let verified = 1
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (checkNim[0].divisiID !== acceptedDivision) {
-      return res.status(403).send({
-        message: 'Divisi anda tidak memiliki akses'
-      })
-    }
-
     const dbPanitia = await panitia.query().where('nim', nimPanitia)
 
     if (dbPanitia.length === 0) {

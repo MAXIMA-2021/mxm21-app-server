@@ -159,21 +159,21 @@ exports.verifyNim = async (req, res) => {
 
   const nim = req.nim
 
-  const acceptedDivision = 'D01'
+  const acceptedDivision = ['D01']
+
+  const division = req.division
+
+  if (acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Anda tidak memiliki akses'
+    })
+  }
 
   let verified = 1
 
   const type = 'verify/Organizator'
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (checkNim[0].divisiID !== acceptedDivision) {
-      return res.status(403).send({
-        message: 'Anda tidak memiliki akses'
-      })
-    }
-
     const dbOrganizator = await organizator.query().where('nim', nimOrganizator)
 
     if (dbOrganizator.length === 0) {

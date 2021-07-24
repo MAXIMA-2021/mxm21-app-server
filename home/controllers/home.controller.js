@@ -100,6 +100,14 @@ exports.createHomeInformation = async (req, res) => {
 
   const acceptedDivision = ['D01', 'D02', 'D03']
 
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
+
   const nim = req.nim
 
   const {
@@ -140,14 +148,6 @@ exports.createHomeInformation = async (req, res) => {
   let objectData = []
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const checkSearchKey = await homeInformation.query().where({ search_key: searchKey })
 
     if (checkSearchKey.length !== 0) {
@@ -229,6 +229,14 @@ exports.createHomeMedia = async (req, res, next) => {
 
   const acceptedDivision = ['D01', 'D02', 'D03']
 
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
+
   const { homeID } = req.params
 
   const nim = req.nim
@@ -244,14 +252,6 @@ exports.createHomeMedia = async (req, res, next) => {
   const dbHome = await homeInformation.query().where({ homeID })
 
   const dbHomeMedia = await homeMedia.query().where({ homeID })
-
-  const checkNim = await panitia.query().where({ nim })
-
-  if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-    return res.status(403).send({
-      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
-    })
-  }
 
   if (dbHome.length === 0) {
     return res.status(404).send({
@@ -339,6 +339,14 @@ exports.updateHome = async (req, res) => {
 
   const acceptedDivision = ['D01', 'D02', 'D03']
 
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
+
   const nim = req.nim
 
   const {
@@ -388,14 +396,6 @@ exports.updateHome = async (req, res) => {
   }
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const dbHome1 = await homeInformation.query().where({ homeID })
 
     const dbHome2 = await homeInformation.query().where({ search_key: searchKey })
@@ -510,6 +510,14 @@ exports.updateLinkMedia = async (req, res) => {
 
   const acceptedDivision = ['D01', 'D02', 'D03']
 
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
+
   const nim = req.nim
 
   const { photoID } = req.params
@@ -525,14 +533,6 @@ exports.updateLinkMedia = async (req, res) => {
   if (req.files) { linkMedia = req.files.linkMedia }
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const dbHome = await homeMedia.query()
       .select('home_information.*')
       .join(
@@ -609,19 +609,17 @@ exports.deleteMedia = async (req, res) => {
 
   const acceptedDivision = ['D01', 'D02']
 
-  const nim = req.nim
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
 
   const { photoID } = req.params
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const isProvide = await homeMedia.query().where({ photoID })
 
     if (isProvide.length === 0) { return res.status(404).send({ message: 'Media tidak ditemukan' }) }
@@ -652,19 +650,17 @@ exports.deleteHome = async (req, res) => {
 
   const acceptedDivision = ['D01', 'D02']
 
-  const nim = req.nim
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
 
   const { homeID } = req.params
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const isProvide = await homeInformation.query().where('homeID', homeID)
 
     if (isProvide.length === 0) { return res.status(404).send({ message: 'Home tidak ditemukan' }) }

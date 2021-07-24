@@ -96,13 +96,13 @@ exports.addState = async (req, res) => {
     })
   }
 
-  const checkDivisi = await panitia.query().where({ nim })
+  const division = req.division
 
   const acceptedDivisi = ['D01', 'D02', 'D03']
 
-  if (!acceptedDivisi.includes(checkDivisi[0].divisiID)) {
+  if (!acceptedDivisi.includes(division)) {
     return res.status(403).send({
-      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
+      message: 'Forbidden'
     })
   }
 
@@ -184,13 +184,13 @@ exports.updateState = async (req, res) => {
     })
   }
 
-  const checkDivisi = await panitia.query().where({ nim })
+  const division = req.division
 
   const acceptedDivisi = ['D01', 'D02', 'D03']
 
-  if (!acceptedDivisi.includes(checkDivisi[0].divisiID)) {
+  if (!acceptedDivisi.includes(division)) {
     return res.status(403).send({
-      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
+      message: 'Forbidden'
     })
   }
 
@@ -314,11 +314,11 @@ exports.deleteState = async (req, res) => {
 
   const acceptedDivisi = ['D01', 'D02']
 
-  const checkDivisi = await panitia.query().where({ nim })
+  const division = req.division
 
-  if (!acceptedDivisi.includes(checkDivisi[0].divisiID)) {
+  if (!acceptedDivisi.includes(division)) {
     return res.status(403).send({
-      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
+      message: 'Forbidden'
     })
   }
 
