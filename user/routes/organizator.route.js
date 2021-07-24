@@ -34,4 +34,11 @@ module.exports = function (app) {
     authJwt.verifyToken, authJwt.isPanitia,
     organizatorController.verifyNim
   )
+
+  app.put(
+    '/api/organizator/acc/editProfile',
+    authJwt.verifyToken, authJwt.isOrganizator,
+    validation.organizatorUpdatedValidation, validation.runValidation,
+    organizatorController.update
+  )
 }

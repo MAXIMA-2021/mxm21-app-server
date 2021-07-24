@@ -1,4 +1,4 @@
-const panitaController = require('../controllers/panitia.controller')
+const panitiaController = require('../controllers/panitia.controller')
 const validation = require('../validations/validate')
 const authJwt = require('../middleware/authjwt.middleware')
 
@@ -14,24 +14,31 @@ module.exports = function (app) {
   app.get(
     '/api/panitia/acc/getPanitia',
     authJwt.verifyToken, authJwt.isPanitia,
-    panitaController.getPanitia
+    panitiaController.getPanitia
   )
 
   app.put(
     '/api/panitia/acc/verify/:nim',
     authJwt.verifyToken, authJwt.isPanitia,
-    panitaController.verifyNim
+    panitiaController.verifyNim
   )
 
   app.post(
     '/api/panitia/acc/signup',
     validation.panitiaSignUpValidation, validation.runValidation,
-    panitaController.signUp
+    panitiaController.signUp
   )
 
   app.post(
     '/api/panitia/acc/signin',
     validation.signInValidation, validation.runValidation,
-    panitaController.signIn
+    panitiaController.signIn
+  )
+
+  app.put(
+    '/api/panitia/acc/editProfile',
+    authJwt.verifyToken, authJwt.isPanitia,
+    validation.panitiaUpdatedValidation, validation.runValidation,
+    panitiaController.update
   )
 }
