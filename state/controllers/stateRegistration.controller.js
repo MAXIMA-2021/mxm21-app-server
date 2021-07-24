@@ -11,19 +11,46 @@ exports.getRegistration = async (req, res) => {
   try {
     if (stateID === undefined && nim === undefined) {
       result = await stateRegistration.query()
+        .select('state_registration.*', 'mahasiswa.name')
+        .join(
+          'mahasiswa',
+          'mahasiswa.nim',
+          'state_registration.nim'
+        )
     } else if (stateID !== undefined) {
       if (req.roleID === 2) {
-        result = await stateRegistration.query().where({ stateID })
+        result = await stateRegistration.query()
+          .select('state_registration.*', 'mahasiswa.name')
+          .join(
+            'mahasiswa',
+            'mahasiswa.nim',
+            'state_registration.nim'
+          )
+          .where({ stateID })
       } else {
         return res.status(403).send({
           message: 'Maaf selain panitia, tidak diperkenankan untuk mengaksesnya.'
         })
       }
     } else if (nim !== undefined) {
-      result = await stateRegistration.query().where({ nim })
+      result = await stateRegistration.query()
+        .select('state_registration.*', 'mahasiswa.name')
+        .join(
+          'mahasiswa',
+          'mahasiswa.nim',
+          'state_registration.nim'
+        )
+        .where({ nim })
     } else if (stateID !== undefined && nim !== undefined) {
       if (req.roleID === 2) {
-        result = await stateRegistration.query().where({ stateID, nim })
+        result = await stateRegistration.query()
+          .select('state_registration.*', 'mahasiswa.name')
+          .join(
+            'mahasiswa',
+            'mahasiswa.nim',
+            'state_registration.nim'
+          )
+          .where({ stateID, nim })
       } else {
         return res.status(403).send({
           message: 'Maaf selain panitia, tidak diperkenankan untuk mengaksesnya.'
