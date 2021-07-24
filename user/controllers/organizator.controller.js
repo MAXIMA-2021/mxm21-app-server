@@ -9,6 +9,8 @@ const bcrypt = require('bcryptjs')
 const panitia = require('../models/panitia.model')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 const address = require('address')
+const toggleHelper = require('../../toggle/controllers/toggle.controller')
+const toggle = require('../../toggle/models/toggle.model')
 
 exports.getOrganizator = async (req, res) => {
   const { param } = req.query
@@ -55,6 +57,18 @@ exports.getOrganizator = async (req, res) => {
 }
 
 exports.signUp = async (req, res) => {
+  const id = 2
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const {
     nim,
     name,

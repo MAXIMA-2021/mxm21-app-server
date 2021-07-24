@@ -6,6 +6,8 @@ const fs = require('fs')
 const helper = require('../../helpers/helper')
 const { v4: uuidv4 } = require('uuid')
 const logging = require('../../mongoose/controllers/logging.mongoose')
+const toggleHelper = require('../../toggle/controllers/toggle.controller')
+const toggle = require('../../toggle/models/toggle.model')
 
 // Google Cloud Storage Library and Keys
 const { Storage } = require('@google-cloud/storage')
@@ -15,6 +17,18 @@ const storage = new Storage({
 
 exports.getStateData = async (req, res) => {
   const param = req.query.param
+
+  const id = 8
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
 
   try {
     if (param === undefined) {
@@ -42,6 +56,18 @@ exports.getStateData = async (req, res) => {
 exports.getPublicStateData = async (req, res) => {
   const type = 'getPublicStateData'
 
+  const id = 8
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   try {
     const result = await stateActivities.query()
       .select('stateID', 'name', 'stateLogo')
@@ -57,6 +83,18 @@ exports.getPublicStateData = async (req, res) => {
 
 exports.addState = async (req, res) => {
   const nim = req.nim
+
+  const id = 7
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
 
   const checkDivisi = await panitia.query().where({ nim })
 
@@ -133,6 +171,18 @@ exports.updateState = async (req, res) => {
   const { name, zoomLink, day, quota } = req.body
 
   const nim = req.nim
+
+  const id = 9
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
 
   const checkDivisi = await panitia.query().where({ nim })
 
@@ -249,6 +299,18 @@ exports.updateState = async (req, res) => {
 
 exports.deleteState = async (req, res) => {
   const nim = req.nim
+
+  const id = 10
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
 
   const acceptedDivisi = ['D01', 'D02']
 

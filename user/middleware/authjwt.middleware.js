@@ -57,6 +57,9 @@ exports.isPanitia = async (req, res, next) => {
     if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
 
     req.status = true
+
+    req.division = result[0].divisiID
+
     next()
   } catch (err) {
     const errorLogging = logging.errorLogging('isPanitia', 'JWT', err.message)

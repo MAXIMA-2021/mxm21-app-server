@@ -7,6 +7,8 @@ const helper = require('../../helpers/helper')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
 const logging = require('../../mongoose/controllers/logging.mongoose')
+const toggleHelper = require('../../toggle/controllers/toggle.controller')
+const toggle = require('../../toggle/models/toggle.model')
 
 // Configure Google Cloud Storage
 const { Storage } = require('@google-cloud/storage')
@@ -18,6 +20,18 @@ exports.getPublicHomeData = async (req, res) => {
   const { organizator } = req.query
 
   const { kategori } = req.params
+
+  const id = 4
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
 
   let dbHome
 
@@ -72,6 +86,18 @@ exports.getPublicHomeData = async (req, res) => {
 }
 
 exports.createHomeInformation = async (req, res) => {
+  const id = 3
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02', 'D03']
 
   const nim = req.nim
@@ -189,6 +215,18 @@ exports.createHomeInformation = async (req, res) => {
 }
 
 exports.createHomeMedia = async (req, res, next) => {
+  const id = 3
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02', 'D03']
 
   const { homeID } = req.params
@@ -287,6 +325,18 @@ exports.createHomeMedia = async (req, res, next) => {
 }
 
 exports.updateHome = async (req, res) => {
+  const id = 5
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02', 'D03']
 
   const nim = req.nim
@@ -446,6 +496,18 @@ exports.updateHome = async (req, res) => {
 }
 
 exports.updateLinkMedia = async (req, res) => {
+  const id = 5
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02', 'D03']
 
   const nim = req.nim
@@ -533,6 +595,18 @@ exports.updateLinkMedia = async (req, res) => {
 }
 
 exports.deleteMedia = async (req, res) => {
+  const id = 6
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02']
 
   const nim = req.nim
@@ -564,6 +638,18 @@ exports.deleteMedia = async (req, res) => {
 }
 
 exports.deleteHome = async (req, res) => {
+  const id = 6
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02']
 
   const nim = req.nim
