@@ -195,15 +195,19 @@ exports.updateState = async (req, res) => {
       })
 
       stateLogo.mv(uploadPath, (err) => {
-        const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
-        if (err) return res.status(500).send({ message: err.messsage })
+        if (err) {
+          const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
+          return res.status(500).send({ message: err.messsage })
+        }
       })
 
       res_bucket = await storage.bucket(bucketName).upload(uploadPath)
 
       fs.unlink(uploadPath, (err) => {
-        const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
-        if (err) return res.status(500).send({ message: err.message })
+        if (err) {
+          const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
+          return res.status(500).send({ message: err.messsage })
+        }
       })
 
       objectData = {

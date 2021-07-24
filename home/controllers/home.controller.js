@@ -312,7 +312,6 @@ exports.updateHome = async (req, res) => {
   const searchKey = name.toLowerCase().split(' ').join('-')
 
   let linkLogo = null
-  const linkMedia = null
   let dateFile = ''
   let timeFile = ''
   let logoFileName = ''
