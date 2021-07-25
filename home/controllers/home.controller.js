@@ -251,17 +251,9 @@ exports.createHomeMedia = async (req, res, next) => {
 
   const dbHome = await homeInformation.query().where({ homeID })
 
-  const dbHomeMedia = await homeMedia.query().where({ homeID })
-
   if (dbHome.length === 0) {
     return res.status(404).send({
       message: 'Maaf Home tidak tersedia'
-    })
-  }
-
-  if (dbHomeMedia.length !== 0) {
-    return res.status(409).send({
-      message: 'Maaf Media pada Home ini sudah tersedia'
     })
   }
 
