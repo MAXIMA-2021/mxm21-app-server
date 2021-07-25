@@ -149,6 +149,63 @@ exports.update = async (req, res) => {
   }
 }
 
+exports.advanceUpdate = async (req, res) => {
+  const { nim } = req.params
+
+  const acceptedDivision = ['D01']
+
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
+
+  const {
+    name,
+    tempatLahir,
+    tanggalLahir,
+    jenisKelamin,
+    prodi,
+    whatsapp,
+    idLine,
+    idInstagram
+  } = req.body
+
+  try {
+    const checkMahasiswa = await mahasiswa.query().where({ nim })
+
+    if (checkMahasiswa.length === 0) {
+      return res.status(404).send({
+        message: 'Akun tidak ditemukan'
+      })
+    }
+
+    const updateMahasiswa = await mahasiswa.query()
+      .update({
+        name,
+        tempatLahir,
+        tanggalLahir,
+        jenisKelamin,
+        prodi,
+        whatsapp,
+        idLine,
+        idInstagram
+      })
+      .where({ nim })
+
+    return res.status(200).send({
+      message: 'Update Mahasiswa Success'
+    })
+  } catch (err) {
+    const errorLogging = logging.errorLogging('advanceUpdate', 'Mahasiswa', err.message)
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
+
 exports.checkToken = async (req, res) => {
   const status = req.status
 

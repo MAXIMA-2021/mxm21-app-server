@@ -36,6 +36,13 @@ module.exports = function (app) {
     mahasiswaController.update
   )
 
+  app.put(
+    '/api/panitia/acc/editMahasiswa/:nim',
+    authJWT.verifyToken, authJWT.isPanitia,
+    validation.mhsUpdatedValidation, validation.runValidation,
+    mahasiswaController.advanceUpdate
+  )
+
   app.get(
     '/api/mahasiswa/acc/checkToken',
     authJWT.verifyToken, authJWT.isMahasiswa,

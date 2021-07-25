@@ -1,6 +1,5 @@
 const stateActivities = require('../models/stateActivities.model')
 const stateRegistration = require('../models/stateRegistration.model')
-const panitia = require('../../user/models/panitia.model')
 const organizator = require('../../user/models/organizator.model')
 const fs = require('fs')
 const helper = require('../../helpers/helper')
