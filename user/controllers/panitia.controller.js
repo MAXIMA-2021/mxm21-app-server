@@ -1,5 +1,3 @@
-/* eslint no-unused-vars: "off" */
-
 const panitia = require('../models/panitia.model')
 const divisi = require('../models/divisi.model')
 const jwt = require('jsonwebtoken')
@@ -13,8 +11,6 @@ const toggle = require('../../toggle/models/toggle.model')
 
 exports.getPanitia = async (req, res) => {
   const { param } = req.query
-
-  const type = 'read/Panitia'
 
   try {
     if (param === undefined) {
@@ -50,7 +46,7 @@ exports.getPanitia = async (req, res) => {
 
     return res.status(200).send(dbPanitia)
   } catch (err) {
-    const errorLogging = logging.errorLogging('getPanitia', 'Panitia', err.message)
+    logging.errorLogging('getPanitia', 'Panitia', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -80,8 +76,6 @@ exports.signUp = async (req, res) => {
 
   const verified = 0
 
-  const type = 'signUp/Panitia'
-
   const fixName = helper.toTitleCase(name)
 
   try {
@@ -95,7 +89,7 @@ exports.signUp = async (req, res) => {
 
     const fixPassword = bcrypt.hashSync(password, 8)
 
-    const insertResult = await panitia.query().insert({
+    await panitia.query().insert({
       nim,
       name: fixName,
       email,
@@ -108,7 +102,7 @@ exports.signUp = async (req, res) => {
       message: 'Data berhasil ditambahkan'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('signUp', 'Panitia', err.message)
+    logging.errorLogging('signUp', 'Panitia', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -117,8 +111,6 @@ exports.signIn = async (req, res) => {
   const { nim, password } = req.body
 
   const ip = address.ip()
-
-  const type = 'signIn/Panitia'
 
   try {
     const dbPanitia = await panitia.query().where('nim', nim)
@@ -139,22 +131,20 @@ exports.signIn = async (req, res) => {
       expiresIn: 21600
     })
 
-    const loginLogging = logging.loginLogging(nim, ip)
+    logging.loginLogging(nim, ip)
 
     res.status(200).send({
       message: 'Berhasil Login',
       token: token
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('signIn', 'Panitia', err.message)
+    logging.errorLogging('signIn', 'Panitia', err.message)
     res.status(500).send({ message: err.message })
   }
 }
 
 exports.verifyNim = async (req, res) => {
   const nimPanitia = req.params.nim
-
-  const nim = req.nim
 
   const acceptedDivision = ['D01']
 
@@ -165,8 +155,6 @@ exports.verifyNim = async (req, res) => {
       message: 'Divisi anda tidak memiliki akses'
     })
   }
-
-  const type = 'verify/Panitia'
 
   let verified = 1
 
@@ -183,7 +171,7 @@ exports.verifyNim = async (req, res) => {
       verified = 0
     }
 
-    const verifyPanitia = await panitia.query().where('nim', nimPanitia)
+    await panitia.query().where('nim', nimPanitia)
       .patch({
         verified
       })
@@ -192,7 +180,7 @@ exports.verifyNim = async (req, res) => {
       message: 'data berhasil diupdate'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('verifyNim', 'Panitia', err.message)
+    logging.errorLogging('verifyNim', 'Panitia', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -210,7 +198,7 @@ exports.update = async (req, res) => {
   const fixPassword = bcrypt.hashSync(password, 8)
 
   try {
-    const updatePanitia = await panitia.query()
+    await panitia.query()
       .update({
         name,
         password: fixPassword
@@ -221,7 +209,7 @@ exports.update = async (req, res) => {
       message: 'Update Profile Berhasil'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('update', 'Panitia', err.message)
+    logging.errorLogging('update', 'Panitia', err.message)
     return res.status(500).send({
       message: err.message
     })

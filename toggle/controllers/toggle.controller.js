@@ -1,5 +1,3 @@
-/* eslint no-unused-vars: "off" */
-
 const toggle = require('../models/toggle.model')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 
@@ -29,7 +27,7 @@ exports.getToggle = async (req, res) => {
 
     return res.status(200).send(result)
   } catch (err) {
-    const errorLogging = logging.errorLogging('getToggle', 'Toggle', err.message)
+    logging.errorLogging('getToggle', 'Toggle', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -64,7 +62,7 @@ exports.updateToggle = async (req, res) => {
       status = 1
     }
 
-    const updateToggle = await toggle.query()
+    await toggle.query()
       .update({
         toggle: status
       })
@@ -74,7 +72,7 @@ exports.updateToggle = async (req, res) => {
       status
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('updateToggle', 'Toggle', err.message)
+    logging.errorLogging('updateToggle', 'Toggle', err.message)
     return res.status(500).send({
       message: err.message
     })

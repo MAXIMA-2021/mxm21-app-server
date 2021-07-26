@@ -18,7 +18,7 @@ exports.getMalpunData = async (req, res) => {
 
     return res.status(200).send(result)
   } catch (err) {
-    const errorLogging = logging.errorLogging('getMalpunData', 'Malpun', err.message)
+    logging.errorLogging('getMalpunData', 'Malpun', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -30,10 +30,10 @@ exports.registerMalpun = async (req, res) => {
     phoneNumber
   } = req.body
 
-  const fixName = helper.toTitleCase(name)
+  helper.toTitleCase(name)
 
   try {
-    const insertMalpun = await malpun.query().insert({
+    await malpun.query().insert({
       email,
       name,
       phoneNumber
@@ -43,7 +43,7 @@ exports.registerMalpun = async (req, res) => {
       message: 'Anda berhasil mendaftar'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('getMalpunData', 'Malpun', err.message)
+    logging.errorLogging('getMalpunData', 'Malpun', err.message)
     return res.status(500).send({
       message: err.message
     })

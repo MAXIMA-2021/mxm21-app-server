@@ -1,12 +1,9 @@
-/* eslint no-unused-vars: "off" */
-
 const organizator = require('../models/organizator.model')
 const stateActivities = require('../../state/models/stateActivities.model')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const bcrypt = require('bcryptjs')
-const panitia = require('../models/panitia.model')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 const address = require('address')
 const toggleHelper = require('../../toggle/controllers/toggle.controller')
@@ -49,7 +46,7 @@ exports.getOrganizator = async (req, res) => {
 
     return res.status(200).send(dbOrganizator)
   } catch (err) {
-    const errorLogging = logging.errorLogging('getOrganizator', 'Organizator', err.message)
+    logging.errorLogging('getOrganizator', 'Organizator', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -77,8 +74,6 @@ exports.signUp = async (req, res) => {
     stateID
   } = req.body
 
-  const type = 'signUp/Organizator'
-
   const verified = 0
 
   const fixName = helper.toTitleCase(name)
@@ -102,7 +97,7 @@ exports.signUp = async (req, res) => {
 
     const fixPassword = bcrypt.hashSync(password, 8)
 
-    const insertResult = await organizator.query().insert({
+    await organizator.query().insert({
       nim,
       name: fixName,
       email,
@@ -115,7 +110,7 @@ exports.signUp = async (req, res) => {
       message: 'Data berhasil ditambahkan'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('signUp', 'Organizator', err.message)
+    logging.errorLogging('signUp', 'Organizator', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -124,8 +119,6 @@ exports.signIn = async (req, res) => {
   const { nim, password } = req.body
 
   const ip = address.ip()
-
-  const type = 'signIn/Organizator'
 
   try {
     const dbOrganizator = await organizator.query().where('nim', nim)
@@ -142,22 +135,20 @@ exports.signIn = async (req, res) => {
       expiresIn: 21600
     })
 
-    const loginLogging = logging.loginLogging(nim, ip)
+    logging.loginLogging(nim, ip)
 
     res.status(200).send({
       message: 'Berhasil Login',
       token: token
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('signIn', 'Organizator', err.message)
+    logging.errorLogging('signIn', 'Organizator', err.message)
     res.status(500).send({ message: err.message })
   }
 }
 
 exports.verifyNim = async (req, res) => {
   const nimOrganizator = req.params.nim
-
-  const nim = req.nim
 
   const acceptedDivision = ['D01']
 
@@ -170,8 +161,6 @@ exports.verifyNim = async (req, res) => {
   }
 
   let verified = 1
-
-  const type = 'verify/Organizator'
 
   try {
     const dbOrganizator = await organizator.query().where('nim', nimOrganizator)
@@ -186,7 +175,7 @@ exports.verifyNim = async (req, res) => {
       verified = 0
     }
 
-    const verifyOrganizator = await organizator.query().where('nim', nimOrganizator)
+    await organizator.query().where('nim', nimOrganizator)
       .patch({
         verified
       })
@@ -195,7 +184,7 @@ exports.verifyNim = async (req, res) => {
       message: 'Data berhasil diupdate'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('verifyNim', 'Organizator', err.message)
+    logging.errorLogging('verifyNim', 'Organizator', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -213,7 +202,7 @@ exports.update = async (req, res) => {
   const fixPassword = bcrypt.hashSync(password, 8)
 
   try {
-    const updateOrganizator = await organizator.query()
+    await organizator.query()
       .update({
         name,
         password: fixPassword
@@ -224,7 +213,7 @@ exports.update = async (req, res) => {
       message: 'Update Profile Berhasil'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('update', 'Organizator', err.message)
+    logging.errorLogging('update', 'Organizator', err.message)
     return res.status(500).send({
       message: err.message
     })

@@ -80,7 +80,7 @@ exports.getRegistration = async (req, res) => {
 
     return res.status(200).send(result)
   } catch (err) {
-    const errorLogging = logging.errorLogging('getRegistration', 'State_Registration', err.message)
+    logging.errorLogging('getRegistration', 'State_Registration', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -108,7 +108,7 @@ exports.addRegistration = async (req, res) => {
   const exitAttendance = 0
 
   try {
-    const insertResult = await stateRegistration.query()
+    await stateRegistration.query()
       .insert({
         stateID,
         nim,
@@ -119,7 +119,7 @@ exports.addRegistration = async (req, res) => {
       })
 
     const dbActivities = await stateActivities.query().where('stateID', stateID)
-    const updateRegisteredState = await stateActivities.query()
+    await stateActivities.query()
       .where('stateID', stateID)
       .patch({
         registered: dbActivities[0].registered + 1
@@ -129,7 +129,7 @@ exports.addRegistration = async (req, res) => {
       message: 'Anda berhasil mendaftar'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('addRegistration', 'State_Registration', err.message)
+    logging.errorLogging('addRegistration', 'State_Registration', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -150,7 +150,7 @@ exports.attendanceState = async (req, res) => {
       return res.status(404).send({ message: 'Anda tidak terdaftar1' })
     }
 
-    const updateResult = await stateRegistration.query()
+    await stateRegistration.query()
       .where({ stateID, nim })
       .patch({
         attendanceTime,
@@ -159,7 +159,7 @@ exports.attendanceState = async (req, res) => {
 
     return res.status(200).send({ message: 'Hadir' })
   } catch (err) {
-    const errorLogging = logging.errorLogging('attendanceState', 'State_Registration', err.message)
+    logging.errorLogging('attendanceState', 'State_Registration', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -194,7 +194,7 @@ exports.updateAttendance = async (req, res) => {
       return res.status(404).send({ message: 'Peserta belum mendaftar' })
     }
 
-    const updateAttendance = await stateRegistration.query()
+    await stateRegistration.query()
       .where({
         stateID,
         nim
@@ -203,11 +203,11 @@ exports.updateAttendance = async (req, res) => {
         inEventAttendance: inEventAttendance
       })
 
-    const attendanceLogging = logging.attendancelogging('update_presensi_state_inevent', nim_panit, nim, stateID, inEventAttendance)
+    logging.attendancelogging('update_presensi_state_inevent', nim_panit, nim, stateID, inEventAttendance)
 
     return res.status(200).send({ message: 'Sudah diupdate' })
   } catch (err) {
-    const errorLogging = logging.errorLogging('updateAttendance', 'State_Registration', err.message)
+    logging.errorLogging('updateAttendance', 'State_Registration', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -258,7 +258,7 @@ exports.verifyAttendanceCode = async (req, res) => {
     }
 
     if (attendanceCode === stateAttendanceDB[0].attendanceCode) {
-      const updateResult = await stateRegistration.query()
+      await stateRegistration.query()
         .patch({ exitAttendance })
         .where({ stateID, nim })
 
@@ -267,7 +267,7 @@ exports.verifyAttendanceCode = async (req, res) => {
       return res.status(406).send({ message: 'Kode presensi salah' })
     }
   } catch (err) {
-    const errorLogging = logging.errorLogging('verifyAttendance', 'State_Registration', err.message)
+    logging.errorLogging('verifyAttendance', 'State_Registration', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -298,13 +298,13 @@ exports.deleteRegistration = async (req, res) => {
       })
     }
 
-    const deleteResult = await stateRegistration.query()
+    await stateRegistration.query()
       .delete()
       .where({ nim, stateID })
 
     const registeredState = await stateActivities.query().select('registered')
 
-    const updateRegisteredState = await stateActivities.query()
+    await stateActivities.query()
       .where({ stateID })
       .patch({
         registered: registeredState[0].registered - 1
@@ -312,7 +312,7 @@ exports.deleteRegistration = async (req, res) => {
 
     return res.status(200).send({ message: 'Data Registrasi Berhasil Dihapus' })
   } catch (err) {
-    const errorLogging = logging.errorLogging('deleteRegistration', 'State_Registration', err.message)
+    logging.errorLogging('deleteRegistration', 'State_Registration', err.message)
     return res.status(500).send({ message: err.message })
   }
 }

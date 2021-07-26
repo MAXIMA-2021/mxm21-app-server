@@ -47,14 +47,12 @@ exports.getStateData = async (req, res) => {
       }
     }
   } catch (err) {
-    const errorLogging = logging.errorLogging('getStateData', 'State_Activities', err.message)
+    logging.errorLogging('getStateData', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
 
 exports.getPublicStateData = async (req, res) => {
-  const type = 'getPublicStateData'
-
   const id = 8
 
   const dbToggle = await toggle.query().where({ id })
@@ -73,7 +71,7 @@ exports.getPublicStateData = async (req, res) => {
 
     return res.status(200).send(result)
   } catch (err) {
-    const errorLogging = logging.errorLogging('getPublicStateData', 'State_Activities', err.message)
+    logging.errorLogging('getPublicStateData', 'State_Activities', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -141,14 +139,14 @@ exports.addState = async (req, res) => {
 
     stateLogo.mv(uploadPath, (err) => {
       if (err) {
-        const errorLogging = logging.errorLogging('State_Activities', err.message)
+        logging.errorLogging('State_Activities', err.message)
         return res.status(500).send({ message: err.messsage })
       }
     })
 
-    res_bucket = await storage.bucket(bucketName).upload(uploadPath)
+    await storage.bucket(bucketName).upload(uploadPath)
 
-    const stateLogging = logging.stateLogging('insert/STATE', nim, insertResult, dateTime)
+    logging.stateLogging('insert/STATE', nim, insertResult, dateTime)
 
     res.status(200).send({
       message: 'Data berhasil ditambahkan'
@@ -156,12 +154,12 @@ exports.addState = async (req, res) => {
 
     fs.unlink(uploadPath, (err) => {
       if (err) {
-        const errorLogging = logging.errorLogging('addState', 'State_Activities', err.message)
+        logging.errorLogging('addState', 'State_Activities', err.message)
         return res.status(500).send({ message: err.messsage })
       }
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('addState', 'State_Activities', err.message)
+    logging.errorLogging('addState', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -234,7 +232,7 @@ exports.updateState = async (req, res) => {
 
   try {
     if (uploadPath) {
-      const updateResult = await stateActivities.query().where('stateID', stateID).patch({
+      await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
         day,
@@ -245,16 +243,16 @@ exports.updateState = async (req, res) => {
 
       stateLogo.mv(uploadPath, (err) => {
         if (err) {
-          const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
+          logging.errorLogging('updateState', 'State_Activities', err.message)
           return res.status(500).send({ message: err.messsage })
         }
       })
 
-      res_bucket = await storage.bucket(bucketName).upload(uploadPath)
+      await storage.bucket(bucketName).upload(uploadPath)
 
       fs.unlink(uploadPath, (err) => {
         if (err) {
-          const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
+          logging.errorLogging('updateState', 'State_Activities', err.message)
           return res.status(500).send({ message: err.messsage })
         }
       })
@@ -268,7 +266,7 @@ exports.updateState = async (req, res) => {
         attendanceCode: attendanceCode
       }
     } else {
-      const updateResult = await stateActivities.query().where('stateID', stateID).patch({
+      await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
         day,
@@ -285,20 +283,18 @@ exports.updateState = async (req, res) => {
       }
     }
 
-    const stateLogging = logging.stateLogging('update/STATE', nim, objectData, dateTime)
+    logging.stateLogging('update/STATE', nim, objectData, dateTime)
 
     return res.status(200).send({
       message: 'Data berhasil diupdate'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('updateState', 'State_Activities', err.message)
+    logging.errorLogging('updateState', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
 
 exports.deleteState = async (req, res) => {
-  const nim = req.nim
-
   const id = 10
 
   const dbToggle = await toggle.query().where({ id })
@@ -328,15 +324,15 @@ exports.deleteState = async (req, res) => {
   if (isProvide.length === 0) return res.status(404).send({ message: 'State tidak ditemukan' })
 
   try {
-    const deleteStateRegistration = await stateRegistration.query()
+    await stateRegistration.query()
       .delete()
       .where('stateID', stateID)
 
-    const deleteOrganizator = await organizator.query()
+    await organizator.query()
       .delete()
       .where('stateID', stateID)
 
-    const deleteStateActivities = await stateActivities.query()
+    await stateActivities.query()
       .delete()
       .where('stateID', stateID)
 
@@ -344,7 +340,7 @@ exports.deleteState = async (req, res) => {
       message: 'Data State Berhasil Dihapus'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('deleteState', 'State_Activities', err.message)
+    logging.errorLogging('deleteState', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }

@@ -22,7 +22,7 @@ exports.verifyToken = async (req, res, next) => {
       next()
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('verifyToken', 'JWT', err.message)
+    logging.errorLogging('verifyToken', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -41,7 +41,7 @@ exports.isMahasiswa = async (req, res, next) => {
     req.status = true
     next()
   } catch (err) {
-    const errorLogging = logging.errorLogging('isMahasiswa', 'JWT', err.message)
+    logging.errorLogging('isMahasiswa', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -62,15 +62,13 @@ exports.isPanitia = async (req, res, next) => {
 
     next()
   } catch (err) {
-    const errorLogging = logging.errorLogging('isPanitia', 'JWT', err.message)
+    logging.errorLogging('isPanitia', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
 
 exports.isOrganizator = async (req, res, next) => {
   const nim = req.nim
-
-  const type = 'isOrganizator/JWT'
 
   req.roleID = 3
 
@@ -82,7 +80,7 @@ exports.isOrganizator = async (req, res, next) => {
     req.status = true
     next()
   } catch (err) {
-    const errorLogging = logging.errorLogging('isOrganizator', 'JWT', err.message)
+    logging.errorLogging('isOrganizator', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }

@@ -1,5 +1,3 @@
-/* eslint no-unused-vars: "off" */
-
 const mahasiswa = require('../models/mahasiswa.model')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
@@ -15,7 +13,7 @@ exports.getMahasiswa = async (req, res) => {
 
     return res.status(200).send(result)
   } catch (err) {
-    const errorLogging = logging.errorLogging('getMahasiswa', 'Mahasiswa', err.message)
+    logging.errorLogging('getMahasiswa', 'Mahasiswa', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -55,7 +53,7 @@ exports.signUp = async (req, res) => {
 
     if (result.length !== 0) return res.status(409).send({ message: 'nim sudah terdaftar' })
 
-    const insertResult = await mahasiswa.query().insert({
+    await mahasiswa.query().insert({
       nim,
       GoogleID: '',
       name: fixName,
@@ -73,7 +71,7 @@ exports.signUp = async (req, res) => {
       message: 'Data berhasil ditambahkan'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('signUp', 'Mahasiswa', err.message)
+    logging.errorLogging('signUp', 'Mahasiswa', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -98,14 +96,14 @@ exports.signIn = async (req, res) => {
       expiresIn: 21600
     })
 
-    const loginLogging = logging.loginLogging(nim, ip)
+    logging.loginLogging(nim, ip)
 
     res.status(200).send({
       message: 'Berhasil Login',
       token: token
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('signIn', 'Mahasiswa', err.message)
+    logging.errorLogging('signIn', 'Mahasiswa', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -125,7 +123,7 @@ exports.update = async (req, res) => {
   } = req.body
 
   try {
-    const updateMahasiswa = await mahasiswa.query()
+    await mahasiswa.query()
       .update({
         name,
         tempatLahir,
@@ -142,7 +140,7 @@ exports.update = async (req, res) => {
       message: 'Update Profile Berhasil'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('update', 'Mahasiswa', err.message)
+    logging.errorLogging('update', 'Mahasiswa', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -182,7 +180,7 @@ exports.advanceUpdate = async (req, res) => {
       })
     }
 
-    const updateMahasiswa = await mahasiswa.query()
+    await mahasiswa.query()
       .update({
         name,
         tempatLahir,
@@ -199,7 +197,7 @@ exports.advanceUpdate = async (req, res) => {
       message: 'Update Mahasiswa Success'
     })
   } catch (err) {
-    const errorLogging = logging.errorLogging('advanceUpdate', 'Mahasiswa', err.message)
+    logging.errorLogging('advanceUpdate', 'Mahasiswa', err.message)
     return res.status(500).send({
       message: err.message
     })
