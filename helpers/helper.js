@@ -46,3 +46,15 @@ exports.createAttendanceCode = (name) => {
 
   return attendanceCode
 }
+
+exports.createOTP = () => {
+  let result = ''
+
+  const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+  for (let i = 6; i > 0; --i) {
+    result += chars[Math.floor(Math.random() * chars.length)]
+  }
+
+  return result
+}

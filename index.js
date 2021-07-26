@@ -20,6 +20,7 @@ require('./state/routes/stateActivities.route')(app)
 require('./state/routes/stateRegistration.route')(app)
 require('./malpun/routes/malpun.route')(app)
 require('./toggle/routes/toggle.route')(app)
+require('./passwordReset/routes/passwordReset.route')(app)
 
 const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
