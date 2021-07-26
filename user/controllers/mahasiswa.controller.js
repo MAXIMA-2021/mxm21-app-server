@@ -8,16 +8,8 @@ const toggleHelper = require('../../toggle/controllers/toggle.controller')
 const toggle = require('../../toggle/models/toggle.model')
 
 exports.getMahasiswa = async (req, res) => {
-  const { param } = req.query
-
-  let result
-
   try {
-    if (param) {
-      result = await mahasiswa.query().where({ nim: param })
-    }
-
-    result = await mahasiswa.query()
+    const result = await mahasiswa.query()
 
     return res.status(200).send(result)
   } catch (err) {
