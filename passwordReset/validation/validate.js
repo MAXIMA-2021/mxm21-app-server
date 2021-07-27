@@ -6,6 +6,10 @@ exports.forgetPassword = [
   check('nim').notEmpty().withMessage('Nim tidak boleh kosong')
 ]
 
+exports.verifyOTP = [
+  check('otp').notEmpty().withMessage('OTP tidak boleh kosong')
+]
+
 exports.runValidation = (req, res, next) => {
   const errors = validationResult(req).errors
   const listErrors = []
