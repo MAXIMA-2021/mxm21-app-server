@@ -17,4 +17,9 @@ module.exports = (app) => {
     validation.forgetPassword, validation.runValidation,
     passwordResetController.createPasswordReset
   )
+
+  app.post(
+    '/api/public/verifyOTP',
+    passwordResetController.verifyOtp
+  )
 }

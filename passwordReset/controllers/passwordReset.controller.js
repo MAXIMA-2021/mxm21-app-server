@@ -55,3 +55,25 @@ exports.createPasswordReset = async (req, res) => {
     })
   }
 }
+
+exports.verifyOtp = async (req, res) => {
+  const { otp } = req.body
+
+  try {
+    const checkOTP = await passwordReset.query().where({ otp })
+
+    if (checkOTP.length !== 0) {
+      return res.status(401).send({
+        message: 'OTP Invalid'
+      })
+    }
+
+    return res.status(200).send({
+      otp: true
+    })
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
