@@ -154,9 +154,9 @@ exports.verifyNim = async (req, res) => {
 
   const division = req.division
 
-  if (acceptedDivision.includes(division)) {
+  if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Anda tidak memiliki akses'
+      message: 'Forbidden'
     })
   }
 
@@ -181,7 +181,7 @@ exports.verifyNim = async (req, res) => {
       })
 
     return res.status(200).send({
-      message: 'Data berhasil diupdate'
+      verify: verified
     })
   } catch (err) {
     logging.errorLogging('verifyNim', 'Organizator', err.message)
