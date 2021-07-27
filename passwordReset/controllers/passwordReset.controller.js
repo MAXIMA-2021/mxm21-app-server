@@ -72,6 +72,7 @@ exports.verifyOtp = async (req, res) => {
       otp: true
     })
   } catch (err) {
+    logging.errorLogging('verifyOTP', 'PasswordReset', err.message)
     return res.status(500).send({
       message: err.message
     })

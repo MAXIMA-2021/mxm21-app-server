@@ -84,6 +84,18 @@ exports.signUp = async (req, res) => {
 }
 
 exports.signIn = async (req, res) => {
+  const id = 13
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const { nim, password } = req.body
 
   const ip = address.ip()
