@@ -16,7 +16,14 @@ exports.verifyToken = async (req, res, next) => {
 
       if (decoded.stateID) {
         req.query.param = decoded.stateID
+        req.stateID = decoded.stateID
       }
+
+      if (decoded.division) {
+        req.divisiID = decoded.division
+      }
+
+      req.status = true
 
       req.nim = decoded.nim
       next()
@@ -31,14 +38,16 @@ exports.isMahasiswa = async (req, res, next) => {
   const nim = req.nim
 
   req.query.nim = nim
+
   req.roleID = 1
+
+  req.role = 'mahasiswa'
 
   try {
     const result = await mahasiswa.query().where('nim', nim)
 
     if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
 
-    req.status = true
     next()
   } catch (err) {
     logging.errorLogging('isMahasiswa', 'JWT', err.message)
@@ -51,12 +60,12 @@ exports.isPanitia = async (req, res, next) => {
 
   req.roleID = 2
 
+  req.role = 'panitia'
+
   try {
     const result = await panitia.query().where('nim', nim)
 
     if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
-
-    req.status = true
 
     req.division = result[0].divisiID
 
@@ -72,12 +81,13 @@ exports.isOrganizator = async (req, res, next) => {
 
   req.roleID = 3
 
+  req.role = 'organizator'
+
   try {
     const result = await organizator.query().where('nim', nim)
 
     if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
 
-    req.status = true
     next()
   } catch (err) {
     logging.errorLogging('isOrganizator', 'JWT', err.message)

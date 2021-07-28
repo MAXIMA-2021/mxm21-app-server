@@ -219,11 +219,3 @@ exports.update = async (req, res) => {
     })
   }
 }
-
-exports.checkToken = async (req, res) => {
-  const status = req.status
-
-  return res.status(200).send({
-    message: `${status}`
-  })
-}

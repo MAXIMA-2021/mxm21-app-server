@@ -127,7 +127,7 @@ exports.signIn = async (req, res) => {
 
     if (!isPasswordValid) { return res.status(401).send({ message: 'Password Invalid' }) }
 
-    const token = jwt.sign({ nim: dbPanitia[0].nim }, authConfig.jwt_key, {
+    const token = jwt.sign({ nim: dbPanitia[0].nim, division: dbPanitia[0].divisiID }, authConfig.jwt_key, {
       expiresIn: 21600
     })
 
