@@ -1,7 +1,6 @@
 const organizatorController = require('../controllers/organizator.controller')
 const validation = require('../validations/validate')
 const authJwt = require('../middleware/authjwt.middleware')
-const mainController = require('../controllers/main.controller')
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -34,12 +33,5 @@ module.exports = function (app) {
     '/api/organizator/acc/verify/:nim',
     authJwt.verifyToken, authJwt.isPanitia,
     organizatorController.verifyNim
-  )
-
-  app.put(
-    '/api/organizator/acc/editProfile',
-    authJwt.verifyToken, authJwt.isOrganizator,
-    validation.organizatorUpdatedValidation, validation.runValidation,
-    mainController.update
   )
 }

@@ -34,11 +34,6 @@ exports.panitiaSignUpValidation = [
   check('divisiID').notEmpty().withMessage('ID divisi tidak boleh kosong')
 ]
 
-exports.panitiaUpdatedValidation = [
-  check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
-  check('password').notEmpty().withMessage('password tidak boleh kosong')
-]
-
 exports.organizatorSignUpValidation = [
   check('nim').notEmpty().withMessage('Nim tidak boleh kosong'),
   check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
@@ -47,9 +42,8 @@ exports.organizatorSignUpValidation = [
   check('stateID').notEmpty().withMessage('ID State tidak boleh kosong')
 ]
 
-exports.organizatorUpdatedValidation = [
-  check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
-  check('password').notEmpty().withMessage('password tidak boleh kosong')
+exports.notMhsUpdatedValidation = [
+  check('name').notEmpty().withMessage('Nama tidak boleh kosong')
 ]
 
 exports.signInValidation = [

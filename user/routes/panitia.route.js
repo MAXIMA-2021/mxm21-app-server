@@ -1,7 +1,6 @@
 const panitiaController = require('../controllers/panitia.controller')
 const validation = require('../validations/validate')
 const authJwt = require('../middleware/authjwt.middleware')
-const mainController = require('../controllers/main.controller')
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -34,12 +33,5 @@ module.exports = function (app) {
     '/api/panitia/acc/signin',
     validation.signInValidation, validation.runValidation,
     panitiaController.signIn
-  )
-
-  app.put(
-    '/api/panitia/acc/editProfile',
-    authJwt.verifyToken, authJwt.isPanitia,
-    validation.panitiaUpdatedValidation, validation.runValidation,
-    mainController.update
   )
 }

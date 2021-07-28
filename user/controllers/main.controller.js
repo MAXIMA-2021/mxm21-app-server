@@ -16,7 +16,19 @@ exports.update = async (req, res) => {
   const fixPassword = bcrypt.hashSync(password, 8)
 
   try {
-    if (role === 'panitia') {
+    if (!password && role === 'panitia') {
+      await panitia.query()
+        .update({
+          name
+        })
+        .where({ nim })
+    } else if (!password && role === 'organizator') {
+      await organizator.query()
+        .update({
+          name
+        })
+        .where({ nim })
+    } else if (role === 'panitia') {
       await panitia.query()
         .update({
           name,
