@@ -11,7 +11,7 @@ app.use(cors())
 app.use(file())
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '/pages/welcome.html'))
+  res.sendFile(path.join(__dirname, '/pages/index.html'))
 })
 app.use(express.static('pages'))
 
