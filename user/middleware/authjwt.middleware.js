@@ -3,6 +3,7 @@ const authConfig = require('../../config/auth.config')
 const mahasiswa = require('../models/mahasiswa.model')
 const panitia = require('../models/panitia.model')
 const organizator = require('../models/organizator.model')
+const logging = require('../../mongoose/controllers/logging.mongoose')
 
 exports.verifyToken = async (req, res, next) => {
   try {
@@ -15,12 +16,20 @@ exports.verifyToken = async (req, res, next) => {
 
       if (decoded.stateID) {
         req.query.param = decoded.stateID
+        req.stateID = decoded.stateID
       }
+
+      if (decoded.division) {
+        req.divisiID = decoded.division
+      }
+
+      req.status = true
 
       req.nim = decoded.nim
       next()
     })
   } catch (err) {
+    logging.errorLogging('verifyToken', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -29,15 +38,19 @@ exports.isMahasiswa = async (req, res, next) => {
   const nim = req.nim
 
   req.query.nim = nim
+
   req.roleID = 1
+
+  req.role = 'mahasiswa'
 
   try {
     const result = await mahasiswa.query().where('nim', nim)
 
-    if (result.length === 0) return res.status(403).send({ message: 'Maaf selain mahasiswa tidak diperkenankan untuk mengaksesnya' })
+    if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
 
     next()
   } catch (err) {
+    logging.errorLogging('isMahasiswa', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -47,13 +60,18 @@ exports.isPanitia = async (req, res, next) => {
 
   req.roleID = 2
 
+  req.role = 'panitia'
+
   try {
     const result = await panitia.query().where('nim', nim)
 
-    if (result.length === 0) return res.status(403).send({ message: 'Maaf selain panitia tidak diperkenankan untuk mengaksesnya' })
+    if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
+
+    req.division = result[0].divisiID
 
     next()
   } catch (err) {
+    logging.errorLogging('isPanitia', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
@@ -63,13 +81,16 @@ exports.isOrganizator = async (req, res, next) => {
 
   req.roleID = 3
 
+  req.role = 'organizator'
+
   try {
     const result = await organizator.query().where('nim', nim)
 
-    if (result.length === 0) return res.status(403).send({ message: 'Maaf selain organizator tidak diperkenankan untuk mengaksesnya' })
+    if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
 
     next()
   } catch (err) {
+    logging.errorLogging('isOrganizator', 'JWT', err.message)
     return res.status(500).send({ message: err.message })
   }
 }

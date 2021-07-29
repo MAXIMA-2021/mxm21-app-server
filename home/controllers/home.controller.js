@@ -1,11 +1,13 @@
-/* eslint-disable camelcase */
+/* eslint no-useless-escape: "off" */
 
 const homeInformation = require('../models/homeInformation.model')
 const homeMedia = require('../models/homeMedia.model')
-const panitia = require('../../user/models/panitia.model')
 const helper = require('../../helpers/helper')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
+const logging = require('../../mongoose/controllers/logging.mongoose')
+const toggleHelper = require('../../toggle/controllers/toggle.controller')
+const toggle = require('../../toggle/models/toggle.model')
 
 // Configure Google Cloud Storage
 const { Storage } = require('@google-cloud/storage')
@@ -13,42 +15,97 @@ const storage = new Storage({
   keyFilename: './keys/maxima-umn-2021-bucket-playground-key.json'
 })
 
-exports.getHomeData = async (req, res) => {
+exports.getPublicHomeData = async (req, res) => {
   const { organizator } = req.query
 
-  if (organizator === undefined) {
-    const dbHomeAll = await homeInformation.query()
+  const { kategori } = req.params
 
-    for (let i = 0; i < dbHomeAll.length; i++) {
-      const dbHomeMediaAll = await homeMedia.query()
+  const id = 4
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
+  let dbHome
+
+  try {
+    if (organizator === undefined && kategori === undefined) {
+      dbHome = await homeInformation.query()
+
+      for (let i = 0; i < dbHome.length; i++) {
+        const dbHomeMedia = await homeMedia.query()
+          .select('photoID', 'linkMedia')
+          .where({ homeID: dbHome[i].homeID })
+
+        dbHome[i].home_media = dbHomeMedia
+      }
+    } else if (organizator !== undefined) {
+      dbHome = await homeInformation.query().where({ search_key: organizator })
+
+      if (dbHome.length === 0) {
+        return res.status(404).send({
+          message: 'Home tidak tersedia'
+        })
+      }
+
+      const dbHomeMedia = await homeMedia.query()
         .select('photoID', 'linkMedia')
-        .where({ homeID: dbHomeAll[i].homeID })
+        .where({ homeID: dbHome[0].homeID })
 
-      dbHomeAll[i].home_media = dbHomeMediaAll
+      dbHome[0].home_media = dbHomeMedia
+    } else if (kategori !== undefined) {
+      dbHome = await homeInformation.query().where({ kategori })
+
+      if (dbHome.length === 0) {
+        return res.status(404).send({
+          message: 'Home tidak tersedia'
+        })
+      }
+
+      const dbHomeMedia = await homeMedia.query()
+        .select('photoID', 'linkMedia')
+        .where({ homeID: dbHome[0].homeID })
+
+      dbHome[0].home_media = dbHomeMedia
     }
-
-    return res.status(200).send(dbHomeAll)
-  } else {
-    const dbHome = await homeInformation.query().where({ search_key: organizator })
-
-    if (dbHome.length === 0) {
-      return res.status(404).send({
-        message: 'Home tidak tersedia'
-      })
-    }
-
-    const dbHomeMedia = await homeMedia.query()
-      .select('photoID', 'linkMedia')
-      .where({ homeID: dbHome[0].homeID })
-
-    dbHome[0].home_media = dbHomeMedia
 
     return res.status(200).send(dbHome)
+  } catch (err) {
+    logging.errorLogging('getPublicHomeData', 'HoME', err.message)
+    return res.status(500).send({
+      message: err.message
+    })
   }
 }
 
-exports.createHome = async (req, res) => {
+exports.createHomeInformation = async (req, res) => {
+  const id = 3
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02', 'D03']
+
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
 
   const nim = req.nim
 
@@ -68,13 +125,13 @@ exports.createHome = async (req, res) => {
     })
   }
 
+  const dateTime = helper.createAttendanceTime()
+
   const fixName = helper.toTitleCase(name)
 
-  const searchKey = name.toLowerCase().replace(' ', '-')
+  const searchKey = name.toLowerCase().split(' ').join('-')
 
   const { linkLogo } = req.files
-
-  let { linkMedia } = req.files
 
   const bucketName = 'mxm21-bucket-playground'
 
@@ -87,33 +144,9 @@ exports.createHome = async (req, res) => {
 
   const logoUrlFile = `https://storage.googleapis.com/${bucketName}/${logoFileName}`
 
-  // format file media
-  const mediaFileName = []
-  const mediaUploadPath = []
-  const mediaUrlFile = []
-
-  if (linkMedia !== undefined) {
-    if (linkMedia.length === undefined) {
-      linkMedia = [linkMedia]
-    }
-
-    for (let i = 0; i < linkMedia.length; i++) {
-      const mediaUuid = uuidv4()
-      mediaFileName.push(`${name}_${mediaUuid}_${linkMedia[i].name}`)
-      mediaUploadPath.push(`./homeMedia/${mediaFileName[i]}`)
-      mediaUrlFile.push(`https://storage.googleapis.com/${bucketName}/${mediaFileName[i]}`)
-    }
-  }
+  let objectData = []
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const checkSearchKey = await homeInformation.query().where({ search_key: searchKey })
 
     if (checkSearchKey.length !== 0) {
@@ -122,7 +155,7 @@ exports.createHome = async (req, res) => {
       })
     }
 
-    const insertHomeInformation = await homeInformation.query().insert({
+    await homeInformation.query().insert({
       search_key: searchKey,
       linkLogo: logoUrlFile,
       name: fixName,
@@ -136,58 +169,146 @@ exports.createHome = async (req, res) => {
 
     linkLogo.mv(logoUploadPath, (err) => {
       if (err) {
+        logging.errorLogging('createHomeInformation', 'HoME', err.message)
         return res.status(500).send({
           message: err.message
         })
       }
     })
 
-    res_bucket = await storage.bucket(bucketName).upload(logoUploadPath)
+    await storage.bucket(bucketName).upload(logoUploadPath)
 
     fs.unlink(logoUploadPath, (err) => {
       if (err) {
+        logging.errorLogging('createHomeInformation', 'HoME', err.message)
         return res.status(500).send({
           message: err.message
         })
       }
     })
 
-    if (mediaUploadPath.length !== 0) {
-      const dbHomeID = await homeInformation.query()
-        .select('homeID')
-        .where({ search_key: searchKey })
-
-      for (let i = 0; i < linkMedia.length; i++) {
-        console.log(mediaUploadPath[i])
-        const insertHomeMedia = await homeMedia.query().insert({
-          homeID: dbHomeID[0].homeID,
-          linkMedia: mediaUrlFile[i]
-        })
-
-        linkMedia[i].mv(mediaUploadPath[i], (err) => {
-          if (err) {
-            return res.status(500).send({
-              message: err.message
-            })
-          }
-        })
-
-        res_bucket = await storage.bucket(bucketName).upload(mediaUploadPath[i])
-
-        fs.unlink(mediaUploadPath[i], (err) => {
-          if (err) {
-            return res.status(500).send({
-              message: err.message
-            })
-          }
-        })
-      }
+    objectData = {
+      search_key: searchKey,
+      linkLogo: logoUrlFile,
+      name: fixName,
+      kategori: kategori,
+      shortDesc: shortDesc,
+      longDesc: longDesc,
+      instagram: instagram,
+      lineID: lineID,
+      linkYoutube: linkYoutube,
+      homeMedia: []
     }
+
+    logging.homeLogging('insert/HoME_Information', nim, objectData, dateTime)
 
     return res.status(200).send({
       message: 'Home berhasil terdaftar'
     })
   } catch (err) {
+    logging.errorLogging('createHomeInformation', 'HoME', err.message)
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
+
+exports.createHomeMedia = async (req, res, next) => {
+  const id = 3
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
+  const acceptedDivision = ['D01', 'D02', 'D03']
+
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
+
+  const { homeID } = req.params
+
+  const nim = req.nim
+
+  const mediaFileName = []
+  const mediaUploadPath = []
+  const mediaUrlFile = []
+
+  let { linkMedia } = req.files
+
+  const dateTime = helper.createAttendanceTime()
+
+  const dbHome = await homeInformation.query().where({ homeID })
+
+  if (dbHome.length === 0) {
+    return res.status(404).send({
+      message: 'Maaf Home tidak tersedia'
+    })
+  }
+
+  const bucketName = 'mxm21-bucket-playground'
+
+  let objectData = []
+
+  if (linkMedia && linkMedia.length === undefined) {
+    linkMedia = [linkMedia]
+  }
+
+  for (let i = 0; i < linkMedia.length; i++) {
+    const mediaUuid = uuidv4()
+    mediaFileName.push(`${dbHome[0].name}_${mediaUuid}_${linkMedia[i].name}`)
+    mediaUploadPath.push(`./homeMedia/${mediaFileName[i]}`)
+    mediaUrlFile.push(`https://storage.googleapis.com/${bucketName}/${mediaFileName[i]}`)
+  }
+
+  try {
+    for (let i = 0; i < mediaUploadPath.length; i++) {
+      await homeMedia.query().insert({
+        homeID,
+        linkMedia: mediaUrlFile[i]
+      })
+
+      linkMedia[i].mv(mediaUploadPath[i], (err) => {
+        if (err) {
+          logging.errorLogging('createHomeMedia', 'HoME', err.message)
+          return res.status(500).send({ message: err.message })
+        }
+      })
+
+      await storage.bucket(bucketName).upload(mediaUploadPath[i])
+
+      fs.unlink(mediaUploadPath[i], (err) => {
+        if (err) {
+          logging.errorLogging('createHomeMedia', 'HoME', err.message)
+          return res.status(500).send({
+            message: err.message
+          })
+        }
+      })
+    }
+
+    objectData = {
+      homeID: homeID,
+      homeMedia: mediaUrlFile
+    }
+
+    logging.homeLogging('insert/HoME_Media', nim, objectData, dateTime)
+
+    return res.status(200).send({
+      message: 'Media Berhasil Ditambahkan'
+    })
+  } catch (err) {
+    logging.errorLogging('createHomeMedia', 'HoME', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -195,7 +316,27 @@ exports.createHome = async (req, res) => {
 }
 
 exports.updateHome = async (req, res) => {
+  const id = 5
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02', 'D03']
+
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
 
   const nim = req.nim
 
@@ -217,10 +358,9 @@ exports.updateHome = async (req, res) => {
     })
   }
 
-  const searchKey = name.toLowerCase().replace(' ', '-')
+  const searchKey = name.toLowerCase().split(' ').join('-')
 
   let linkLogo = null
-  const linkMedia = null
   let dateFile = ''
   let timeFile = ''
   let logoFileName = ''
@@ -228,6 +368,10 @@ exports.updateHome = async (req, res) => {
   let logoUrlFile = ''
 
   const bucketName = 'mxm21-bucket-playground'
+
+  const dateTime = helper.createAttendanceTime()
+
+  let objectData = []
 
   if (req.files) {
     linkLogo = req.files.linkLogo
@@ -243,14 +387,6 @@ exports.updateHome = async (req, res) => {
   }
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const dbHome1 = await homeInformation.query().where({ homeID })
 
     const dbHome2 = await homeInformation.query().where({ search_key: searchKey })
@@ -264,7 +400,7 @@ exports.updateHome = async (req, res) => {
     }
 
     if (logoUploadPath) {
-      const updateHomeInformation = await homeInformation.query()
+      await homeInformation.query()
         .where({ homeID })
         .patch({
           search_key: searchKey,
@@ -280,23 +416,38 @@ exports.updateHome = async (req, res) => {
 
       linkLogo.mv(logoUploadPath, (err) => {
         if (err) {
+          logging.errorLogging('updateHomeInformation', 'HoME', err.message)
           return res.status(500).send({
             message: err.message
           })
         }
       })
 
-      res_bucket = await storage.bucket(bucketName).upload(logoUploadPath)
+      await storage.bucket(bucketName).upload(logoUploadPath)
 
       fs.unlink(logoUploadPath, (err) => {
         if (err) {
+          logging.errorLogging('updateHomeInformation', 'HoME', err.message)
           return res.status(500).send({
             message: err.message
           })
         }
       })
+
+      objectData = {
+        homeID: homeID,
+        search_key: searchKey,
+        linkLogo: logoUrlFile,
+        name: name,
+        kategori: kategori,
+        shortDesc: shortDesc,
+        longDesc: longDesc,
+        instagram: instagram,
+        lineID: lineID,
+        linkYoutube: linkYoutube
+      }
     } else {
-      const updateHomeInformation = await homeInformation.query()
+      await homeInformation.query()
         .where({ homeID })
         .patch({
           search_key: searchKey,
@@ -308,12 +459,27 @@ exports.updateHome = async (req, res) => {
           lineID,
           linkYoutube
         })
+
+      objectData = {
+        homeID: homeID,
+        search_key: searchKey,
+        name: name,
+        kategori: kategori,
+        shortDesc: shortDesc,
+        longDesc: longDesc,
+        instagram: instagram,
+        lineID: lineID,
+        linkYoutube: linkYoutube
+      }
     }
+
+    logging.homeLogging('update/HoME_Information', nim, objectData, dateTime)
 
     return res.status(200).send({
       message: 'Home berhasil diupdate'
     })
   } catch (err) {
+    logging.errorLogging('updateHomeInformation', 'HoME', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -321,7 +487,27 @@ exports.updateHome = async (req, res) => {
 }
 
 exports.updateLinkMedia = async (req, res) => {
+  const id = 5
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02', 'D03']
+
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
 
   const nim = req.nim
 
@@ -329,19 +515,15 @@ exports.updateLinkMedia = async (req, res) => {
 
   const bucketName = 'mxm21-bucket-playground'
 
+  const dateTime = helper.createAttendanceTime()
+
   let linkMedia = ''
+
+  let objectData = []
 
   if (req.files) { linkMedia = req.files.linkMedia }
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const dbHome = await homeMedia.query()
       .select('home_information.*')
       .join(
@@ -358,7 +540,7 @@ exports.updateLinkMedia = async (req, res) => {
       const uploadPath = `./homeMedia/${fileName}`
       const urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
 
-      const updateMedia = await homeMedia.query()
+      await homeMedia.query()
         .where({ photoID })
         .update({
           linkMedia: urlFile
@@ -366,27 +548,37 @@ exports.updateLinkMedia = async (req, res) => {
 
       linkMedia.mv(uploadPath, (err) => {
         if (err) {
+          logging.errorLogging('updateHomeMedia', 'HoME', err.message)
           return res.status(500).send({
             message: err.message
           })
         }
       })
 
-      res_bucket = await storage.bucket(bucketName).upload(uploadPath)
+      await storage.bucket(bucketName).upload(uploadPath)
 
       fs.unlink(uploadPath, (err) => {
         if (err) {
+          logging.errorLogging('updateHomeMedia', 'HoME', err.message)
           return res.status(500).send({
             message: err.message
           })
         }
       })
+
+      objectData = {
+        photoID: photoID,
+        linkMedia: urlFile
+      }
     }
+
+    logging.homeLogging('update/HoME_Media', nim, objectData, dateTime)
 
     return res.status(200).send({
       message: 'HomeMedia berhasil diupdate'
     })
   } catch (err) {
+    logging.errorLogging('updateHomeMedia', 'HoME', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -394,60 +586,83 @@ exports.updateLinkMedia = async (req, res) => {
 }
 
 exports.deleteMedia = async (req, res) => {
+  const id = 6
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02']
 
-  const nim = req.nim
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
 
   const { photoID } = req.params
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const isProvide = await homeMedia.query().where({ photoID })
 
     if (isProvide.length === 0) { return res.status(404).send({ message: 'Media tidak ditemukan' }) }
 
-    const deleteMedia = await homeMedia.query().delete().where({ photoID })
+    await homeMedia.query().delete().where({ photoID })
 
     return res.status(200).send({
       message: 'linkMedia berhasil dihapus'
     })
   } catch (err) {
+    logging.errorLogging('deleteHomeMedia', 'HoME', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
 
 exports.deleteHome = async (req, res) => {
+  const id = 6
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const acceptedDivision = ['D01', 'D02']
 
-  const nim = req.nim
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
 
   const { homeID } = req.params
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (!acceptedDivision.includes(checkNim[0].divisiID)) {
-      return res.status(403).send({
-        message: 'Maaf divisi anda tidak diizinkan unuk mengaksesnya'
-      })
-    }
-
     const isProvide = await homeInformation.query().where('homeID', homeID)
 
     if (isProvide.length === 0) { return res.status(404).send({ message: 'Home tidak ditemukan' }) }
 
-    const deleteMedia = await homeMedia.query().delete().where({ homeID })
-    const deleteHome = await homeInformation.query().delete().where({ homeID })
+    await homeMedia.query().delete().where({ homeID })
+
+    await homeInformation.query().delete().where({ homeID })
 
     return res.status(200).send({ message: 'Data Home berhasil dihapus' })
   } catch (err) {
+    logging.errorLogging('deleteHomeInformation', 'HoME', err.message)
     return res.status(500).send({ message: err.message })
   }
 }

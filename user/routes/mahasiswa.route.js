@@ -1,5 +1,6 @@
 const mahasiswaController = require('../controllers/mahasiswa.controller')
 const validation = require('../validations/validate')
+const authJWT = require('../middleware/authjwt.middleware')
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -9,6 +10,12 @@ module.exports = function (app) {
     )
     next()
   })
+
+  app.get(
+    '/api/panitia/acc/getMahasiswa',
+    authJWT.verifyToken, authJWT.isPanitia,
+    mahasiswaController.getMahasiswa
+  )
 
   app.post(
     '/api/mhs/acc/signup',
@@ -20,5 +27,25 @@ module.exports = function (app) {
     '/api/mhs/acc/signin',
     validation.signInValidation,
     validation.runValidation, mahasiswaController.signIn
+  )
+
+  app.put(
+    '/api/mhs/acc/editProfile',
+    authJWT.verifyToken, authJWT.isMahasiswa,
+    validation.mhsUpdatedValidation, validation.runValidation,
+    mahasiswaController.update
+  )
+
+  app.put(
+    '/api/panitia/acc/editMahasiswa/:nim',
+    authJWT.verifyToken, authJWT.isPanitia,
+    validation.mhsUpdatedValidation, validation.runValidation,
+    mahasiswaController.advanceUpdate
+  )
+
+  app.get(
+    '/api/mahasiswa/acc/checkToken',
+    authJWT.verifyToken, authJWT.isMahasiswa,
+    mahasiswaController.checkToken
   )
 }

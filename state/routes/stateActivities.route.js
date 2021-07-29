@@ -9,6 +9,11 @@ module.exports = function (app) {
     stateActivitiesController.getStateData
   )
 
+  app.get(
+    '/api/public/state',
+    stateActivitiesController.getPublicStateData
+  )
+
   app.post(
     '/api/state/activities',
     authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
@@ -19,7 +24,7 @@ module.exports = function (app) {
   app.put(
     '/api/state/activities/:stateID',
     authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
-    validation.updateActivitiesValidation, validation.logoUpdateValidation, validation.runValidation,
+    validation.updateActivitiesValidation, validation.logoUpdateValidation, validation.runValidation, validation.queryUpdateValidation,
     stateActivitiesController.updateState
   )
 

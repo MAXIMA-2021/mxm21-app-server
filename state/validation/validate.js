@@ -28,6 +28,37 @@ exports.logoValidation = (req, res, next) => {
   next()
 }
 
+exports.updateActivitiesValidation = [
+  check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
+  check('zoomLink').notEmpty().withMessage('Link zoom tidak boleh kosong'),
+  check('day').notEmpty().withMessage('Day tidak boleh kosong'),
+  check('quota').notEmpty().withMessage('Jumlah quota tidak boleh kosong')
+]
+
+exports.queryUpdateValidation = async (req, res, next) => {
+  const stateActivities = require('../models/stateActivities.model')
+
+  const { stateID } = req.params
+
+  const { quota } = req.body
+
+  const isProvide = await stateActivities.query().where('stateID', stateID)
+
+  if (isProvide.length === 0) {
+    return res.status(404).send({
+      message: 'State tidak ditemukan'
+    })
+  }
+
+  if (parseInt(quota) <= isProvide[0].registered) {
+    return res.status(409).send({
+      message: 'Jumlah Quota melebihi dari jumlah yang terdaftar'
+    })
+  }
+
+  next()
+}
+
 exports.logoUpdateValidation = (req, res, next) => {
   const logoErrors = []
   const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
@@ -43,14 +74,6 @@ exports.logoUpdateValidation = (req, res, next) => {
   req.logoErrors = logoErrors
   next()
 }
-
-exports.updateActivitiesValidation = [
-  check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
-  check('zoomLink').notEmpty().withMessage('Link zoom tidak boleh kosong'),
-  check('day').notEmpty().withMessage('Day tidak boleh kosong'),
-  check('quota').notEmpty().withMessage('Jumlah quota tidak boleh kosong'),
-  check('registered').notEmpty().withMessage('Jumlah yang terdaftar tidak boleh kosong')
-]
 
 exports.verifyAttendanceValidation = [
   check('attendanceCode').notEmpty().withMessage('Code Kehadiran tidak boleh kosong')

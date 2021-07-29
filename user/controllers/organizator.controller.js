@@ -1,12 +1,13 @@
-/* eslint no-unused-vars: "off" */
-
 const organizator = require('../models/organizator.model')
 const stateActivities = require('../../state/models/stateActivities.model')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const bcrypt = require('bcryptjs')
-const panitia = require('../models/panitia.model')
+const logging = require('../../mongoose/controllers/logging.mongoose')
+const address = require('address')
+const toggleHelper = require('../../toggle/controllers/toggle.controller')
+const toggle = require('../../toggle/models/toggle.model')
 
 exports.getOrganizator = async (req, res) => {
   const { param } = req.query
@@ -45,6 +46,7 @@ exports.getOrganizator = async (req, res) => {
 
     return res.status(200).send(dbOrganizator)
   } catch (err) {
+    logging.errorLogging('getOrganizator', 'Organizator', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -52,6 +54,18 @@ exports.getOrganizator = async (req, res) => {
 }
 
 exports.signUp = async (req, res) => {
+  const id = 2
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
   const {
     nim,
     name,
@@ -83,7 +97,7 @@ exports.signUp = async (req, res) => {
 
     const fixPassword = bcrypt.hashSync(password, 8)
 
-    const insertResult = await organizator.query().insert({
+    await organizator.query().insert({
       nim,
       name: fixName,
       email,
@@ -96,12 +110,15 @@ exports.signUp = async (req, res) => {
       message: 'Data berhasil ditambahkan'
     })
   } catch (err) {
+    logging.errorLogging('signUp', 'Organizator', err.message)
     res.status(500).send({ message: err.message })
   }
 }
 
 exports.signIn = async (req, res) => {
   const { nim, password } = req.body
+
+  const ip = address.ip()
 
   try {
     const dbOrganizator = await organizator.query().where('nim', nim)
@@ -118,11 +135,14 @@ exports.signIn = async (req, res) => {
       expiresIn: 21600
     })
 
+    logging.loginLogging(nim, ip)
+
     res.status(200).send({
       message: 'Berhasil Login',
       token: token
     })
   } catch (err) {
+    logging.errorLogging('signIn', 'Organizator', err.message)
     res.status(500).send({ message: err.message })
   }
 }
@@ -130,21 +150,19 @@ exports.signIn = async (req, res) => {
 exports.verifyNim = async (req, res) => {
   const nimOrganizator = req.params.nim
 
-  const nim = req.nim
+  const acceptedDivision = ['D01']
 
-  const acceptedDivision = 'D01'
+  const division = req.division
+
+  if (!acceptedDivision.includes(division)) {
+    return res.status(403).send({
+      message: 'Forbidden'
+    })
+  }
 
   let verified = 1
 
   try {
-    const checkNim = await panitia.query().where({ nim })
-
-    if (checkNim[0].divisiID !== acceptedDivision) {
-      return res.status(403).send({
-        message: 'Anda tidak memiliki akses'
-      })
-    }
-
     const dbOrganizator = await organizator.query().where('nim', nimOrganizator)
 
     if (dbOrganizator.length === 0) {
@@ -157,15 +175,45 @@ exports.verifyNim = async (req, res) => {
       verified = 0
     }
 
-    const verifyOrganizator = await organizator.query().where('nim', nimOrganizator)
+    await organizator.query().where('nim', nimOrganizator)
       .patch({
         verified
       })
 
     return res.status(200).send({
-      message: 'Data berhasil diupdate'
+      verify: verified
     })
   } catch (err) {
+    logging.errorLogging('verifyNim', 'Organizator', err.message)
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
+
+exports.update = async (req, res) => {
+  const nim = req.nim
+
+  const {
+    name,
+    password
+  } = req.body
+
+  const fixPassword = bcrypt.hashSync(password, 8)
+
+  try {
+    await organizator.query()
+      .update({
+        name,
+        password: fixPassword
+      })
+      .where({ nim })
+
+    return res.status(200).send({
+      message: 'Update Profile Berhasil'
+    })
+  } catch (err) {
+    logging.errorLogging('update', 'Organizator', err.message)
     return res.status(500).send({
       message: err.message
     })

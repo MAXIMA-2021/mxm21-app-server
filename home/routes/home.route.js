@@ -5,7 +5,12 @@ const authJwt = require('../../user/middleware/authjwt.middleware')
 module.exports = function (app) {
   app.get(
     '/api/public/home',
-    homeController.getHomeData
+    homeController.getPublicHomeData
+  )
+
+  app.get(
+    '/api/public/home/:kategori',
+    homeController.getPublicHomeData
   )
 
   app.post(
@@ -13,9 +18,16 @@ module.exports = function (app) {
     authJwt.verifyToken, authJwt.isPanitia,
     validation.insertHomeValidation,
     validation.insertLogoValidation,
+    validation.runValidation,
+    homeController.createHomeInformation
+  )
+
+  app.post(
+    '/api/panit/home/:homeID',
+    authJwt.verifyToken, authJwt.isPanitia,
     validation.insertMediaValidation,
     validation.runValidation,
-    homeController.createHome
+    homeController.createHomeMedia
   )
 
   app.put(

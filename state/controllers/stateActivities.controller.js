@@ -1,8 +1,12 @@
 const stateActivities = require('../models/stateActivities.model')
-const panitia = require('../../user/models/panitia.model')
+const stateRegistration = require('../models/stateRegistration.model')
+const organizator = require('../../user/models/organizator.model')
 const fs = require('fs')
 const helper = require('../../helpers/helper')
 const { v4: uuidv4 } = require('uuid')
+const logging = require('../../mongoose/controllers/logging.mongoose')
+const toggleHelper = require('../../toggle/controllers/toggle.controller')
+const toggle = require('../../toggle/models/toggle.model')
 
 // Google Cloud Storage Library and Keys
 const { Storage } = require('@google-cloud/storage')
@@ -12,6 +16,18 @@ const storage = new Storage({
 
 exports.getStateData = async (req, res) => {
   const param = req.query.param
+
+  const id = 8
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
 
   try {
     if (param === undefined) {
@@ -31,20 +47,59 @@ exports.getStateData = async (req, res) => {
       }
     }
   } catch (err) {
+    logging.errorLogging('getStateData', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
+  }
+}
+
+exports.getPublicStateData = async (req, res) => {
+  const id = 8
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
+  try {
+    const result = await stateActivities.query()
+      .select('stateID', 'name', 'stateLogo')
+
+    return res.status(200).send(result)
+  } catch (err) {
+    logging.errorLogging('getPublicStateData', 'State_Activities', err.message)
+    return res.status(500).send({
+      message: err.message
+    })
   }
 }
 
 exports.addState = async (req, res) => {
   const nim = req.nim
 
-  const checkDivisi = await panitia.query().where({ nim })
+  const id = 7
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
+  const division = req.division
 
   const acceptedDivisi = ['D01', 'D02', 'D03']
 
-  if (!acceptedDivisi.includes(checkDivisi[0].divisiID)) {
+  if (!acceptedDivisi.includes(division)) {
     return res.status(403).send({
-      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
+      message: 'Forbidden'
     })
   }
 
@@ -58,6 +113,8 @@ exports.addState = async (req, res) => {
   const { stateLogo } = req.files
 
   const attendanceCode = helper.createAttendanceCode(name)
+
+  const dateTime = helper.createAttendanceTime()
 
   // format filename = nama state + nama file + datetime upload file
   const uuid = uuidv4()
@@ -81,43 +138,76 @@ exports.addState = async (req, res) => {
     })
 
     stateLogo.mv(uploadPath, (err) => {
-      if (err) return res.status(500).send({ message: err.messsage })
+      if (err) {
+        logging.errorLogging('State_Activities', err.message)
+        return res.status(500).send({ message: err.messsage })
+      }
     })
 
-    res_bucket = await storage.bucket(bucketName).upload(uploadPath)
+    await storage.bucket(bucketName).upload(uploadPath)
+
+    logging.stateLogging('insert/STATE', nim, insertResult, dateTime)
 
     res.status(200).send({
       message: 'Data berhasil ditambahkan'
     })
 
     fs.unlink(uploadPath, (err) => {
-      if (err) return res.status(500).send({ message: err.messsage })
+      if (err) {
+        logging.errorLogging('addState', 'State_Activities', err.message)
+        return res.status(500).send({ message: err.messsage })
+      }
     })
   } catch (err) {
+    logging.errorLogging('addState', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
 
 exports.updateState = async (req, res) => {
+  const { name, zoomLink, day, quota } = req.body
+
   const nim = req.nim
 
-  const checkDivisi = await panitia.query().where({ nim })
+  const id = 9
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
+
+  const division = req.division
 
   const acceptedDivisi = ['D01', 'D02', 'D03']
 
-  if (!acceptedDivisi.includes(checkDivisi[0].divisiID)) {
+  if (!acceptedDivisi.includes(division)) {
     return res.status(403).send({
-      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
+      message: 'Forbidden'
     })
   }
+
+  const dateTime = helper.createAttendanceTime()
 
   const stateID = req.params.stateID
 
   const isProvide = await stateActivities.query().where('stateID', stateID)
 
-  if (isProvide.length === 0) return res.status(404).send({ message: 'State tidak ditemukan' })
+  const checkName = await stateActivities.query().where('name', name)
 
-  const { name, zoomLink, day, quota, registered, attendanceCode } = req.body
+  let attendanceCode = isProvide[0].attendanceCode
+
+  if (checkName[0] && checkName[0].name !== isProvide[0].name) {
+    return res.status(409).send({
+      message: 'Maaf nama State sudah terdaftar'
+    })
+  } else if (!checkName[0]) {
+    attendanceCode = helper.createAttendanceCode(name)
+  }
 
   let stateLogo = null
   let fileName = ''
@@ -138,55 +228,92 @@ exports.updateState = async (req, res) => {
     urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
   }
 
+  let objectData = []
+
   try {
     if (uploadPath) {
-      const insertResult = await stateActivities.query().where('stateID', stateID).patch({
+      await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
         day,
         stateLogo: urlFile,
         quota,
-        registered,
         attendanceCode
       })
 
       stateLogo.mv(uploadPath, (err) => {
-        if (err) return res.status(500).send({ message: err.messsage })
+        if (err) {
+          logging.errorLogging('updateState', 'State_Activities', err.message)
+          return res.status(500).send({ message: err.messsage })
+        }
       })
 
-      res_bucket = await storage.bucket(bucketName).upload(uploadPath)
+      await storage.bucket(bucketName).upload(uploadPath)
 
       fs.unlink(uploadPath, (err) => {
-        if (err) return res.status(500).send({ message: err.message })
+        if (err) {
+          logging.errorLogging('updateState', 'State_Activities', err.message)
+          return res.status(500).send({ message: err.messsage })
+        }
       })
+
+      objectData = {
+        name: name,
+        zoomLink: zoomLink,
+        day: day,
+        stateLogo: urlFile,
+        quota: quota,
+        attendanceCode: attendanceCode
+      }
     } else {
-      const insertResult = await stateActivities.query().where('stateID', stateID).patch({
+      await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
         day,
         quota,
-        registered,
         attendanceCode
       })
+
+      objectData = {
+        name: name,
+        zoomLink: zoomLink,
+        day: day,
+        quota: quota,
+        attendanceCode: attendanceCode
+      }
     }
+
+    logging.stateLogging('update/STATE', nim, objectData, dateTime)
+
     return res.status(200).send({
       message: 'Data berhasil diupdate'
     })
   } catch (err) {
+    logging.errorLogging('updateState', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
 
 exports.deleteState = async (req, res) => {
-  const nim = req.nim
+  const id = 10
+
+  const dbToggle = await toggle.query().where({ id })
+
+  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
+
+  if (status === false) {
+    return res.status(403).send({
+      message: 'Closed'
+    })
+  }
 
   const acceptedDivisi = ['D01', 'D02']
 
-  const checkDivisi = await panitia.query().where({ nim })
+  const division = req.division
 
-  if (!acceptedDivisi.includes(checkDivisi[0].divisiID)) {
+  if (!acceptedDivisi.includes(division)) {
     return res.status(403).send({
-      message: 'Maaf divisi anda tidak diizinkan untuk mengaksesnya'
+      message: 'Forbidden'
     })
   }
 
@@ -197,9 +324,23 @@ exports.deleteState = async (req, res) => {
   if (isProvide.length === 0) return res.status(404).send({ message: 'State tidak ditemukan' })
 
   try {
-    const result = await stateActivities.query().delete().where('stateID', stateID)
-    return res.status(200).send({ message: 'Data State Berhasil Dihapus' })
+    await stateRegistration.query()
+      .delete()
+      .where('stateID', stateID)
+
+    await organizator.query()
+      .delete()
+      .where('stateID', stateID)
+
+    await stateActivities.query()
+      .delete()
+      .where('stateID', stateID)
+
+    return res.status(200).send({
+      message: 'Data State Berhasil Dihapus'
+    })
   } catch (err) {
+    logging.errorLogging('deleteState', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
   }
 }
