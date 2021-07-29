@@ -1,4 +1,5 @@
 require('dotenv/config')
+const path = require('path')
 const express = require('express')
 const cors = require('cors')
 const file = require('express-fileupload')
@@ -8,6 +9,11 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cors())
 app.use(file())
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '/pages/welcome.html'))
+})
+app.use(express.static('pages'))
 
 // Configure Mongo DB
 require('./config/mongo.config')()
