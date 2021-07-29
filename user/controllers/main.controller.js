@@ -1,5 +1,6 @@
 const panitia = require('../models/panitia.model')
 const organizator = require('../models/organizator.model')
+const mahasiswa = require('../models/mahasiswa.model')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 const bcrypt = require('bcryptjs')
 
@@ -62,21 +63,31 @@ exports.checkToken = async (req, res) => {
 
   const status = req.status
 
+  const nim = req.nim
+
+  let name
+
   if (division) {
+    name = await panitia.query().where({ nim })
     return res.status(200).send({
       message: `${status}`,
+      name: name[0].name,
       role: 'panitia',
       division: division
     })
   } else if (stateID) {
+    name = await organizator.query().where({ nim })
     return res.status(200).send({
       message: `${status}`,
+      name: name[0].name,
       role: 'organizator',
       stateID: stateID
     })
   } else {
+    name = await mahasiswa.query().where({ nim })
     return res.status(200).send({
       message: `${status}`,
+      name: name[0].name,
       role: 'mahasiswa'
     })
   }
