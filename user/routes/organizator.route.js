@@ -1,6 +1,7 @@
 const organizatorController = require('../controllers/organizator.controller')
 const validation = require('../validations/validate')
 const authJwt = require('../middleware/authjwt.middleware')
+const toggle = require('../../toggle/middleware/toggle.middleware')
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -20,6 +21,7 @@ module.exports = function (app) {
   app.post(
     '/api/organizator/acc/signup',
     validation.organizatorSignUpValidation, validation.runValidation,
+    toggle.signUpPanitiaOrganizator, toggle.checkToggle,
     organizatorController.signUp
   )
 

@@ -1,6 +1,7 @@
 const mahasiswaController = require('../controllers/mahasiswa.controller')
 const validation = require('../validations/validate')
 const authJWT = require('../middleware/authjwt.middleware')
+const toggle = require('../../toggle/middleware/toggle.middleware')
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -20,12 +21,14 @@ module.exports = function (app) {
   app.post(
     '/api/mhs/acc/signup',
     validation.mhsSignUpValidation, validation.runValidation,
+    toggle.signUpMahasiswa, toggle.checkToggle,
     mahasiswaController.signUp
   )
 
   app.post(
     '/api/mhs/acc/signin',
     validation.signInValidation,
+    toggle.signInMahasiswa, toggle.checkToggle,
     validation.runValidation, mahasiswaController.signIn
   )
 

@@ -2,22 +2,8 @@ const stateActivities = require('../models/stateActivities.model')
 const stateRegistration = require('../models/stateRegistration.model')
 const helper = require('../../helpers/helper')
 const logging = require('../../mongoose/controllers/logging.mongoose')
-const toggleHelper = require('../../toggle/controllers/toggle.controller')
-const toggle = require('../../toggle/models/toggle.model')
 
 exports.getRegistration = async (req, res) => {
-  const id = 11
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const { stateID, nim } = req.query
 
   let result = ''
@@ -88,18 +74,6 @@ exports.getRegistration = async (req, res) => {
 }
 
 exports.addRegistration = async (req, res) => {
-  const id = 11
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const { stateID } = req.body
   const { nim } = req.query
   const queueNo = 0
@@ -167,18 +141,6 @@ exports.attendanceState = async (req, res) => {
 }
 
 exports.updateAttendance = async (req, res) => {
-  const id = 12
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const { stateID, nim } = req.params
   const { inEventAttendance } = req.body
 
@@ -215,18 +177,6 @@ exports.updateAttendance = async (req, res) => {
 }
 
 exports.verifyAttendanceCode = async (req, res) => {
-  const id = 12
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const { stateID } = req.params
   const { nim } = req.query
   const { attendanceCode } = req.body
@@ -273,18 +223,6 @@ exports.verifyAttendanceCode = async (req, res) => {
 }
 
 exports.deleteRegistration = async (req, res) => {
-  const id = 11
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const { stateID } = req.params
   const { nim } = req.query
 

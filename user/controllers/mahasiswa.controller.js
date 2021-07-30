@@ -4,8 +4,6 @@ const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 const address = require('address')
-const toggleHelper = require('../../toggle/controllers/toggle.controller')
-const toggle = require('../../toggle/models/toggle.model')
 
 exports.getMahasiswa = async (req, res) => {
   const { param } = req.query
@@ -28,18 +26,6 @@ exports.getMahasiswa = async (req, res) => {
 }
 
 exports.signUp = async (req, res) => {
-  const id = 1
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const {
     nim,
     name,
@@ -84,18 +70,6 @@ exports.signUp = async (req, res) => {
 }
 
 exports.signIn = async (req, res) => {
-  const id = 13
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const { nim, password } = req.body
 
   const ip = address.ip()

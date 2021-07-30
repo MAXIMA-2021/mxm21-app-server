@@ -1,20 +1,24 @@
 const homeController = require('../controllers/home.controller')
 const validation = require('../validation/validate')
 const authJwt = require('../../user/middleware/authjwt.middleware')
+const toggle = require('../../toggle/middleware/toggle.middleware')
 
 module.exports = function (app) {
   app.get(
     '/api/public/home',
+    toggle.readHome, toggle.checkToggle,
     homeController.getPublicHomeData
   )
 
   app.get(
     '/api/public/home/:kategori',
+    toggle.readHome, toggle.checkToggle,
     homeController.getPublicHomeData
   )
 
   app.post(
     '/api/panit/home',
+    toggle.createHome, toggle.checkToggle,
     authJwt.verifyToken, authJwt.isPanitia,
     validation.insertHomeValidation,
     validation.insertLogoValidation,
@@ -24,6 +28,7 @@ module.exports = function (app) {
 
   app.post(
     '/api/panit/home/:homeID',
+    toggle.createHome, toggle.checkToggle,
     authJwt.verifyToken, authJwt.isPanitia,
     validation.insertMediaValidation,
     validation.runValidation,
@@ -32,6 +37,7 @@ module.exports = function (app) {
 
   app.put(
     '/api/panit/home/:homeID',
+    toggle.updateHome, toggle.checkToggle,
     authJwt.verifyToken, authJwt.isPanitia,
     validation.insertHomeValidation,
     validation.updateLogoValidation,
@@ -41,6 +47,7 @@ module.exports = function (app) {
 
   app.put(
     '/api/panit/home/linkMedia/:photoID',
+    toggle.updateHome, toggle.checkToggle,
     authJwt.verifyToken, authJwt.isPanitia,
     validation.updateMediaValidation, validation.runValidation,
     homeController.updateLinkMedia
@@ -48,12 +55,14 @@ module.exports = function (app) {
 
   app.delete(
     '/api/panit/home/:homeID',
+    toggle.deleteHome, toggle.checkToggle,
     authJwt.verifyToken, authJwt.isPanitia,
     homeController.deleteHome
   )
 
   app.delete(
     '/api/panit/home/linkMedia/:photoID',
+    toggle.deleteHome, toggle.checkToggle,
     authJwt.verifyToken, authJwt.isPanitia,
     homeController.deleteMedia
   )
