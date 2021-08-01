@@ -13,25 +13,47 @@ const storage = new Storage({
 })
 
 exports.getStateData = async (req, res) => {
-  const param = req.query.param
+  const { param } = req.query
+
+  let result
 
   try {
     if (param === undefined) {
-      const result = await stateActivities.query()
-      return res.status(200).send(result)
+      result = await stateActivities.query()
+        .select('day_management.date')
+        .select('state_activities.*')
+        .join(
+          'day_management',
+          'day_management.day',
+          'state_activities.day'
+        )
     } else {
-      const result = await stateActivities.query()
-        .where('stateID', param)
-        .orWhere('name', param)
-
-      if (result.length === 0) {
-        return res.status(404).send({
-          message: 'State Tidak Ditemukan'
-        })
-      } else {
-        return res.status(200).send(result)
-      }
+      result = await stateActivities.query()
+        .select('day_management.date')
+        .select('state_activities.*')
+        .join(
+          'day_management',
+          'day_management.day',
+          'state_activities.day'
+        )
+        .where('state_activities.name', param)
+        .orWhere('state_activities.stateID', param)
+        .orWhere('state_activities.day', param)
     }
+
+    if (result.length === 0) {
+      return res.status(200).send(result)
+    }
+
+    for (let i = 0; i < result.length; i++) {
+      const date = helper.createDate(result[i].date)
+      const time = helper.createTime(result[i].date)
+      result[i].tanggal = date
+      result[i].jam = time
+      result[i].lessQuota = result[i].quota - result[i].registered
+    }
+
+    return res.status(200).send(result)
   } catch (err) {
     logging.errorLogging('getStateData', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
@@ -92,7 +114,7 @@ exports.addState = async (req, res) => {
     const insertResult = await stateActivities.query().insert({
       name,
       zoomLink,
-      day,
+      day: `D${day}`,
       stateLogo: urlFile,
       quota,
       registered: 0,
@@ -185,7 +207,7 @@ exports.updateState = async (req, res) => {
       await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
-        day,
+        day: `D${day}`,
         stateLogo: urlFile,
         quota,
         attendanceCode
@@ -210,7 +232,7 @@ exports.updateState = async (req, res) => {
       objectData = {
         name: name,
         zoomLink: zoomLink,
-        day: day,
+        day: `D${day}`,
         stateLogo: urlFile,
         quota: quota,
         attendanceCode: attendanceCode
@@ -219,7 +241,7 @@ exports.updateState = async (req, res) => {
       await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
-        day,
+        day: `D${day}`,
         quota,
         attendanceCode
       })

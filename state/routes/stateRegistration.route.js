@@ -5,14 +5,14 @@ const toggle = require('../../toggle/middleware/toggle.middleware')
 
 module.exports = function (app) {
   app.get(
-    '/api/panit/state/registration',
-    authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
-    stateRegistrationController.getRegistration
+    '/api/mhs/state/registration',
+    authjwtMiddleware.verifyToken, authjwtMiddleware.isMahasiswa,
+    stateRegistrationController.getRegistrationMhs
   )
 
   app.get(
-    '/api/mhs/state/registration',
-    authjwtMiddleware.verifyToken, authjwtMiddleware.isMahasiswa,
+    '/api/panit/state/registration',
+    authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
     stateRegistrationController.getRegistration
   )
 

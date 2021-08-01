@@ -25,8 +25,8 @@ class stateRegistration extends Model {
         relation: Model.HasManyRelation,
         modelClass: StateActivities,
         join: {
-          from: 'state_activities.stateID',
-          to: 'state_registration.stateID'
+          from: 'state_activities.day',
+          to: 'state_registration.day'
         }
       }
     }

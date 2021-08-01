@@ -6,14 +6,12 @@ const toggle = require('../../toggle/middleware/toggle.middleware')
 module.exports = function (app) {
   app.get(
     '/api/state/activities',
-    toggle.readState, toggle.checkToggle,
     authjwtMiddleware.verifyToken,
     stateActivitiesController.getStateData
   )
 
   app.get(
     '/api/public/state',
-    toggle.readState, toggle.checkToggle,
     stateActivitiesController.getPublicStateData
   )
 

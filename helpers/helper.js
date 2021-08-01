@@ -29,6 +29,19 @@ exports.createAttendanceTime = () => {
   return attendanceTime
 }
 
+exports.createDate = (date) => {
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+
+  return date.toLocaleDateString('in-IN', options)
+}
+
+exports.createTime = (date) => {
+  const hour = `${date.getHours()}`.padStart(2, '0')
+  const minute = `${date.getMinutes()}`.padStart(2, '0')
+
+  return `${hour}:${minute}`
+}
+
 exports.toTitleCase = (name) => {
   return name.replace(
     /\w\S*/g, (txt) => {

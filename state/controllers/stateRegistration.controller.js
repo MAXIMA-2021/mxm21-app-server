@@ -3,70 +3,136 @@ const stateRegistration = require('../models/stateRegistration.model')
 const helper = require('../../helpers/helper')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 
-exports.getRegistration = async (req, res) => {
-  const { stateID, nim } = req.query
+exports.getRegistrationMhs = async (req, res) => {
+  const { nim } = req.query
 
-  let result = ''
+  const state = [
+    {
+      hasRegistered: 0,
+      stateData: null
+    },
+    {
+      hasRegistered: 0,
+      stateData: null
+    },
+    {
+      hasRegistered: 0,
+      stateData: null
+    }
+  ]
+
+  const result = {
+    remainingToken: 3,
+    state: state
+  }
 
   try {
-    if (stateID === undefined && nim === undefined) {
-      result = await stateRegistration.query()
-        .select('state_registration.*', 'mahasiswa.name')
-        .join(
-          'mahasiswa',
-          'mahasiswa.nim',
-          'state_registration.nim'
-        )
-    } else if (stateID !== undefined) {
-      if (req.roleID === 2) {
-        result = await stateRegistration.query()
-          .select('state_registration.*', 'mahasiswa.name')
-          .join(
-            'mahasiswa',
-            'mahasiswa.nim',
-            'state_registration.nim'
-          )
-          .where({ stateID })
-      } else {
-        return res.status(403).send({
-          message: 'Maaf selain panitia, tidak diperkenankan untuk mengaksesnya.'
-        })
-      }
-    } else if (nim !== undefined) {
-      result = await stateRegistration.query()
-        .select('state_registration.*', 'mahasiswa.name')
-        .join(
-          'mahasiswa',
-          'mahasiswa.nim',
-          'state_registration.nim'
-        )
-        .where({ nim })
-    } else if (stateID !== undefined && nim !== undefined) {
-      if (req.roleID === 2) {
-        result = await stateRegistration.query()
-          .select('state_registration.*', 'mahasiswa.name')
-          .join(
-            'mahasiswa',
-            'mahasiswa.nim',
-            'state_registration.nim'
-          )
-          .where({ stateID, nim })
-      } else {
-        return res.status(403).send({
-          message: 'Maaf selain panitia, tidak diperkenankan untuk mengaksesnya.'
-        })
-      }
-    }
+    const dbState = await stateActivities.query()
+      .select(
+        'state_activities.*',
+        'day_management.date',
+        'state_registration.exitAttendance'
+      )
+      .join(
+        'state_registration',
+        'state_registration.stateID',
+        'state_activities.stateID'
+      )
+      .join(
+        'day_management',
+        'day_management.day',
+        'state_activities.day'
+      )
+      .where('state_registration.nim', nim)
 
-    if (result.length === 0) {
-      return res.status(404).send({
-        message: 'Registratsi tidak dapat ditemukan'
-      })
+    if (dbState.length !== 0) {
+      const remainingToken = 3 - dbState.length
+
+      const tanggal = helper.createDate(dbState[0].date)
+
+      const jam = helper.createTime(dbState[0].date)
+
+      let expired = 0
+
+      for (let i = 0; i < dbState.length; i++) {
+        if (new Date(Date.now()) > dbState[i].date) {
+          expired = 1
+        }
+
+        dbState[i].tanggal = tanggal
+        dbState[i].jam = jam
+        dbState[i].expired = expired
+        state[i].hasRegistered = 1
+        state[i].stateData = dbState[i]
+      }
+
+      result.remainingToken = remainingToken
     }
 
     return res.status(200).send(result)
   } catch (err) {
-    logging.errorLogging('getRegistration', 'State_Registration', err.message)
+    logging.errorLogging('getRegistrationMhs', 'Read/State_Registration', err.message)
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
+
+exports.getRegistration = async (req, res) => {
+  const { stateID, nim } = req.query
+
+  let dbState
+
+  try {
+    switch (true) {
+      case stateID !== undefined :
+        dbState = await stateRegistration.query()
+          .select(
+            'state_registration.*',
+            'state_activities.*'
+          )
+          .join(
+            'state_activities',
+            'state_activities.stateID',
+            'state_registration.stateID'
+          )
+          .where('state_registration.stateID', stateID)
+        break
+      case nim !== undefined :
+        dbState = await stateRegistration.query()
+          .select(
+            'state_registration.*',
+            'state_activities.*'
+          )
+          .join(
+            'state_activities',
+            'state_activities.stateID',
+            'state_registration.stateID'
+          )
+          .where('state_registration.nim', nim)
+        break
+      default :
+        dbState = await stateRegistration.query()
+          .select(
+            'state_registration.*',
+            'state_activities.*'
+          )
+          .join(
+            'state_activities',
+            'state_activities.stateID',
+            'state_registration.stateID'
+          )
+    }
+
+    if (dbState.length === 0) {
+      return res.status(404).send({
+        message: 'Registrasi tidak dapat ditemukan'
+      })
+    }
+
+    return res.status(200).send(dbState)
+  } catch (err) {
+    logging.errorLogging('getRegistration', 'Read/State_Registration', err.message)
     return res.status(500).send({
       message: err.message
     })
