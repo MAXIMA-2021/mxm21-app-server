@@ -121,7 +121,10 @@ exports.signIn = async (req, res) => {
 
     res.status(200).send({
       message: 'Berhasil Login',
-      token: token
+      token: token,
+      nama: dbPanitia[0].name,
+      role: 'panitia',
+      divisiID: dbPanitia[0].divisiID
     })
   } catch (err) {
     logging.errorLogging('signIn', 'Panitia', err.message)

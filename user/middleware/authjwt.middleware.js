@@ -16,14 +16,11 @@ exports.verifyToken = async (req, res, next) => {
 
       if (decoded.stateID) {
         req.query.param = decoded.stateID
-        req.stateID = decoded.stateID
       }
 
       if (decoded.division) {
         req.divisiID = decoded.division
       }
-
-      req.status = true
 
       req.nim = decoded.nim
       next()
@@ -38,8 +35,6 @@ exports.isMahasiswa = async (req, res, next) => {
   const nim = req.nim
 
   req.query.nim = nim
-
-  req.roleID = 1
 
   req.role = 'mahasiswa'
 
@@ -57,8 +52,6 @@ exports.isMahasiswa = async (req, res, next) => {
 
 exports.isPanitia = async (req, res, next) => {
   const nim = req.nim
-
-  req.roleID = 2
 
   req.role = 'panitia'
 
@@ -78,8 +71,6 @@ exports.isPanitia = async (req, res, next) => {
 
 exports.isOrganizator = async (req, res, next) => {
   const nim = req.nim
-
-  req.roleID = 3
 
   req.role = 'organizator'
 

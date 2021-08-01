@@ -125,7 +125,10 @@ exports.signIn = async (req, res) => {
 
     res.status(200).send({
       message: 'Berhasil Login',
-      token: token
+      token: token,
+      nama: dbOrganizator[0].name,
+      role: 'organizator',
+      stateID: dbOrganizator[0].stateID
     })
   } catch (err) {
     logging.errorLogging('signIn', 'Organizator', err.message)

@@ -75,7 +75,7 @@ exports.signIn = async (req, res) => {
   const ip = address.ip()
 
   try {
-    const dbMahasiswa = await mahasiswa.query().select('nim', 'tanggalLahir').where('nim', nim)
+    const dbMahasiswa = await mahasiswa.query().where('nim', nim)
 
     if (dbMahasiswa.length === 0) { return res.status(404).send({ message: 'nim tidak terdaftar' }) }
 
@@ -93,7 +93,9 @@ exports.signIn = async (req, res) => {
 
     res.status(200).send({
       message: 'Berhasil Login',
-      token: token
+      token: token,
+      nama: dbMahasiswa[0].name,
+      role: 'mahasiswa'
     })
   } catch (err) {
     logging.errorLogging('signIn', 'Mahasiswa', err.message)
