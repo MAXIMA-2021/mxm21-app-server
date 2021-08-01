@@ -21,7 +21,7 @@ exports.checkToggle = async (req, res, next) => {
 }
 
 exports.signInMahasiswa = async (req, res, next) => {
-  req.toggleID = 13
+  req.toggleID = 11
   next()
 }
 
@@ -40,47 +40,37 @@ exports.createHome = async (req, res, next) => {
   next()
 }
 
-exports.readHome = async (req, res, next) => {
+exports.updateHome = async (req, res, next) => {
   req.toggleID = 4
   next()
 }
 
-exports.updateHome = async (req, res, next) => {
+exports.deleteHome = async (req, res, next) => {
   req.toggleID = 5
   next()
 }
 
-exports.deleteHome = async (req, res, next) => {
+exports.createState = async (req, res, next) => {
   req.toggleID = 6
   next()
 }
 
-exports.createState = async (req, res, next) => {
+exports.updateState = async (req, res, next) => {
   req.toggleID = 7
   next()
 }
 
-exports.readState = async (req, res, next) => {
+exports.deleteState = async (req, res, next) => {
   req.toggleID = 8
   next()
 }
 
-exports.updateState = async (req, res, next) => {
+exports.stateRegistration = async (req, res, next) => {
   req.toggleID = 9
   next()
 }
 
-exports.deleteState = async (req, res, next) => {
-  req.toggleID = 10
-  next()
-}
-
-exports.stateRegistration = async (req, res, next) => {
-  req.toggleID = 11
-  next()
-}
-
 exports.presensi = async (req, res, next) => {
-  req.toggleID = 12
+  req.toggleID = 10
   next()
 }

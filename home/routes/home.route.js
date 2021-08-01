@@ -6,13 +6,11 @@ const toggle = require('../../toggle/middleware/toggle.middleware')
 module.exports = function (app) {
   app.get(
     '/api/public/home',
-    toggle.readHome, toggle.checkToggle,
     homeController.getPublicHomeData
   )
 
   app.get(
     '/api/public/home/:kategori',
-    toggle.readHome, toggle.checkToggle,
     homeController.getPublicHomeData
   )
 
