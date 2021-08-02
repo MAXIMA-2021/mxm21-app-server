@@ -167,9 +167,9 @@ exports.advanceUpdate = async (req, res) => {
   } = req.body
 
   try {
-    const checkMahasiswa = await mahasiswa.query().where({ nim })
+    const dbMahasiswa = await mahasiswa.query().where({ nim })
 
-    if (checkMahasiswa.length === 0) {
+    if (dbMahasiswa.length === 0) {
       return res.status(404).send({
         message: 'Akun tidak ditemukan'
       })
@@ -187,6 +187,32 @@ exports.advanceUpdate = async (req, res) => {
         idInstagram
       })
       .where({ nim })
+
+    const object1 = {
+      name: dbMahasiswa[0].name,
+      tempatLahir: dbMahasiswa[0].tempatLahir,
+      tanggalLahir: helper.createDateNumber(dbMahasiswa[0].tanggalLahir),
+      jenisKelamin: dbMahasiswa[0].jenisKelamin,
+      prodi: dbMahasiswa[0].prodi,
+      whatsapp: dbMahasiswa[0].whatsapp,
+      idLine: dbMahasiswa[0].idLine,
+      idInstagram: dbMahasiswa[0].idInstagram
+    }
+
+    const object2 = {
+      name,
+      tempatLahir,
+      tanggalLahir: helper.createDateNumber(new Date(tanggalLahir)),
+      jenisKelamin,
+      prodi,
+      whatsapp,
+      idLine,
+      idInstagram
+    }
+
+    const fixObject = helper.createUpdatedObject(object1, object2)
+
+    logging.studentEditLogging('Edit/Mahasiswa', req.nim, nim, fixObject)
 
     return res.status(200).send({
       message: 'Update Mahasiswa Success'

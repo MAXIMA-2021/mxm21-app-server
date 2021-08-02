@@ -29,6 +29,14 @@ exports.createAttendanceTime = () => {
   return attendanceTime
 }
 
+exports.createDateNumber = (date) => {
+  const dd = String(date.getDate()).padStart(2, '0')
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const yyyy = date.getFullYear()
+
+  return `${yyyy}-${mm}-${dd}`
+}
+
 exports.createDate = (date) => {
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
 
@@ -70,4 +78,18 @@ exports.createOTP = () => {
   }
 
   return result
+}
+
+exports.createUpdatedObject = (object1, object2) => {
+  const fixObject = { updated: 'none' }
+
+  const keys = Object.keys(object2)
+
+  for (let i = 0; i < keys.length; i++) {
+    if (object1[keys[i]] !== object2[keys[i]]) {
+      fixObject[keys[i]] = object2[keys[i]]
+    }
+  }
+
+  return fixObject
 }
