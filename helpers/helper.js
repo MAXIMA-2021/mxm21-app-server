@@ -81,7 +81,7 @@ exports.createOTP = () => {
 }
 
 exports.createUpdatedObject = (object1, object2) => {
-  const fixObject = { updated: 'none' }
+  const fixObject = {}
 
   const keys = Object.keys(object2)
 

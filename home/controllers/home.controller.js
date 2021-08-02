@@ -321,7 +321,8 @@ exports.updateHome = async (req, res) => {
 
   const dateTime = helper.createAttendanceTime()
 
-  let objectData = []
+  let object1 = []
+  let object2 = []
 
   if (req.files) {
     linkLogo = req.files.linkLogo
@@ -384,8 +385,19 @@ exports.updateHome = async (req, res) => {
         }
       })
 
-      objectData = {
-        homeID: homeID,
+      object1 = {
+        search_key: dbHome1[0].search_key,
+        linkLogo: dbHome1[0].linkLogo,
+        name: dbHome1[0].name,
+        kategori: dbHome1[0].kategori,
+        shortDesc: dbHome1[0].shortDesc,
+        longDesc: dbHome1[0].longDesc,
+        instagram: dbHome1[0].instagram,
+        lineID: dbHome1[0].lineID,
+        linkYoutube: dbHome1[0].linkYoutube
+      }
+
+      object2 = {
         search_key: searchKey,
         linkLogo: logoUrlFile,
         name: name,
@@ -410,8 +422,18 @@ exports.updateHome = async (req, res) => {
           linkYoutube
         })
 
-      objectData = {
-        homeID: homeID,
+      object1 = {
+        search_key: dbHome1[0].search_key,
+        name: dbHome1[0].name,
+        kategori: dbHome1[0].kategori,
+        shortDesc: dbHome1[0].shortDesc,
+        longDesc: dbHome1[0].longDesc,
+        instagram: dbHome1[0].instagram,
+        lineID: dbHome1[0].lineID,
+        linkYoutube: dbHome1[0].linkYoutube
+      }
+
+      object2 = {
         search_key: searchKey,
         name: name,
         kategori: kategori,
@@ -423,7 +445,9 @@ exports.updateHome = async (req, res) => {
       }
     }
 
-    logging.homeLogging('update/HoME_Information', nim, objectData, dateTime)
+    const fixObject = helper.createUpdatedObject(object1, object2)
+
+    logging.homeLogging('update/HoME_Information', nim, fixObject, dateTime)
 
     return res.status(200).send({
       message: 'Home berhasil diupdate'

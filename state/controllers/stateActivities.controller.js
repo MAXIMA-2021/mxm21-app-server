@@ -200,7 +200,8 @@ exports.updateState = async (req, res) => {
     urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
   }
 
-  let objectData = []
+  let object1 = []
+  let object2 = []
 
   try {
     if (uploadPath) {
@@ -212,6 +213,24 @@ exports.updateState = async (req, res) => {
         quota,
         attendanceCode
       })
+
+      object1 = {
+        name: isProvide[0].name,
+        zoomLink: isProvide[0].zoomLink,
+        day: isProvide[0].day,
+        stateLogo: isProvide[0].stateLogo,
+        quota: isProvide[0].quota,
+        attendanceCode: isProvide[0].attendanceCode
+      }
+
+      object2 = {
+        name: name,
+        zoomLink: zoomLink,
+        day: `D${day}`,
+        stateLogo: urlFile,
+        quota: parseInt(quota),
+        attendanceCode: attendanceCode
+      }
 
       stateLogo.mv(uploadPath, (err) => {
         if (err) {
@@ -228,15 +247,6 @@ exports.updateState = async (req, res) => {
           return res.status(500).send({ message: err.messsage })
         }
       })
-
-      objectData = {
-        name: name,
-        zoomLink: zoomLink,
-        day: `D${day}`,
-        stateLogo: urlFile,
-        quota: quota,
-        attendanceCode: attendanceCode
-      }
     } else {
       await stateActivities.query().where('stateID', stateID).patch({
         name,
@@ -246,16 +256,26 @@ exports.updateState = async (req, res) => {
         attendanceCode
       })
 
-      objectData = {
+      object1 = {
+        name: isProvide[0].name,
+        zoomLink: isProvide[0].zoomLink,
+        day: isProvide[0].day,
+        quota: isProvide[0].quota,
+        attendanceCode: isProvide[0].attendanceCode
+      }
+
+      object2 = {
         name: name,
         zoomLink: zoomLink,
-        day: day,
-        quota: quota,
+        day: `D${day}`,
+        quota: parseInt(quota),
         attendanceCode: attendanceCode
       }
     }
 
-    logging.stateLogging('update/STATE', nim, objectData, dateTime)
+    const fixObject = helper.createUpdatedObject(object1, object2)
+
+    logging.stateLogging('update/STATE', nim, fixObject, dateTime)
 
     return res.status(200).send({
       message: 'Data berhasil diupdate'
