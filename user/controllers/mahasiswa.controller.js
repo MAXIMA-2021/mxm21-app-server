@@ -145,7 +145,7 @@ exports.update = async (req, res) => {
 exports.advanceUpdate = async (req, res) => {
   const { nim } = req.params
 
-  const acceptedDivision = ['D01']
+  const acceptedDivision = ['D01', 'D02', 'D03', 'D12']
 
   const division = req.division
 
