@@ -4,8 +4,6 @@ const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 const address = require('address')
-const toggleHelper = require('../../toggle/controllers/toggle.controller')
-const toggle = require('../../toggle/models/toggle.model')
 
 exports.getMahasiswa = async (req, res) => {
   const { param } = req.query
@@ -28,18 +26,6 @@ exports.getMahasiswa = async (req, res) => {
 }
 
 exports.signUp = async (req, res) => {
-  const id = 1
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const {
     nim,
     name,
@@ -84,24 +70,12 @@ exports.signUp = async (req, res) => {
 }
 
 exports.signIn = async (req, res) => {
-  const id = 13
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const { nim, password } = req.body
 
   const ip = address.ip()
 
   try {
-    const dbMahasiswa = await mahasiswa.query().select('nim', 'tanggalLahir').where('nim', nim)
+    const dbMahasiswa = await mahasiswa.query().where('nim', nim)
 
     if (dbMahasiswa.length === 0) { return res.status(404).send({ message: 'nim tidak terdaftar' }) }
 
@@ -119,7 +93,9 @@ exports.signIn = async (req, res) => {
 
     res.status(200).send({
       message: 'Berhasil Login',
-      token: token
+      token: token,
+      nama: dbMahasiswa[0].name,
+      role: 'mahasiswa'
     })
   } catch (err) {
     logging.errorLogging('signIn', 'Mahasiswa', err.message)
@@ -169,7 +145,7 @@ exports.update = async (req, res) => {
 exports.advanceUpdate = async (req, res) => {
   const { nim } = req.params
 
-  const acceptedDivision = ['D01']
+  const acceptedDivision = ['D01', 'D02', 'D03', 'D12']
 
   const division = req.division
 
@@ -191,9 +167,9 @@ exports.advanceUpdate = async (req, res) => {
   } = req.body
 
   try {
-    const checkMahasiswa = await mahasiswa.query().where({ nim })
+    const dbMahasiswa = await mahasiswa.query().where({ nim })
 
-    if (checkMahasiswa.length === 0) {
+    if (dbMahasiswa.length === 0) {
       return res.status(404).send({
         message: 'Akun tidak ditemukan'
       })
@@ -211,6 +187,32 @@ exports.advanceUpdate = async (req, res) => {
         idInstagram
       })
       .where({ nim })
+
+    const object1 = {
+      name: dbMahasiswa[0].name,
+      tempatLahir: dbMahasiswa[0].tempatLahir,
+      tanggalLahir: helper.createDateNumber(dbMahasiswa[0].tanggalLahir),
+      jenisKelamin: dbMahasiswa[0].jenisKelamin,
+      prodi: dbMahasiswa[0].prodi,
+      whatsapp: dbMahasiswa[0].whatsapp,
+      idLine: dbMahasiswa[0].idLine,
+      idInstagram: dbMahasiswa[0].idInstagram
+    }
+
+    const object2 = {
+      name,
+      tempatLahir,
+      tanggalLahir: helper.createDateNumber(new Date(tanggalLahir)),
+      jenisKelamin,
+      prodi,
+      whatsapp,
+      idLine,
+      idInstagram
+    }
+
+    const fixObject = helper.createUpdatedObject(object1, object2)
+
+    logging.studentEditLogging('Edit/Mahasiswa', req.nim, nim, fixObject)
 
     return res.status(200).send({
       message: 'Update Mahasiswa Success'

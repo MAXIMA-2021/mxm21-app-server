@@ -3,6 +3,7 @@ const AttendanceLogging = require('../models/stateAttendanceLogging.model')
 const StateLogging = require('../models/stateLogging.model')
 const HomeLogging = require('../models/homeLogging.model')
 const ErrorLogging = require('../models/errorLogging.model')
+const StudentEditLogging = require('../models/studentEditDataLogging.model')
 const helper = require('../../helpers/helper')
 
 exports.loginLogging = async (nim, ip) => {
@@ -71,6 +72,21 @@ exports.errorLogging = async (functions, services, err) => {
       services: services,
       function: functions,
       error_message: err
+    })
+
+    await logging.save()
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+exports.studentEditLogging = async (type, nim_panit, nim_maba, data) => {
+  try {
+    const logging = new StudentEditLogging({
+      type: type,
+      nim_panit: nim_panit,
+      nim_maba: nim_maba,
+      data: data
     })
 
     await logging.save()

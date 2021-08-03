@@ -6,8 +6,6 @@ const helper = require('../../helpers/helper')
 const bcrypt = require('bcryptjs')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 const address = require('address')
-const toggleHelper = require('../../toggle/controllers/toggle.controller')
-const toggle = require('../../toggle/models/toggle.model')
 
 exports.getPanitia = async (req, res) => {
   const { param } = req.query
@@ -54,18 +52,6 @@ exports.getPanitia = async (req, res) => {
 }
 
 exports.signUp = async (req, res) => {
-  const id = 2
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const {
     nim,
     name,
@@ -135,7 +121,10 @@ exports.signIn = async (req, res) => {
 
     res.status(200).send({
       message: 'Berhasil Login',
-      token: token
+      token: token,
+      nama: dbPanitia[0].name,
+      role: 'panitia',
+      divisiID: dbPanitia[0].divisiID
     })
   } catch (err) {
     logging.errorLogging('signIn', 'Panitia', err.message)

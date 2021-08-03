@@ -5,8 +5,6 @@ const fs = require('fs')
 const helper = require('../../helpers/helper')
 const { v4: uuidv4 } = require('uuid')
 const logging = require('../../mongoose/controllers/logging.mongoose')
-const toggleHelper = require('../../toggle/controllers/toggle.controller')
-const toggle = require('../../toggle/models/toggle.model')
 
 // Google Cloud Storage Library and Keys
 const { Storage } = require('@google-cloud/storage')
@@ -15,37 +13,47 @@ const storage = new Storage({
 })
 
 exports.getStateData = async (req, res) => {
-  const param = req.query.param
+  const { param } = req.query
 
-  const id = 8
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
+  let result
 
   try {
     if (param === undefined) {
-      const result = await stateActivities.query()
-      return res.status(200).send(result)
+      result = await stateActivities.query()
+        .select('day_management.date')
+        .select('state_activities.*')
+        .join(
+          'day_management',
+          'day_management.day',
+          'state_activities.day'
+        )
     } else {
-      const result = await stateActivities.query()
-        .where('stateID', param)
-        .orWhere('name', param)
-
-      if (result.length === 0) {
-        return res.status(404).send({
-          message: 'State Tidak Ditemukan'
-        })
-      } else {
-        return res.status(200).send(result)
-      }
+      result = await stateActivities.query()
+        .select('day_management.date')
+        .select('state_activities.*')
+        .join(
+          'day_management',
+          'day_management.day',
+          'state_activities.day'
+        )
+        .where('state_activities.name', param)
+        .orWhere('state_activities.stateID', param)
+        .orWhere('state_activities.day', param)
     }
+
+    if (result.length === 0) {
+      return res.status(200).send(result)
+    }
+
+    for (let i = 0; i < result.length; i++) {
+      const date = helper.createDate(result[i].date)
+      const time = helper.createTime(result[i].date)
+      result[i].tanggal = date
+      result[i].jam = time
+      result[i].lessQuota = result[i].quota - result[i].registered
+    }
+
+    return res.status(200).send(result)
   } catch (err) {
     logging.errorLogging('getStateData', 'State_Activities', err.message)
     return res.status(500).send({ message: err.message })
@@ -53,18 +61,6 @@ exports.getStateData = async (req, res) => {
 }
 
 exports.getPublicStateData = async (req, res) => {
-  const id = 8
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   try {
     const result = await stateActivities.query()
       .select('stateID', 'name', 'stateLogo')
@@ -80,18 +76,6 @@ exports.getPublicStateData = async (req, res) => {
 
 exports.addState = async (req, res) => {
   const nim = req.nim
-
-  const id = 7
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
 
   const division = req.division
 
@@ -130,7 +114,7 @@ exports.addState = async (req, res) => {
     const insertResult = await stateActivities.query().insert({
       name,
       zoomLink,
-      day,
+      day: `D${day}`,
       stateLogo: urlFile,
       quota,
       registered: 0,
@@ -168,18 +152,6 @@ exports.updateState = async (req, res) => {
   const { name, zoomLink, day, quota } = req.body
 
   const nim = req.nim
-
-  const id = 9
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
 
   const division = req.division
 
@@ -228,18 +200,37 @@ exports.updateState = async (req, res) => {
     urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
   }
 
-  let objectData = []
+  let object1 = []
+  let object2 = []
 
   try {
     if (uploadPath) {
       await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
-        day,
+        day: `D${day}`,
         stateLogo: urlFile,
         quota,
         attendanceCode
       })
+
+      object1 = {
+        name: isProvide[0].name,
+        zoomLink: isProvide[0].zoomLink,
+        day: isProvide[0].day,
+        stateLogo: isProvide[0].stateLogo,
+        quota: isProvide[0].quota,
+        attendanceCode: isProvide[0].attendanceCode
+      }
+
+      object2 = {
+        name: name,
+        zoomLink: zoomLink,
+        day: `D${day}`,
+        stateLogo: urlFile,
+        quota: parseInt(quota),
+        attendanceCode: attendanceCode
+      }
 
       stateLogo.mv(uploadPath, (err) => {
         if (err) {
@@ -256,34 +247,35 @@ exports.updateState = async (req, res) => {
           return res.status(500).send({ message: err.messsage })
         }
       })
-
-      objectData = {
-        name: name,
-        zoomLink: zoomLink,
-        day: day,
-        stateLogo: urlFile,
-        quota: quota,
-        attendanceCode: attendanceCode
-      }
     } else {
       await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
-        day,
+        day: `D${day}`,
         quota,
         attendanceCode
       })
 
-      objectData = {
+      object1 = {
+        name: isProvide[0].name,
+        zoomLink: isProvide[0].zoomLink,
+        day: isProvide[0].day,
+        quota: isProvide[0].quota,
+        attendanceCode: isProvide[0].attendanceCode
+      }
+
+      object2 = {
         name: name,
         zoomLink: zoomLink,
-        day: day,
-        quota: quota,
+        day: `D${day}`,
+        quota: parseInt(quota),
         attendanceCode: attendanceCode
       }
     }
 
-    logging.stateLogging('update/STATE', nim, objectData, dateTime)
+    const fixObject = helper.createUpdatedObject(object1, object2)
+
+    logging.stateLogging('update/STATE', nim, fixObject, dateTime)
 
     return res.status(200).send({
       message: 'Data berhasil diupdate'
@@ -295,18 +287,6 @@ exports.updateState = async (req, res) => {
 }
 
 exports.deleteState = async (req, res) => {
-  const id = 10
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const acceptedDivisi = ['D01', 'D02']
 
   const division = req.division

@@ -6,8 +6,6 @@ const helper = require('../../helpers/helper')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
 const logging = require('../../mongoose/controllers/logging.mongoose')
-const toggleHelper = require('../../toggle/controllers/toggle.controller')
-const toggle = require('../../toggle/models/toggle.model')
 
 // Configure Google Cloud Storage
 const { Storage } = require('@google-cloud/storage')
@@ -19,18 +17,6 @@ exports.getPublicHomeData = async (req, res) => {
   const { organizator } = req.query
 
   const { kategori } = req.params
-
-  const id = 4
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
 
   let dbHome
 
@@ -85,18 +71,6 @@ exports.getPublicHomeData = async (req, res) => {
 }
 
 exports.createHomeInformation = async (req, res) => {
-  const id = 3
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const acceptedDivision = ['D01', 'D02', 'D03']
 
   const division = req.division
@@ -214,18 +188,6 @@ exports.createHomeInformation = async (req, res) => {
 }
 
 exports.createHomeMedia = async (req, res, next) => {
-  const id = 3
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const acceptedDivision = ['D01', 'D02', 'D03']
 
   const division = req.division
@@ -316,18 +278,6 @@ exports.createHomeMedia = async (req, res, next) => {
 }
 
 exports.updateHome = async (req, res) => {
-  const id = 5
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const acceptedDivision = ['D01', 'D02', 'D03']
 
   const division = req.division
@@ -371,7 +321,8 @@ exports.updateHome = async (req, res) => {
 
   const dateTime = helper.createAttendanceTime()
 
-  let objectData = []
+  let object1 = []
+  let object2 = []
 
   if (req.files) {
     linkLogo = req.files.linkLogo
@@ -434,8 +385,19 @@ exports.updateHome = async (req, res) => {
         }
       })
 
-      objectData = {
-        homeID: homeID,
+      object1 = {
+        search_key: dbHome1[0].search_key,
+        linkLogo: dbHome1[0].linkLogo,
+        name: dbHome1[0].name,
+        kategori: dbHome1[0].kategori,
+        shortDesc: dbHome1[0].shortDesc,
+        longDesc: dbHome1[0].longDesc,
+        instagram: dbHome1[0].instagram,
+        lineID: dbHome1[0].lineID,
+        linkYoutube: dbHome1[0].linkYoutube
+      }
+
+      object2 = {
         search_key: searchKey,
         linkLogo: logoUrlFile,
         name: name,
@@ -460,8 +422,18 @@ exports.updateHome = async (req, res) => {
           linkYoutube
         })
 
-      objectData = {
-        homeID: homeID,
+      object1 = {
+        search_key: dbHome1[0].search_key,
+        name: dbHome1[0].name,
+        kategori: dbHome1[0].kategori,
+        shortDesc: dbHome1[0].shortDesc,
+        longDesc: dbHome1[0].longDesc,
+        instagram: dbHome1[0].instagram,
+        lineID: dbHome1[0].lineID,
+        linkYoutube: dbHome1[0].linkYoutube
+      }
+
+      object2 = {
         search_key: searchKey,
         name: name,
         kategori: kategori,
@@ -473,7 +445,9 @@ exports.updateHome = async (req, res) => {
       }
     }
 
-    logging.homeLogging('update/HoME_Information', nim, objectData, dateTime)
+    const fixObject = helper.createUpdatedObject(object1, object2)
+
+    logging.homeLogging('update/HoME_Information', nim, fixObject, dateTime)
 
     return res.status(200).send({
       message: 'Home berhasil diupdate'
@@ -487,18 +461,6 @@ exports.updateHome = async (req, res) => {
 }
 
 exports.updateLinkMedia = async (req, res) => {
-  const id = 5
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const acceptedDivision = ['D01', 'D02', 'D03']
 
   const division = req.division
@@ -586,18 +548,6 @@ exports.updateLinkMedia = async (req, res) => {
 }
 
 exports.deleteMedia = async (req, res) => {
-  const id = 6
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const acceptedDivision = ['D01', 'D02']
 
   const division = req.division
@@ -627,18 +577,6 @@ exports.deleteMedia = async (req, res) => {
 }
 
 exports.deleteHome = async (req, res) => {
-  const id = 6
-
-  const dbToggle = await toggle.query().where({ id })
-
-  const status = toggleHelper.checkToggle(dbToggle[0].toggle)
-
-  if (status === false) {
-    return res.status(403).send({
-      message: 'Closed'
-    })
-  }
-
   const acceptedDivision = ['D01', 'D02']
 
   const division = req.division

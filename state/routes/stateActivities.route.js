@@ -1,6 +1,7 @@
 const stateActivitiesController = require('../controllers/stateActivities.controller')
 const authjwtMiddleware = require('../../user/middleware/authjwt.middleware')
 const validation = require('../validation/validate')
+const toggle = require('../../toggle/middleware/toggle.middleware')
 
 module.exports = function (app) {
   app.get(
@@ -16,6 +17,7 @@ module.exports = function (app) {
 
   app.post(
     '/api/state/activities',
+    toggle.createState, toggle.checkToggle,
     authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
     validation.createActivitiesValidation, validation.logoValidation, validation.runValidation,
     stateActivitiesController.addState
@@ -23,6 +25,7 @@ module.exports = function (app) {
 
   app.put(
     '/api/state/activities/:stateID',
+    toggle.updateState, toggle.checkToggle,
     authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
     validation.updateActivitiesValidation, validation.logoUpdateValidation, validation.runValidation, validation.queryUpdateValidation,
     stateActivitiesController.updateState
@@ -30,6 +33,7 @@ module.exports = function (app) {
 
   app.delete(
     '/api/state/activities/:stateID',
+    toggle.deleteState, toggle.checkToggle,
     authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
     stateActivitiesController.deleteState
   )

@@ -1,6 +1,7 @@
 const panitiaController = require('../controllers/panitia.controller')
 const validation = require('../validations/validate')
 const authJwt = require('../middleware/authjwt.middleware')
+const toggle = require('../../toggle/middleware/toggle.middleware')
 
 module.exports = function (app) {
   app.use(function (req, res, next) {
@@ -26,6 +27,7 @@ module.exports = function (app) {
   app.post(
     '/api/panitia/acc/signup',
     validation.panitiaSignUpValidation, validation.runValidation,
+    toggle.signUpPanitiaOrganizator, toggle.checkToggle,
     panitiaController.signUp
   )
 
