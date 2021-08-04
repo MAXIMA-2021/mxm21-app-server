@@ -45,29 +45,41 @@ exports.getRegistrationMhs = async (req, res) => {
       )
       .where('state_registration.nim', nim)
 
-    if (dbState.length !== 0) {
-      const remainingToken = 3 - dbState.length
-
-      const tanggal = helper.createDate(dbState[0].date)
-
-      const jam = helper.createTime(dbState[0].date)
-
-      let expired = 0
-
-      for (let i = 0; i < dbState.length; i++) {
-        if (new Date(Date.now()) > dbState[i].date) {
-          expired = 1
-        }
-
-        dbState[i].tanggal = tanggal
-        dbState[i].jam = jam
-        dbState[i].expired = expired
-        state[i].hasRegistered = 1
-        state[i].stateData = dbState[i]
-      }
-
-      result.remainingToken = remainingToken
+    if (dbState.length === 0) {
+      return res.status(200).send(result)
     }
+
+    // JavaScript counts months from 0 to 11. January 0 December 11
+    const dateNow = new Date(Date.now())
+    // const dateNow = new Date(2021, 7, 23, 10, 0, 0, 0) // 23 agustus 2021 10:00
+    // const dateNow = new Date(2021, 7, 23, 17, 15, 0, 0) // 23 agustus 2021 17:15
+    // const dateNow = new Date(2021, 7, 23, 22, 0, 0, 0) // 23 agustus 2021 22:00
+    // const dateNow = new Date(2021, 7, 24, 17, 15, 0, 0) // 24 agustus 2021 17:15
+    // const dateNow = new Date(2021, 7, 24, 22, 0, 0, 0) // 24 agustus 2021 22:00
+    // const dateNow = new Date(2021, 7, 25, 17, 15, 0, 0) // 25 agustus 2021 17:15
+    // const dateNow = new Date(2021, 7, 25, 22, 0, 0, 0) // 25 agustus 2021 22:00
+
+    const remainingToken = 3 - dbState.length
+
+    for (let i = 0; i < dbState.length; i++) {
+      const tanggal = helper.createDate(dbState[i].date)
+
+      const jam = helper.createTime(dbState[i].date)
+
+      const dateOpen = new Date(2021, 7, 23, 10, 0, 0, 0) // 23 agustus 2021 10:00
+
+      const dateState = dbState[i].date
+
+      const status = helper.createStatusState(dateNow, dateOpen, dateState)
+
+      dbState[i].tanggal = tanggal
+      dbState[i].jam = jam
+      dbState[i].open = status
+      state[i].hasRegistered = 1
+      state[i].stateData = dbState[i]
+    }
+
+    result.remainingToken = remainingToken
 
     return res.status(200).send(result)
   } catch (err) {
