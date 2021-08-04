@@ -6,13 +6,20 @@ exports.createActivitiesValidation = [
   check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
   check('zoomLink').notEmpty().withMessage('Link zoom tidak boleh kosong'),
   check('day').notEmpty().withMessage('Day tidak boleh kosong'),
-  check('quota').notEmpty().withMessage('Jumlah quota tidak boleh kosong')
+  check('quota').notEmpty().withMessage('Jumlah quota tidak boleh kosong'),
+  check('category').notEmpty().withMessage('Kategori tidak boleh kosong')
 ]
 
 exports.logoValidation = (req, res, next) => {
   const logoErrors = []
   const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
+
   if (!req.files) {
+    logoErrors.push({
+      key: 'stateLogo',
+      message: 'Gambar Logo tidak boleh kosong'
+    })
+  } else if (!req.files.stateLogo) {
     logoErrors.push({
       key: 'stateLogo',
       message: 'Gambar Logo tidak boleh kosong'
@@ -25,7 +32,36 @@ exports.logoValidation = (req, res, next) => {
       })
     }
   }
+
   req.logoErrors = logoErrors
+
+  next()
+}
+
+exports.coverValidation = (req, res, next) => {
+  const coverErrors = []
+  const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
+
+  if (!req.files) {
+    coverErrors.push({
+      key: 'coverPhoto',
+      message: 'Foto Cover tidak boleh kosong'
+    })
+  } else if (!req.files.coverPhoto) {
+    coverErrors.push({
+      key: 'coverPhoto',
+      message: 'Gambar Logo tidak boleh kosong'
+    })
+  } else {
+    if (!acceptedType.includes(req.files.coverPhoto.mimetype)) {
+      coverErrors.push({
+        key: 'coverPhoto',
+        message: 'Harap menggunakan tipe file png, jpg, atau jpeg'
+      })
+    }
+  }
+
+  req.coverErrors = coverErrors
 
   next()
 }
@@ -34,7 +70,8 @@ exports.updateActivitiesValidation = [
   check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
   check('zoomLink').notEmpty().withMessage('Link zoom tidak boleh kosong'),
   check('day').notEmpty().withMessage('Day tidak boleh kosong'),
-  check('quota').notEmpty().withMessage('Jumlah quota tidak boleh kosong')
+  check('quota').notEmpty().withMessage('Jumlah quota tidak boleh kosong'),
+  check('category').notEmpty().withMessage('Kategori tidak boleh kosong')
 ]
 
 exports.queryUpdateValidation = async (req, res, next) => {
@@ -64,7 +101,7 @@ exports.queryUpdateValidation = async (req, res, next) => {
 exports.logoUpdateValidation = (req, res, next) => {
   const logoErrors = []
   const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
-  if (req.files) {
+  if (req.files && req.files.stateLogo) {
     if (!acceptedType.includes(req.files.stateLogo.mimetype)) {
       logoErrors.push({
         key: 'stateLogo',
@@ -74,6 +111,24 @@ exports.logoUpdateValidation = (req, res, next) => {
   }
 
   req.logoErrors = logoErrors
+
+  next()
+}
+
+exports.coverUpdateValidation = (req, res, next) => {
+  const coverErrors = []
+  const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
+  if (req.files && req.files.coverPhoto) {
+    if (!acceptedType.includes(req.files.coverPhoto.mimetype)) {
+      coverErrors.push({
+        key: 'coverPhoto',
+        message: 'Harap menggunakan tipe file png, jpg, atau jpeg'
+      })
+    }
+  }
+
+  req.coverErrors = coverErrors
+
   next()
 }
 
@@ -146,6 +201,8 @@ exports.createRegisterValidation = async (req, res, next) => {
 exports.runValidation = (req, res, next) => {
   const errors = validationResult(req).errors
   const logoErrors = req.logoErrors
+  const coverErrors = req.coverErrors
+
   const listErrors = []
 
   if (errors.length !== 0) {
@@ -157,10 +214,12 @@ exports.runValidation = (req, res, next) => {
     })
   }
 
-  if (logoErrors !== undefined) {
-    if (logoErrors.length !== 0) {
-      listErrors.push(logoErrors[0])
-    }
+  if (logoErrors !== undefined && logoErrors.length !== 0) {
+    listErrors.push(logoErrors[0])
+  }
+
+  if (coverErrors !== undefined && coverErrors.length !== 0) {
+    listErrors.push(coverErrors[0])
   }
 
   if (listErrors.length !== 0) return res.status(400).send(listErrors)

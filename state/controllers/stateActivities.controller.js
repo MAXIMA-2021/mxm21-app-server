@@ -91,10 +91,13 @@ exports.addState = async (req, res) => {
     name,
     zoomLink,
     day,
-    quota
+    quota,
+    identifier,
+    category,
+    shortDesc
   } = req.body
 
-  const { stateLogo } = req.files
+  const { stateLogo, coverPhoto } = req.files
 
   const attendanceCode = helper.createAttendanceCode(name)
 
@@ -102,45 +105,68 @@ exports.addState = async (req, res) => {
 
   // format filename = nama state + nama file + datetime upload file
   const uuid = uuidv4()
-  const fileName = `${name}_${uuid}_${stateLogo.name}`
+  const fileNameLogo = `${name}_${uuid}_${stateLogo.name}`
+  const fileNameCover = `${name}_${uuid}_${coverPhoto.name}`
 
-  const uploadPath = './stateLogo/' + fileName
+  const uploadPathLogo = './stateLogo/' + fileNameLogo
+  const uploadPathCover = './stateLogo/' + fileNameCover
 
   const bucketName = 'mxm21-bucket-playground'
 
-  const urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
+  const urlFileLogo = `https://storage.googleapis.com/${bucketName}/${fileNameLogo}`
+  const urlFileCover = `https://storage.googleapis.com/${bucketName}/${fileNameCover}`
 
   try {
     const insertResult = await stateActivities.query().insert({
       name,
       zoomLink,
       day: `D${day}`,
-      stateLogo: urlFile,
+      stateLogo: urlFileLogo,
       quota,
       registered: 0,
-      attendanceCode
+      attendanceCode,
+      identifier,
+      category,
+      shortDesc,
+      coverPhoto: urlFileCover
     })
 
-    stateLogo.mv(uploadPath, (err) => {
+    stateLogo.mv(uploadPathLogo, (err) => {
       if (err) {
         logging.errorLogging('State_Activities', err.message)
         return res.status(500).send({ message: err.messsage })
       }
     })
 
-    await storage.bucket(bucketName).upload(uploadPath)
+    await storage.bucket(bucketName).upload(uploadPathLogo)
+
+    fs.unlink(uploadPathLogo, (err) => {
+      if (err) {
+        logging.errorLogging('addState', 'State_Activities', err.message)
+        return res.status(500).send({ message: err.messsage })
+      }
+    })
+
+    coverPhoto.mv(uploadPathCover, (err) => {
+      if (err) {
+        logging.errorLogging('State_Activities', err.message)
+        return res.status(500).send({ message: err.messsage })
+      }
+    })
+
+    await storage.bucket(bucketName).upload(uploadPathCover)
+
+    fs.unlink(uploadPathCover, (err) => {
+      if (err) {
+        logging.errorLogging('addState', 'State_Activities', err.message)
+        return res.status(500).send({ message: err.messsage })
+      }
+    })
 
     logging.stateLogging('insert/STATE', nim, insertResult, dateTime)
 
     res.status(200).send({
       message: 'Data berhasil ditambahkan'
-    })
-
-    fs.unlink(uploadPath, (err) => {
-      if (err) {
-        logging.errorLogging('addState', 'State_Activities', err.message)
-        return res.status(500).send({ message: err.messsage })
-      }
     })
   } catch (err) {
     logging.errorLogging('addState', 'State_Activities', err.message)
@@ -149,7 +175,15 @@ exports.addState = async (req, res) => {
 }
 
 exports.updateState = async (req, res) => {
-  const { name, zoomLink, day, quota } = req.body
+  const {
+    name,
+    zoomLink,
+    day,
+    quota,
+    identifier,
+    category,
+    shortDesc
+  } = req.body
 
   const nim = req.nim
 
@@ -182,36 +216,56 @@ exports.updateState = async (req, res) => {
   }
 
   let stateLogo = null
-  let fileName = ''
-  let uploadPath = ''
+  let coverPhoto = null
+  let fileNameLogo = ''
+  let fileNameCover = ''
+  let uploadPathLogo = ''
+  let uploadPathCover = ''
   let bucketName = ''
-  let urlFile = ''
+  let urlFileLogo = ''
+  let urlFileCover = ''
 
-  if (req.files) {
+  if (req.files && req.files.stateLogo) {
     stateLogo = req.files.stateLogo
 
     const uuid = uuidv4()
-    fileName = `${name}_${uuid}_${stateLogo.name}`
+    fileNameLogo = `${name}_${uuid}_${stateLogo.name}`
 
-    uploadPath = './stateLogo/' + fileName
+    uploadPathLogo = './stateLogo/' + fileNameLogo
 
     bucketName = 'mxm21-bucket-playground'
 
-    urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
+    urlFileLogo = `https://storage.googleapis.com/${bucketName}/${fileNameLogo}`
+  }
+
+  if (req.files && req.files.coverPhoto) {
+    coverPhoto = req.files.coverPhoto
+
+    const uuid = uuidv4()
+    fileNameCover = `${name}_${uuid}_${coverPhoto.name}`
+
+    uploadPathCover = './stateLogo/' + fileNameCover
+
+    bucketName = 'mxm21-bucket-playground'
+
+    urlFileCover = `https://storage.googleapis.com/${bucketName}/${fileNameCover}`
   }
 
   let object1 = []
   let object2 = []
 
   try {
-    if (uploadPath) {
+    if (uploadPathLogo) {
       await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
         day: `D${day}`,
-        stateLogo: urlFile,
+        stateLogo: urlFileLogo,
         quota,
-        attendanceCode
+        attendanceCode,
+        identifier,
+        category,
+        shortDesc
       })
 
       object1 = {
@@ -220,40 +274,105 @@ exports.updateState = async (req, res) => {
         day: isProvide[0].day,
         stateLogo: isProvide[0].stateLogo,
         quota: isProvide[0].quota,
-        attendanceCode: isProvide[0].attendanceCode
+        attendanceCode: isProvide[0].attendanceCode,
+        identifier: isProvide[0].identifier,
+        category: isProvide[0].category,
+        shortDesc: isProvide[0].shortDesc
       }
 
       object2 = {
         name: name,
         zoomLink: zoomLink,
         day: `D${day}`,
-        stateLogo: urlFile,
+        stateLogo: urlFileLogo,
         quota: parseInt(quota),
-        attendanceCode: attendanceCode
+        attendanceCode: attendanceCode,
+        identifier: identifier,
+        category: category,
+        shortDesc: shortDesc
       }
 
-      stateLogo.mv(uploadPath, (err) => {
+      stateLogo.mv(uploadPathLogo, (err) => {
         if (err) {
           logging.errorLogging('updateState', 'State_Activities', err.message)
           return res.status(500).send({ message: err.messsage })
         }
       })
 
-      await storage.bucket(bucketName).upload(uploadPath)
+      await storage.bucket(bucketName).upload(uploadPathLogo)
 
-      fs.unlink(uploadPath, (err) => {
+      fs.unlink(uploadPathLogo, (err) => {
         if (err) {
           logging.errorLogging('updateState', 'State_Activities', err.message)
           return res.status(500).send({ message: err.messsage })
         }
       })
-    } else {
+    }
+
+    if (uploadPathCover) {
+      await stateActivities.query().where('stateID', stateID).patch({
+        name,
+        zoomLink,
+        day: `D${day}`,
+        coverPhoto: urlFileCover,
+        quota,
+        attendanceCode,
+        identifier,
+        category,
+        shortDesc
+      })
+
+      object1 = {
+        name: isProvide[0].name,
+        zoomLink: isProvide[0].zoomLink,
+        day: isProvide[0].day,
+        coverPhoto: isProvide[0].coverPhoto,
+        quota: isProvide[0].quota,
+        attendanceCode: isProvide[0].attendanceCode,
+        identifier: isProvide[0].identifier,
+        category: isProvide[0].category,
+        shortDesc: isProvide[0].shortDesc
+      }
+
+      object2 = {
+        name: name,
+        zoomLink: zoomLink,
+        day: `D${day}`,
+        coverPhoto: urlFileCover,
+        quota: parseInt(quota),
+        attendanceCode: attendanceCode,
+        identifier: identifier,
+        category: category,
+        shortDesc: shortDesc
+      }
+
+      coverPhoto.mv(uploadPathCover, (err) => {
+        if (err) {
+          logging.errorLogging('updateState', 'State_Activities', err.message)
+          return res.status(500).send({ message: err.messsage })
+        }
+      })
+
+      await storage.bucket(bucketName).upload(uploadPathCover)
+
+      fs.unlink(uploadPathCover, (err) => {
+        if (err) {
+          logging.errorLogging('updateState', 'State_Activities', err.message)
+          return res.status(500).send({ message: err.messsage })
+        }
+      })
+    }
+
+    if (!req.files) {
       await stateActivities.query().where('stateID', stateID).patch({
         name,
         zoomLink,
         day: `D${day}`,
         quota,
-        attendanceCode
+        attendanceCode,
+        identifier,
+        category,
+        shortDesc
       })
 
       object1 = {
@@ -261,7 +380,10 @@ exports.updateState = async (req, res) => {
         zoomLink: isProvide[0].zoomLink,
         day: isProvide[0].day,
         quota: isProvide[0].quota,
-        attendanceCode: isProvide[0].attendanceCode
+        attendanceCode: isProvide[0].attendanceCode,
+        identifier: isProvide[0].identifier,
+        category: isProvide[0].category,
+        shortDesc: isProvide[0].shortDesc
       }
 
       object2 = {
@@ -269,7 +391,10 @@ exports.updateState = async (req, res) => {
         zoomLink: zoomLink,
         day: `D${day}`,
         quota: parseInt(quota),
-        attendanceCode: attendanceCode
+        attendanceCode: attendanceCode,
+        identifier: identifier,
+        category: category,
+        shortDesc: shortDesc
       }
     }
 

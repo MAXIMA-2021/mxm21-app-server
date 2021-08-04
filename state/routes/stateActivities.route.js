@@ -19,7 +19,8 @@ module.exports = function (app) {
     '/api/state/activities',
     toggle.createState, toggle.checkToggle,
     authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
-    validation.createActivitiesValidation, validation.logoValidation, validation.runValidation,
+    validation.createActivitiesValidation, validation.logoValidation,
+    validation.coverValidation, validation.runValidation,
     stateActivitiesController.addState
   )
 
@@ -27,7 +28,9 @@ module.exports = function (app) {
     '/api/state/activities/:stateID',
     toggle.updateState, toggle.checkToggle,
     authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
-    validation.updateActivitiesValidation, validation.logoUpdateValidation, validation.runValidation, validation.queryUpdateValidation,
+    validation.updateActivitiesValidation, validation.logoUpdateValidation,
+    validation.coverUpdateValidation, validation.runValidation,
+    validation.queryUpdateValidation,
     stateActivitiesController.updateState
   )
 

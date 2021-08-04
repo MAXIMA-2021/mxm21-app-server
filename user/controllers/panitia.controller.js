@@ -60,6 +60,8 @@ exports.signUp = async (req, res) => {
     divisiID
   } = req.body
 
+  if (divisiID === 'D01') return res.status(401).send({ message: 'Anda tidak dapat mendaftar pada divisi tersebut' })
+
   const verified = 0
 
   const fixName = helper.toTitleCase(name)
