@@ -35,7 +35,7 @@ exports.createPasswordReset = async (req, res) => {
     const checkOrganizator = await organizator.query().where({ nim })
 
     if (checkPanitia.length === 0 && checkOrganizator.length === 0) {
-      return res.status(404).send({
+      return res.send({
         message: 'Akun Tidak Ditemukan'
       })
     }

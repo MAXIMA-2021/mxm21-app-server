@@ -136,12 +136,6 @@ exports.getRegistration = async (req, res) => {
           )
     }
 
-    if (dbState.length === 0) {
-      return res.status(404).send({
-        message: 'Registrasi tidak dapat ditemukan'
-      })
-    }
-
     return res.status(200).send(dbState)
   } catch (err) {
     logging.errorLogging('getRegistration', 'Read/State_Registration', err.message)
@@ -199,7 +193,7 @@ exports.attendanceState = async (req, res) => {
     })
 
     if (checkRegistration.length === 0) {
-      return res.status(404).send({ message: 'Anda tidak terdaftar1' })
+      return res.send({ message: 'Anda tidak terdaftar!' })
     }
 
     await stateRegistration.query()
@@ -231,7 +225,7 @@ exports.updateAttendance = async (req, res) => {
     })
 
     if (checkRegistration.length === 0) {
-      return res.status(404).send({ message: 'Peserta belum mendaftar' })
+      return res.send({ message: 'Peserta belum mendaftar' })
     }
 
     await stateRegistration.query()
@@ -274,7 +268,7 @@ exports.verifyAttendanceCode = async (req, res) => {
       )
 
     if (stateAttendanceDB.length === 0) {
-      return res.status(404).send({
+      return res.send({
         message: 'Anda belum mendaftar'
       })
     }
@@ -309,7 +303,7 @@ exports.deleteRegistration = async (req, res) => {
       .where({ nim, stateID })
 
     if (checkRegistration.length === 0) {
-      return res.status(404).send({
+      return res.send({
         message: 'Anda belum mendaftar'
       })
     }

@@ -34,12 +34,6 @@ exports.getPublicHomeData = async (req, res) => {
     } else if (organizator !== undefined) {
       dbHome = await homeInformation.query().where({ search_key: organizator })
 
-      if (dbHome.length === 0) {
-        return res.status(404).send({
-          message: 'Home tidak tersedia'
-        })
-      }
-
       const dbHomeMedia = await homeMedia.query()
         .select('photoID', 'linkMedia')
         .where({ homeID: dbHome[0].homeID })
@@ -47,12 +41,6 @@ exports.getPublicHomeData = async (req, res) => {
       dbHome[0].home_media = dbHomeMedia
     } else if (kategori !== undefined) {
       dbHome = await homeInformation.query().where({ kategori })
-
-      if (dbHome.length === 0) {
-        return res.status(404).send({
-          message: 'Home tidak tersedia'
-        })
-      }
 
       const dbHomeMedia = await homeMedia.query()
         .select('photoID', 'linkMedia')
@@ -563,7 +551,7 @@ exports.deleteMedia = async (req, res) => {
   try {
     const isProvide = await homeMedia.query().where({ photoID })
 
-    if (isProvide.length === 0) { return res.status(404).send({ message: 'Media tidak ditemukan' }) }
+    if (isProvide.length === 0) { return res.send({ message: 'Media tidak ditemukan' }) }
 
     await homeMedia.query().delete().where({ photoID })
 
@@ -592,7 +580,7 @@ exports.deleteHome = async (req, res) => {
   try {
     const isProvide = await homeInformation.query().where('homeID', homeID)
 
-    if (isProvide.length === 0) { return res.status(404).send({ message: 'Home tidak ditemukan' }) }
+    if (isProvide.length === 0) { return res.send({ message: 'Home tidak ditemukan' }) }
 
     await homeMedia.query().delete().where({ homeID })
 

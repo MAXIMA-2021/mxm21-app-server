@@ -36,12 +36,6 @@ exports.getPanitia = async (req, res) => {
       .orWhere('panitia.name', param)
       .orWhere('panitia.nim', param)
 
-    if (dbPanitia.length === 0) {
-      return res.status(404).send({
-        message: 'Akun Tidak Ditemukan'
-      })
-    }
-
     return res.status(200).send(dbPanitia)
   } catch (err) {
     logging.errorLogging('getPanitia', 'Panitia', err.message)
@@ -73,7 +67,7 @@ exports.signUp = async (req, res) => {
 
     const checkDivisi = await divisi.query().where('divisiID', divisiID)
 
-    if (checkDivisi.length === 0) { return res.status(404).send({ message: 'Divisi tidak tersedia' }) }
+    if (checkDivisi.length === 0) { return res.send({ message: 'Divisi tidak tersedia' }) }
 
     const fixPassword = bcrypt.hashSync(password, 8)
 
@@ -103,7 +97,7 @@ exports.signIn = async (req, res) => {
   try {
     const dbPanitia = await panitia.query().where('nim', nim)
 
-    if (dbPanitia.length === 0) { return res.status(404).send({ message: 'nim tidak terdaftar' }) }
+    if (dbPanitia.length === 0) { return res.send({ message: 'nim tidak terdaftar' }) }
 
     if (dbPanitia[0].verified !== 1) {
       return res.status(401).send({
@@ -153,7 +147,7 @@ exports.verifyNim = async (req, res) => {
     const dbPanitia = await panitia.query().where('nim', nimPanitia)
 
     if (dbPanitia.length === 0) {
-      return res.status(404).send({
+      return res.send({
         message: 'nim tidak terdaftar'
       })
     }
