@@ -14,24 +14,45 @@ exports.logoValidation = (req, res, next) => {
   const logoErrors = []
   const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
 
-  if (!req.files) {
-    logoErrors.push({
-      key: 'stateLogo',
-      message: 'Gambar Logo tidak boleh kosong'
-    })
-  } else if (!req.files.stateLogo) {
-    logoErrors.push({
-      key: 'stateLogo',
-      message: 'Gambar Logo tidak boleh kosong'
-    })
-  } else {
-    if (!acceptedType.includes(req.files.stateLogo.mimetype)) {
+  switch (true) {
+    case !req.files :
+      logoErrors.push({
+        key: 'stateLogo',
+        message: 'Gambar Logo tidak boleh kosong'
+      })
+      break
+    case !req.files.stateLogo :
+      logoErrors.push({
+        key: 'stateLogo',
+        message: 'Gambar Logo tidak boleh kosong'
+      })
+      break
+    case (!acceptedType.includes(req.files.stateLogo.mimetype)) :
       logoErrors.push({
         key: 'stateLogo',
         message: 'Harap menggunakan tipe file png, jpg, atau jpeg'
       })
-    }
+      break
   }
+
+  // if (!req.files) {
+  //   logoErrors.push({
+  //     key: 'stateLogo',
+  //     message: 'Gambar Logo tidak boleh kosong'
+  //   })
+  // } else if (!req.files.stateLogo) {
+  //   logoErrors.push({
+  //     key: 'stateLogo',
+  //     message: 'Gambar Logo tidak boleh kosong'
+  //   })
+  // } else {
+  //   if (!acceptedType.includes(req.files.stateLogo.mimetype)) {
+  //     logoErrors.push({
+  //       key: 'stateLogo',
+  //       message: 'Harap menggunakan tipe file png, jpg, atau jpeg'
+  //     })
+  //   }
+  // }
 
   req.logoErrors = logoErrors
 
@@ -42,24 +63,45 @@ exports.coverValidation = (req, res, next) => {
   const coverErrors = []
   const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
 
-  if (!req.files) {
-    coverErrors.push({
-      key: 'coverPhoto',
-      message: 'Foto Cover tidak boleh kosong'
-    })
-  } else if (!req.files.coverPhoto) {
-    coverErrors.push({
-      key: 'coverPhoto',
-      message: 'Gambar Logo tidak boleh kosong'
-    })
-  } else {
-    if (!acceptedType.includes(req.files.coverPhoto.mimetype)) {
+  switch (true) {
+    case !req.files :
+      coverErrors.push({
+        key: 'coverPhoto',
+        message: 'Foto Cover tidak boleh kosong'
+      })
+      break
+    case !req.files.coverPhoto :
+      coverErrors.push({
+        key: 'coverPhoto',
+        message: 'Gambar Logo tidak boleh kosong'
+      })
+      break
+    case !acceptedType.includes(req.files.coverPhoto.mimetype) :
       coverErrors.push({
         key: 'coverPhoto',
         message: 'Harap menggunakan tipe file png, jpg, atau jpeg'
       })
-    }
+      break
   }
+
+  // if (!req.files) {
+  //   coverErrors.push({
+  //     key: 'coverPhoto',
+  //     message: 'Foto Cover tidak boleh kosong'
+  //   })
+  // } else if (!req.files.coverPhoto) {
+  //   coverErrors.push({
+  //     key: 'coverPhoto',
+  //     message: 'Gambar Logo tidak boleh kosong'
+  //   })
+  // } else {
+  //   if (!acceptedType.includes(req.files.coverPhoto.mimetype)) {
+  //     coverErrors.push({
+  //       key: 'coverPhoto',
+  //       message: 'Harap menggunakan tipe file png, jpg, atau jpeg'
+  //     })
+  //   }
+  // }
 
   req.coverErrors = coverErrors
 

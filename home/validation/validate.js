@@ -1,3 +1,5 @@
+/* eslint array-callback-return: "off" */
+
 const { check, validationResult } = require('express-validator')
 
 exports.insertHomeValidation = [
@@ -32,16 +34,31 @@ exports.insertMediaValidation = async (req, res, next) => {
 
   let linkMedia = []
 
-  if (!req.files) {
-    mediaErrors.push({
-      key: 'linkMedia',
-      message: 'Media Tidak Boleh Kosong'
-    })
-  } else if (req.files.linkMedia.length === undefined) {
-    linkMedia = [req.files.linkMedia]
-  } else if (req.files.linkMedia.length !== undefined) {
-    linkMedia = req.files.linkMedia
+  switch (true) {
+    case !req.files :
+      mediaErrors.push({
+        key: 'linkMedia',
+        message: 'Media Tidak Boleh Kosong'
+      })
+      break
+    case req.files.linkMedia.length === undefined :
+      linkMedia = [req.files.linkMedia]
+      break
+    case req.files.linkMedia.length !== undefined :
+      linkMedia = req.files.linkMedia
+      break
   }
+
+  // if (!req.files) {
+  //   mediaErrors.push({
+  //     key: 'linkMedia',
+  //     message: 'Media Tidak Boleh Kosong'
+  //   })
+  // } else if (req.files.linkMedia.length === undefined) {
+  //   linkMedia = [req.files.linkMedia]
+  // } else if (req.files.linkMedia.length !== undefined) {
+  //   linkMedia = req.files.linkMedia
+  // }
 
   for (let i = 0; i < linkMedia.length; i++) {
     if (!acceptedType.includes(linkMedia[i].mimetype)) {
