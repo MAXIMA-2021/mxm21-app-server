@@ -105,8 +105,8 @@ exports.addState = async (req, res) => {
 
   // format filename = nama state + nama file + datetime upload file
   const uuid = uuidv4()
-  const fileNameLogo = `${name}_${uuid}_${stateLogo.name}`
-  const fileNameCover = `${name}_${uuid}_${coverPhoto.name}`
+  const fileNameLogo = `${name.trim().split(' ').join('-')}_${uuid}_${stateLogo.name.trim().split(' ').join('-')}`
+  const fileNameCover = `${name.trim().split(' ').join('-')}_${uuid}_${coverPhoto.name.trim().split(' ').join('-')}`
 
   const uploadPathLogo = './stateLogo/' + fileNameLogo
   const uploadPathCover = './stateLogo/' + fileNameCover
@@ -229,7 +229,7 @@ exports.updateState = async (req, res) => {
     stateLogo = req.files.stateLogo
 
     const uuid = uuidv4()
-    fileNameLogo = `${name}_${uuid}_${stateLogo.name}`
+    fileNameLogo = `${name.trim().split(' ').join('-')}_${uuid}_${stateLogo.name.trim().split(' ').join('-')}`
 
     uploadPathLogo = './stateLogo/' + fileNameLogo
 
@@ -242,7 +242,7 @@ exports.updateState = async (req, res) => {
     coverPhoto = req.files.coverPhoto
 
     const uuid = uuidv4()
-    fileNameCover = `${name}_${uuid}_${coverPhoto.name}`
+    fileNameCover = `${name.trim().split(' ').join('-')}_${uuid}_${coverPhoto.name.trim().split(' ').join('-')}`
 
     uploadPathCover = './stateLogo/' + fileNameCover
 
@@ -292,20 +292,20 @@ exports.updateState = async (req, res) => {
         shortDesc: shortDesc
       }
 
-      stateLogo.mv(uploadPathLogo, (err) => {
+      stateLogo.mv(uploadPathLogo, async (err) => {
         if (err) {
           logging.errorLogging('updateState', 'State_Activities', err.message)
           return res.status(500).send({ message: err.messsage })
         }
-      })
 
-      await storage.bucket(bucketName).upload(uploadPathLogo)
+        await storage.bucket(bucketName).upload(uploadPathLogo)
 
-      fs.unlink(uploadPathLogo, (err) => {
-        if (err) {
-          logging.errorLogging('updateState', 'State_Activities', err.message)
-          return res.status(500).send({ message: err.messsage })
-        }
+        fs.unlink(uploadPathLogo, (err) => {
+          if (err) {
+            logging.errorLogging('updateState', 'State_Activities', err.message)
+            return res.status(500).send({ message: err.messsage })
+          }
+        })
       })
     }
 
@@ -346,20 +346,20 @@ exports.updateState = async (req, res) => {
         shortDesc: shortDesc
       }
 
-      coverPhoto.mv(uploadPathCover, (err) => {
+      coverPhoto.mv(uploadPathCover, async (err) => {
         if (err) {
           logging.errorLogging('updateState', 'State_Activities', err.message)
           return res.status(500).send({ message: err.messsage })
         }
-      })
 
-      await storage.bucket(bucketName).upload(uploadPathCover)
+        await storage.bucket(bucketName).upload(uploadPathCover)
 
-      fs.unlink(uploadPathCover, (err) => {
-        if (err) {
-          logging.errorLogging('updateState', 'State_Activities', err.message)
-          return res.status(500).send({ message: err.messsage })
-        }
+        fs.unlink(uploadPathCover, (err) => {
+          if (err) {
+            logging.errorLogging('updateState', 'State_Activities', err.message)
+            return res.status(500).send({ message: err.messsage })
+          }
+        })
       })
     }
 

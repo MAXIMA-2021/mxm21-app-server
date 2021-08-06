@@ -100,7 +100,7 @@ exports.createHomeInformation = async (req, res) => {
   const logoUuid = uuidv4()
 
   // format file logo
-  const logoFileName = `${name}_${logoUuid}_${linkLogo.name}`
+  const logoFileName = `${name.trim().split(' ').join('-')}_${logoUuid}_${linkLogo.name.trim().split(' ').join('-')}`
 
   const logoUploadPath = `./homeLogo/${logoFileName}`
 
@@ -129,24 +129,24 @@ exports.createHomeInformation = async (req, res) => {
       linkYoutube
     })
 
-    linkLogo.mv(logoUploadPath, (err) => {
+    linkLogo.mv(logoUploadPath, async (err) => {
       if (err) {
         logging.errorLogging('createHomeInformation', 'HoME', err.message)
         return res.status(500).send({
           message: err.message
         })
       }
-    })
 
-    await storage.bucket(bucketName).upload(logoUploadPath)
+      await storage.bucket(bucketName).upload(logoUploadPath)
 
-    fs.unlink(logoUploadPath, (err) => {
-      if (err) {
-        logging.errorLogging('createHomeInformation', 'HoME', err.message)
-        return res.status(500).send({
-          message: err.message
-        })
-      }
+      fs.unlink(logoUploadPath, (err) => {
+        if (err) {
+          logging.errorLogging('createHomeInformation', 'HoME', err.message)
+          return res.status(500).send({
+            message: err.message
+          })
+        }
+      })
     })
 
     objectData = {
@@ -216,7 +216,7 @@ exports.createHomeMedia = async (req, res, next) => {
 
   for (let i = 0; i < linkMedia.length; i++) {
     const mediaUuid = uuidv4()
-    mediaFileName.push(`${dbHome[0].name}_${mediaUuid}_${linkMedia[i].name}`)
+    mediaFileName.push(`${dbHome[0].name.trim().split(' ').join('-')}_${mediaUuid}_${linkMedia[i].name.trim().split(' ').join('-')}`)
     mediaUploadPath.push(`./homeMedia/${mediaFileName[i]}`)
     mediaUrlFile.push(`https://storage.googleapis.com/${bucketName}/${mediaFileName[i]}`)
   }
@@ -264,77 +264,6 @@ exports.createHomeMedia = async (req, res, next) => {
     })
   }
 }
-
-// exports.createHomeMedia = async (req, res) => {
-//   const acceptedDivision = ['D01', 'D02', 'D03']
-
-//   const division = req.division
-
-//   if (!acceptedDivision.includes(division)) {
-//     return res.status(403).send({
-//       message: 'Forbidden'
-//     })
-//   }
-
-//   const { homeID } = req.params
-
-//   const nim = req.nim
-
-//   const { linkMedia } = req.files
-
-//   const dateTime = helper.createAttendanceTime()
-
-//   const dbHome = await homeInformation.query().where({ homeID })
-
-//   if (dbHome.length === 0) {
-//     return res.status(404).send({
-//       message: 'Maaf Home tidak tersedia'
-//     })
-//   }
-
-//   const bucketName = 'mxm21-bucket-playground'
-
-//   let objectData = []
-
-//   const mediaUuid = uuidv4()
-//   const mediaFileName = `${dbHome[0].name}_${mediaUuid}_${linkMedia.name}`
-//   const mediaUploadPath = `./homeMedia/${mediaFileName}`
-//   const mediaUrlFile = `https://storage.googleapis.com/${bucketName}/${mediaFileName}`
-
-//   await homeMedia.query().insert({
-//     homeID,
-//     linkMedia: mediaUrlFile
-//   })
-
-//   linkMedia.mv(mediaUploadPath, (err) => {
-//     if (err) {
-//       logging.errorLogging('createHomeMedia', 'HoME', err.message)
-//       return res.status(500).send({ message: err.message })
-//     }
-//   })
-
-//   await storage.bucket(bucketName).upload(mediaUploadPath)
-
-//   fs.unlink(mediaUploadPath, (err) => {
-//     if (err) {
-//       logging.errorLogging('createHomeMedia', 'HoME', err.message)
-//       return res.status(500).send({
-//         message: err.message
-//       })
-//     }
-//   })
-
-//   objectData = {
-//     homeID: homeID,
-//     homeMedia: mediaUrlFile
-//   }
-
-//   logging.homeLogging('insert/HoME_Media', nim, objectData, dateTime)
-
-//   return res.status(200).send({
-//     message: 'Media Berhasil Ditambahkan'
-//   })
-// }
 
 exports.updateHome = async (req, res) => {
   const acceptedDivision = ['D01', 'D02', 'D03']
@@ -389,7 +318,7 @@ exports.updateHome = async (req, res) => {
     dateFile = (helper.createAttendanceTime().split(' ')[0].split('-').join(''))
     timeFile = (helper.createAttendanceTime().split(' ')[1].split(':').join(''))
 
-    logoFileName = `${name}_${dateFile.concat(timeFile)}_${linkLogo.name}`
+    logoFileName = `${name.trim().split(' ').join('-')}_${dateFile.concat(timeFile)}_${linkLogo.name.trim().split(' ').join('-')}`
 
     logoUploadPath = `./homeLogo/${logoFileName}`
 
@@ -424,24 +353,24 @@ exports.updateHome = async (req, res) => {
           linkYoutube
         })
 
-      linkLogo.mv(logoUploadPath, (err) => {
+      linkLogo.mv(logoUploadPath, async (err) => {
         if (err) {
           logging.errorLogging('updateHomeInformation', 'HoME', err.message)
           return res.status(500).send({
             message: err.message
           })
         }
-      })
 
-      await storage.bucket(bucketName).upload(logoUploadPath)
+        await storage.bucket(bucketName).upload(logoUploadPath)
 
-      fs.unlink(logoUploadPath, (err) => {
-        if (err) {
-          logging.errorLogging('updateHomeInformation', 'HoME', err.message)
-          return res.status(500).send({
-            message: err.message
-          })
-        }
+        fs.unlink(logoUploadPath, (err) => {
+          if (err) {
+            logging.errorLogging('updateHomeInformation', 'HoME', err.message)
+            return res.status(500).send({
+              message: err.message
+            })
+          }
+        })
       })
 
       object1 = {
@@ -557,7 +486,7 @@ exports.updateLinkMedia = async (req, res) => {
     if (linkMedia) {
       const uuid = uuidv4()
 
-      const fileName = `${dbHome[0].name}_${uuid}_${linkMedia.name}`
+      const fileName = `${dbHome[0].name.trim().split(' ').join('-')}_${uuid}_${linkMedia.name.trim().split(' ').join('-')}`
       const uploadPath = `./homeMedia/${fileName}`
       const urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
 
@@ -567,24 +496,24 @@ exports.updateLinkMedia = async (req, res) => {
           linkMedia: urlFile
         })
 
-      linkMedia.mv(uploadPath, (err) => {
+      linkMedia.mv(uploadPath, async (err) => {
         if (err) {
           logging.errorLogging('updateHomeMedia', 'HoME', err.message)
           return res.status(500).send({
             message: err.message
           })
         }
-      })
 
-      await storage.bucket(bucketName).upload(uploadPath)
+        await storage.bucket(bucketName).upload(uploadPath)
 
-      fs.unlink(uploadPath, (err) => {
-        if (err) {
-          logging.errorLogging('updateHomeMedia', 'HoME', err.message)
-          return res.status(500).send({
-            message: err.message
-          })
-        }
+        fs.unlink(uploadPath, (err) => {
+          if (err) {
+            logging.errorLogging('updateHomeMedia', 'HoME', err.message)
+            return res.status(500).send({
+              message: err.message
+            })
+          }
+        })
       })
 
       objectData = {
