@@ -461,49 +461,43 @@ exports.updateLinkMedia = async (req, res) => {
 
   const nim = req.nim
 
-  const { photoID } = req.params
+  const { photoID } = req.body
 
   const bucketName = 'mxm21-bucket-playground'
 
   const dateTime = helper.createAttendanceTime()
 
-  let linkMedia = ''
+  let { linkMedia } = req.files
 
-  let objectData = []
+  const objectData = []
 
-  if (req.files) { linkMedia = req.files.linkMedia }
+  if (linkMedia && linkMedia.length === undefined) {
+    linkMedia = [linkMedia]
+  }
 
   try {
-    const dbHome = await homeMedia.query()
-      .select('home_information.*')
-      .join(
-        'home_information',
-        'home_information.homeID',
-        'home_media.homeID'
-      )
-      .where('home_media.photoID', photoID)
+    for (let i = 0; i < photoID.length; i++) {
+      const dbHome = await homeMedia.query()
+        .select('home_information.*')
+        .join(
+          'home_information',
+          'home_information.homeID',
+          'home_media.homeID'
+        )
+        .where('home_media.photoID', photoID[i])
 
-    if (linkMedia) {
       const uuid = uuidv4()
-
-      const fileName = `${dbHome[0].name.trim().split(' ').join('-')}_${uuid}_${linkMedia.name.trim().split(' ').join('-')}`
+      const fileName = `${dbHome[0].name.trim().split(' ').join('-')}_${uuid}_${linkMedia[i].name.trim().split(' ').join('-')}`
       const uploadPath = `./homeMedia/${fileName}`
       const urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
 
-      await homeMedia.query()
-        .where({ photoID })
-        .update({
-          linkMedia: urlFile
-        })
-
-      linkMedia.mv(uploadPath, async (err) => {
+      linkMedia[i].mv(uploadPath, async (err) => {
         if (err) {
           logging.errorLogging('updateHomeMedia', 'HoME', err.message)
           return res.status(500).send({
             message: err.message
           })
         }
-
         await storage.bucket(bucketName).upload(uploadPath)
 
         fs.unlink(uploadPath, (err) => {
@@ -516,19 +510,23 @@ exports.updateLinkMedia = async (req, res) => {
         })
       })
 
-      objectData = {
-        photoID: photoID,
-        linkMedia: urlFile
-      }
-    }
+      await homeMedia.query()
+        .where({ photoID: photoID[i] })
+        .update({
+          linkMedia: urlFile
+        })
 
+      objectData.push({
+        photoID: photoID[i],
+        linkMedia: urlFile
+      })
+    }
     logging.homeLogging('update/HoME_Media', nim, objectData, dateTime)
 
     return res.status(200).send({
-      message: 'HomeMedia berhasil diupdate'
+      message: 'berhasil update'
     })
   } catch (err) {
-    logging.errorLogging('updateHomeMedia', 'HoME', err.message)
     return res.status(500).send({
       message: err.message
     })
