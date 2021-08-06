@@ -228,22 +228,22 @@ exports.createHomeMedia = async (req, res, next) => {
         linkMedia: mediaUrlFile[i]
       })
 
-      linkMedia[i].mv(mediaUploadPath[i], (err) => {
+      linkMedia[i].mv(mediaUploadPath[i], async (err) => {
         if (err) {
           logging.errorLogging('createHomeMedia', 'HoME', err.message)
           return res.status(500).send({ message: err.message })
         }
-      })
 
-      await storage.bucket(bucketName).upload(mediaUploadPath[i])
+        await storage.bucket(bucketName).upload(mediaUploadPath[i])
 
-      fs.unlink(mediaUploadPath[i], (err) => {
-        if (err) {
-          logging.errorLogging('createHomeMedia', 'HoME', err.message)
-          return res.status(500).send({
-            message: err.message
-          })
-        }
+        fs.unlink(mediaUploadPath[i], (err) => {
+          if (err) {
+            logging.errorLogging('createHomeMedia', 'HoME', err.message)
+            return res.status(500).send({
+              message: err.message
+            })
+          }
+        })
       })
     }
 
@@ -264,6 +264,77 @@ exports.createHomeMedia = async (req, res, next) => {
     })
   }
 }
+
+// exports.createHomeMedia = async (req, res) => {
+//   const acceptedDivision = ['D01', 'D02', 'D03']
+
+//   const division = req.division
+
+//   if (!acceptedDivision.includes(division)) {
+//     return res.status(403).send({
+//       message: 'Forbidden'
+//     })
+//   }
+
+//   const { homeID } = req.params
+
+//   const nim = req.nim
+
+//   const { linkMedia } = req.files
+
+//   const dateTime = helper.createAttendanceTime()
+
+//   const dbHome = await homeInformation.query().where({ homeID })
+
+//   if (dbHome.length === 0) {
+//     return res.status(404).send({
+//       message: 'Maaf Home tidak tersedia'
+//     })
+//   }
+
+//   const bucketName = 'mxm21-bucket-playground'
+
+//   let objectData = []
+
+//   const mediaUuid = uuidv4()
+//   const mediaFileName = `${dbHome[0].name}_${mediaUuid}_${linkMedia.name}`
+//   const mediaUploadPath = `./homeMedia/${mediaFileName}`
+//   const mediaUrlFile = `https://storage.googleapis.com/${bucketName}/${mediaFileName}`
+
+//   await homeMedia.query().insert({
+//     homeID,
+//     linkMedia: mediaUrlFile
+//   })
+
+//   linkMedia.mv(mediaUploadPath, (err) => {
+//     if (err) {
+//       logging.errorLogging('createHomeMedia', 'HoME', err.message)
+//       return res.status(500).send({ message: err.message })
+//     }
+//   })
+
+//   await storage.bucket(bucketName).upload(mediaUploadPath)
+
+//   fs.unlink(mediaUploadPath, (err) => {
+//     if (err) {
+//       logging.errorLogging('createHomeMedia', 'HoME', err.message)
+//       return res.status(500).send({
+//         message: err.message
+//       })
+//     }
+//   })
+
+//   objectData = {
+//     homeID: homeID,
+//     homeMedia: mediaUrlFile
+//   }
+
+//   logging.homeLogging('insert/HoME_Media', nim, objectData, dateTime)
+
+//   return res.status(200).send({
+//     message: 'Media Berhasil Ditambahkan'
+//   })
+// }
 
 exports.updateHome = async (req, res) => {
   const acceptedDivision = ['D01', 'D02', 'D03']

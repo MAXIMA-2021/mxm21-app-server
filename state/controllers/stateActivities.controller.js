@@ -131,36 +131,36 @@ exports.addState = async (req, res) => {
       coverPhoto: urlFileCover
     })
 
-    stateLogo.mv(uploadPathLogo, (err) => {
+    stateLogo.mv(uploadPathLogo, async (err) => {
       if (err) {
         logging.errorLogging('State_Activities', err.message)
         return res.status(500).send({ message: err.messsage })
       }
+
+      await storage.bucket(bucketName).upload(uploadPathLogo)
+
+      fs.unlink(uploadPathLogo, (err) => {
+        if (err) {
+          logging.errorLogging('addState', 'State_Activities', err.message)
+          return res.status(500).send({ message: err.messsage })
+        }
+      })
     })
 
-    await storage.bucket(bucketName).upload(uploadPathLogo)
-
-    fs.unlink(uploadPathLogo, (err) => {
-      if (err) {
-        logging.errorLogging('addState', 'State_Activities', err.message)
-        return res.status(500).send({ message: err.messsage })
-      }
-    })
-
-    coverPhoto.mv(uploadPathCover, (err) => {
+    coverPhoto.mv(uploadPathCover, async (err) => {
       if (err) {
         logging.errorLogging('State_Activities', err.message)
         return res.status(500).send({ message: err.messsage })
       }
-    })
 
-    await storage.bucket(bucketName).upload(uploadPathCover)
+      await storage.bucket(bucketName).upload(uploadPathCover)
 
-    fs.unlink(uploadPathCover, (err) => {
-      if (err) {
-        logging.errorLogging('addState', 'State_Activities', err.message)
-        return res.status(500).send({ message: err.messsage })
-      }
+      fs.unlink(uploadPathCover, (err) => {
+        if (err) {
+          logging.errorLogging('addState', 'State_Activities', err.message)
+          return res.status(500).send({ message: err.messsage })
+        }
+      })
     })
 
     logging.stateLogging('insert/STATE', nim, insertResult, dateTime)
