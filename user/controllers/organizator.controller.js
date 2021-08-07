@@ -36,12 +36,6 @@ exports.getOrganizator = async (req, res) => {
       .orWhere('organizator.nim', param)
       .orWhere('state_activities.name', param)
 
-    if (dbOrganizator.length === 0) {
-      return res.status(404).send({
-        message: 'Akun Tidak Ditemukan'
-      })
-    }
-
     return res.status(200).send(dbOrganizator)
   } catch (err) {
     logging.errorLogging('getOrganizator', 'Organizator', err.message)
@@ -76,7 +70,7 @@ exports.signUp = async (req, res) => {
     const checkState = await stateActivities.query().where('stateID', stateID)
 
     if (checkState.length === 0) {
-      return res.status(404).send({
+      return res.send({
         message: 'State tidak terdaftar'
       })
     }
@@ -109,7 +103,7 @@ exports.signIn = async (req, res) => {
   try {
     const dbOrganizator = await organizator.query().where('nim', nim)
 
-    if (dbOrganizator.length === 0) { return res.status(404).send({ message: 'nim tidak terdaftar' }) }
+    if (dbOrganizator.length === 0) { return res.send({ message: 'nim tidak terdaftar' }) }
 
     if (dbOrganizator[0].verified === 0) { return res.status(401).send({ message: 'Maaf akun anda belum diverifikasi oleh pihak pusat' }) }
 
@@ -155,7 +149,7 @@ exports.verifyNim = async (req, res) => {
     const dbOrganizator = await organizator.query().where('nim', nimOrganizator)
 
     if (dbOrganizator.length === 0) {
-      return res.status(404).send({
+      return res.send({
         message: 'nim tidak terdaftar'
       })
     }

@@ -53,7 +53,7 @@ exports.updateToggle = async (req, res) => {
     const dbToggle = await toggle.query().where({ id })
 
     if (dbToggle.length === 0) {
-      return res.status(404).send({
+      return res.send({
         message: 'endpoint tidak ditemukan'
       })
     }

@@ -93,3 +93,33 @@ exports.createUpdatedObject = (object1, object2) => {
 
   return fixObject
 }
+
+exports.createStatusState = (dateNow, dateOpen, dateState) => {
+  const dNow = this.createDateNumber(dateNow).split('-').join('/')
+  const dOpen = this.createDateNumber(dateOpen).split('-').join('/')
+  const dState = this.createDateNumber(dateState).split('-').join('/')
+
+  const tNow = this.createTime(dateNow)
+  const tOpen = this.createTime(dateOpen)
+  const tState = this.createTime(dateState)
+
+  let status
+
+  switch (true) {
+    case Date.parse(`${dNow} ${tNow}`) < Date.parse(`${dOpen} ${tOpen}`) :
+      status = 'prepare'
+      break
+    case Date.parse(`${dNow} ${tNow}`) >= Date.parse(`${dOpen} ${tOpen}`) &&
+         Date.parse(`${dNow} ${tNow}`) < Date.parse(`${dState} ${tState}`) :
+      status = 'ready'
+      break
+    case Date.parse(`${dNow} ${tNow}`) === Date.parse(`${dState} ${tState}`) :
+      status = 'open'
+      break
+    case Date.parse(`${dNow} ${tNow}`) >= Date.parse(`${dState} 22:00`) :
+      status = 'close'
+      break
+  }
+
+  return status
+}

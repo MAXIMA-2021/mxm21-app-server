@@ -34,12 +34,6 @@ exports.getPublicHomeData = async (req, res) => {
     } else if (organizator !== undefined) {
       dbHome = await homeInformation.query().where({ search_key: organizator })
 
-      if (dbHome.length === 0) {
-        return res.status(404).send({
-          message: 'Home tidak tersedia'
-        })
-      }
-
       const dbHomeMedia = await homeMedia.query()
         .select('photoID', 'linkMedia')
         .where({ homeID: dbHome[0].homeID })
@@ -47,12 +41,6 @@ exports.getPublicHomeData = async (req, res) => {
       dbHome[0].home_media = dbHomeMedia
     } else if (kategori !== undefined) {
       dbHome = await homeInformation.query().where({ kategori })
-
-      if (dbHome.length === 0) {
-        return res.status(404).send({
-          message: 'Home tidak tersedia'
-        })
-      }
 
       const dbHomeMedia = await homeMedia.query()
         .select('photoID', 'linkMedia')
@@ -112,7 +100,7 @@ exports.createHomeInformation = async (req, res) => {
   const logoUuid = uuidv4()
 
   // format file logo
-  const logoFileName = `${name}_${logoUuid}_${linkLogo.name}`
+  const logoFileName = `${name.trim().split(' ').join('-')}_${logoUuid}_${linkLogo.name.trim().split(' ').join('-')}`
 
   const logoUploadPath = `./homeLogo/${logoFileName}`
 
@@ -141,24 +129,24 @@ exports.createHomeInformation = async (req, res) => {
       linkYoutube
     })
 
-    linkLogo.mv(logoUploadPath, (err) => {
+    linkLogo.mv(logoUploadPath, async (err) => {
       if (err) {
         logging.errorLogging('createHomeInformation', 'HoME', err.message)
         return res.status(500).send({
           message: err.message
         })
       }
-    })
 
-    await storage.bucket(bucketName).upload(logoUploadPath)
+      await storage.bucket(bucketName).upload(logoUploadPath)
 
-    fs.unlink(logoUploadPath, (err) => {
-      if (err) {
-        logging.errorLogging('createHomeInformation', 'HoME', err.message)
-        return res.status(500).send({
-          message: err.message
-        })
-      }
+      fs.unlink(logoUploadPath, (err) => {
+        if (err) {
+          logging.errorLogging('createHomeInformation', 'HoME', err.message)
+          return res.status(500).send({
+            message: err.message
+          })
+        }
+      })
     })
 
     objectData = {
@@ -228,7 +216,7 @@ exports.createHomeMedia = async (req, res, next) => {
 
   for (let i = 0; i < linkMedia.length; i++) {
     const mediaUuid = uuidv4()
-    mediaFileName.push(`${dbHome[0].name}_${mediaUuid}_${linkMedia[i].name}`)
+    mediaFileName.push(`${dbHome[0].name.trim().split(' ').join('-')}_${mediaUuid}_${linkMedia[i].name.trim().split(' ').join('-')}`)
     mediaUploadPath.push(`./homeMedia/${mediaFileName[i]}`)
     mediaUrlFile.push(`https://storage.googleapis.com/${bucketName}/${mediaFileName[i]}`)
   }
@@ -240,22 +228,22 @@ exports.createHomeMedia = async (req, res, next) => {
         linkMedia: mediaUrlFile[i]
       })
 
-      linkMedia[i].mv(mediaUploadPath[i], (err) => {
+      linkMedia[i].mv(mediaUploadPath[i], async (err) => {
         if (err) {
           logging.errorLogging('createHomeMedia', 'HoME', err.message)
           return res.status(500).send({ message: err.message })
         }
-      })
 
-      await storage.bucket(bucketName).upload(mediaUploadPath[i])
+        await storage.bucket(bucketName).upload(mediaUploadPath[i])
 
-      fs.unlink(mediaUploadPath[i], (err) => {
-        if (err) {
-          logging.errorLogging('createHomeMedia', 'HoME', err.message)
-          return res.status(500).send({
-            message: err.message
-          })
-        }
+        fs.unlink(mediaUploadPath[i], (err) => {
+          if (err) {
+            logging.errorLogging('createHomeMedia', 'HoME', err.message)
+            return res.status(500).send({
+              message: err.message
+            })
+          }
+        })
       })
     }
 
@@ -330,7 +318,7 @@ exports.updateHome = async (req, res) => {
     dateFile = (helper.createAttendanceTime().split(' ')[0].split('-').join(''))
     timeFile = (helper.createAttendanceTime().split(' ')[1].split(':').join(''))
 
-    logoFileName = `${name}_${dateFile.concat(timeFile)}_${linkLogo.name}`
+    logoFileName = `${name.trim().split(' ').join('-')}_${dateFile.concat(timeFile)}_${linkLogo.name.trim().split(' ').join('-')}`
 
     logoUploadPath = `./homeLogo/${logoFileName}`
 
@@ -365,24 +353,24 @@ exports.updateHome = async (req, res) => {
           linkYoutube
         })
 
-      linkLogo.mv(logoUploadPath, (err) => {
+      linkLogo.mv(logoUploadPath, async (err) => {
         if (err) {
           logging.errorLogging('updateHomeInformation', 'HoME', err.message)
           return res.status(500).send({
             message: err.message
           })
         }
-      })
 
-      await storage.bucket(bucketName).upload(logoUploadPath)
+        await storage.bucket(bucketName).upload(logoUploadPath)
 
-      fs.unlink(logoUploadPath, (err) => {
-        if (err) {
-          logging.errorLogging('updateHomeInformation', 'HoME', err.message)
-          return res.status(500).send({
-            message: err.message
-          })
-        }
+        fs.unlink(logoUploadPath, (err) => {
+          if (err) {
+            logging.errorLogging('updateHomeInformation', 'HoME', err.message)
+            return res.status(500).send({
+              message: err.message
+            })
+          }
+        })
       })
 
       object1 = {
@@ -473,74 +461,72 @@ exports.updateLinkMedia = async (req, res) => {
 
   const nim = req.nim
 
-  const { photoID } = req.params
+  const { photoID } = req.body
 
   const bucketName = 'mxm21-bucket-playground'
 
   const dateTime = helper.createAttendanceTime()
 
-  let linkMedia = ''
+  let { linkMedia } = req.files
 
-  let objectData = []
+  const objectData = []
 
-  if (req.files) { linkMedia = req.files.linkMedia }
+  if (linkMedia && linkMedia.length === undefined) {
+    linkMedia = [linkMedia]
+  }
 
   try {
-    const dbHome = await homeMedia.query()
-      .select('home_information.*')
-      .join(
-        'home_information',
-        'home_information.homeID',
-        'home_media.homeID'
-      )
-      .where('home_media.photoID', photoID)
+    for (let i = 0; i < photoID.length; i++) {
+      const dbHome = await homeMedia.query()
+        .select('home_information.*')
+        .join(
+          'home_information',
+          'home_information.homeID',
+          'home_media.homeID'
+        )
+        .where('home_media.photoID', photoID[i])
 
-    if (linkMedia) {
       const uuid = uuidv4()
-
-      const fileName = `${dbHome[0].name}_${uuid}_${linkMedia.name}`
+      const fileName = `${dbHome[0].name.trim().split(' ').join('-')}_${uuid}_${linkMedia[i].name.trim().split(' ').join('-')}`
       const uploadPath = `./homeMedia/${fileName}`
       const urlFile = `https://storage.googleapis.com/${bucketName}/${fileName}`
 
+      linkMedia[i].mv(uploadPath, async (err) => {
+        if (err) {
+          logging.errorLogging('updateHomeMedia', 'HoME', err.message)
+          return res.status(500).send({
+            message: err.message
+          })
+        }
+        await storage.bucket(bucketName).upload(uploadPath)
+
+        fs.unlink(uploadPath, (err) => {
+          if (err) {
+            logging.errorLogging('updateHomeMedia', 'HoME', err.message)
+            return res.status(500).send({
+              message: err.message
+            })
+          }
+        })
+      })
+
       await homeMedia.query()
-        .where({ photoID })
+        .where({ photoID: photoID[i] })
         .update({
           linkMedia: urlFile
         })
 
-      linkMedia.mv(uploadPath, (err) => {
-        if (err) {
-          logging.errorLogging('updateHomeMedia', 'HoME', err.message)
-          return res.status(500).send({
-            message: err.message
-          })
-        }
-      })
-
-      await storage.bucket(bucketName).upload(uploadPath)
-
-      fs.unlink(uploadPath, (err) => {
-        if (err) {
-          logging.errorLogging('updateHomeMedia', 'HoME', err.message)
-          return res.status(500).send({
-            message: err.message
-          })
-        }
-      })
-
-      objectData = {
-        photoID: photoID,
+      objectData.push({
+        photoID: photoID[i],
         linkMedia: urlFile
-      }
+      })
     }
-
     logging.homeLogging('update/HoME_Media', nim, objectData, dateTime)
 
     return res.status(200).send({
-      message: 'HomeMedia berhasil diupdate'
+      message: 'berhasil update'
     })
   } catch (err) {
-    logging.errorLogging('updateHomeMedia', 'HoME', err.message)
     return res.status(500).send({
       message: err.message
     })
@@ -563,7 +549,7 @@ exports.deleteMedia = async (req, res) => {
   try {
     const isProvide = await homeMedia.query().where({ photoID })
 
-    if (isProvide.length === 0) { return res.status(404).send({ message: 'Media tidak ditemukan' }) }
+    if (isProvide.length === 0) { return res.send({ message: 'Media tidak ditemukan' }) }
 
     await homeMedia.query().delete().where({ photoID })
 
@@ -592,7 +578,7 @@ exports.deleteHome = async (req, res) => {
   try {
     const isProvide = await homeInformation.query().where('homeID', homeID)
 
-    if (isProvide.length === 0) { return res.status(404).send({ message: 'Home tidak ditemukan' }) }
+    if (isProvide.length === 0) { return res.send({ message: 'Home tidak ditemukan' }) }
 
     await homeMedia.query().delete().where({ homeID })
 

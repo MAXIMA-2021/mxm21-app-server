@@ -34,7 +34,7 @@ module.exports = function (app) {
   )
 
   app.put(
-    '/api/panit/home/:homeID',
+    '/api/panit/home/information/:homeID',
     toggle.updateHome, toggle.checkToggle,
     authJwt.verifyToken, authJwt.isPanitia,
     validation.insertHomeValidation,
@@ -44,7 +44,7 @@ module.exports = function (app) {
   )
 
   app.put(
-    '/api/panit/home/linkMedia/:photoID',
+    '/api/panit/home/media',
     toggle.updateHome, toggle.checkToggle,
     authJwt.verifyToken, authJwt.isPanitia,
     validation.updateMediaValidation, validation.runValidation,

@@ -1,3 +1,5 @@
+/* eslint array-callback-return: "off" */
+
 const { check, validationResult } = require('express-validator')
 
 exports.registerMalpun = [

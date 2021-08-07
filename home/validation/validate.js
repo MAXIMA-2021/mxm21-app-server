@@ -1,3 +1,5 @@
+/* eslint array-callback-return: "off" */
+
 const { check, validationResult } = require('express-validator')
 
 exports.insertHomeValidation = [
@@ -32,15 +34,19 @@ exports.insertMediaValidation = async (req, res, next) => {
 
   let linkMedia = []
 
-  if (!req.files) {
-    mediaErrors.push({
-      key: 'linkMedia',
-      message: 'Media Tidak Boleh Kosong'
-    })
-  } else if (req.files.linkMedia.length === undefined) {
-    linkMedia = [req.files.linkMedia]
-  } else if (req.files.linkMedia.length !== undefined) {
-    linkMedia = req.files.linkMedia
+  switch (true) {
+    case !req.files :
+      mediaErrors.push({
+        key: 'linkMedia',
+        message: 'Media Tidak Boleh Kosong'
+      })
+      break
+    case req.files.linkMedia.length === undefined :
+      linkMedia = [req.files.linkMedia]
+      break
+    case req.files.linkMedia.length !== undefined :
+      linkMedia = req.files.linkMedia
+      break
   }
 
   for (let i = 0; i < linkMedia.length; i++) {
@@ -80,23 +86,42 @@ exports.updateLogoValidation = (req, res, next) => {
 }
 
 exports.updateMediaValidation = (req, res, next) => {
-  const fileErrors = []
+  const mediaErrors = []
   const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
 
-  let isAccepted = ''
+  let linkMedia = []
 
-  if (req.files) {
-    isAccepted = acceptedType.includes(req.files.linkMedia.mimetype)
+  switch (true) {
+    case !req.files :
+      mediaErrors.push({
+        key: 'linkMedia',
+        message: 'Media Tidak Boleh Kosong'
+      })
+      break
+    case req.files.linkMedia.length !== req.body.photoID.length :
+      mediaErrors.push({
+        key: 'linkMedia',
+        message: 'Terdapat salah satu form Media yang kosong'
+      })
+      break
+    case req.files.linkMedia.length === undefined :
+      linkMedia = [req.files.linkMedia]
+      break
+    case req.files.linkMedia.length !== undefined :
+      linkMedia = req.files.linkMedia
+      break
   }
 
-  if (isAccepted === false) {
-    fileErrors.push({
-      key: 'linkMedia',
-      message: 'Gambar Media harap menggunakan file png, jpg, atau jpeg'
-    })
+  for (let i = 0; i < linkMedia.length; i++) {
+    if (!acceptedType.includes(linkMedia[i].mimetype)) {
+      mediaErrors.push({
+        key: `linkMedia-${i + 1}`,
+        message: 'Gambar Media harap menggunakan file png, jpg, atau jpeg'
+      })
+    }
   }
 
-  req.mediaErrors = fileErrors
+  req.mediaErrors = mediaErrors
 
   next()
 }
