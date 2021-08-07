@@ -173,32 +173,3 @@ exports.verifyNim = async (req, res) => {
     })
   }
 }
-
-exports.update = async (req, res) => {
-  const nim = req.nim
-
-  const {
-    name,
-    password
-  } = req.body
-
-  const fixPassword = bcrypt.hashSync(password, 8)
-
-  try {
-    await organizator.query()
-      .update({
-        name,
-        password: fixPassword
-      })
-      .where({ nim })
-
-    return res.status(200).send({
-      message: 'Update Profile Berhasil'
-    })
-  } catch (err) {
-    logging.errorLogging('update', 'Organizator', err.message)
-    return res.status(500).send({
-      message: err.message
-    })
-  }
-}
