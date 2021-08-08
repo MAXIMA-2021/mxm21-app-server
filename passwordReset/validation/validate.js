@@ -7,7 +7,9 @@ exports.forgetPassword = [
 ]
 
 exports.verifyOTP = [
-  check('otp').notEmpty().withMessage('OTP tidak boleh kosong')
+  check('otp').notEmpty().withMessage('OTP tidak boleh kosong'),
+  check('role').notEmpty().withMessage('Role tidak boleh kosong'),
+  check('password').notEmpty().withMessage('Password tidak boleh kosong')
 ]
 
 exports.runValidation = (req, res, next) => {

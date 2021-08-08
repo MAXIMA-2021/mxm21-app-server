@@ -3,6 +3,7 @@ const logging = require('../../mongoose/controllers/logging.mongoose')
 const helper = require('../../helpers/helper')
 const panitia = require('../../user/models/panitia.model')
 const organizator = require('../../user/models/organizator.model')
+const bcrypt = require('bcryptjs')
 
 exports.getPasswordReset = async (req, res) => {
   const { nim } = req.query
@@ -29,15 +30,25 @@ exports.createPasswordReset = async (req, res) => {
 
   const otp = helper.createOTP()
 
+  let role
+
   try {
-    const checkPanitia = await panitia.query().where({ nim })
+    const dbPanitia = await panitia.query().where({ nim })
 
-    const checkOrganizator = await organizator.query().where({ nim })
+    const dbOrganizator = await organizator.query().where({ nim })
 
-    if (checkPanitia.length === 0 && checkOrganizator.length === 0) {
-      return res.send({
-        message: 'Akun Tidak Ditemukan'
-      })
+    switch (true) {
+      case dbPanitia.length !== 0 :
+        role = 'panitia'
+        break
+      case dbOrganizator.length !== 0 :
+        role = 'panitia'
+        break
+      case dbPanitia.length === 0 && dbOrganizator.length === 0 :
+        res.send({
+          message: 'Akun Tidak Ditemukan'
+        })
+        break
     }
 
     await passwordReset.query().insert({
@@ -49,7 +60,8 @@ exports.createPasswordReset = async (req, res) => {
 
     return res.status(200).send({
       message: 'password reset!!',
-      otp
+      otp,
+      role: role
     })
   } catch (err) {
     logging.errorLogging('createPasswordReset', 'PasswordReset', err.message)
@@ -60,21 +72,35 @@ exports.createPasswordReset = async (req, res) => {
 }
 
 exports.verifyOtp = async (req, res) => {
-  const { otp } = req.body
+  const { otp, role, password } = req.body
 
   try {
-    const checkOTP = await passwordReset.query().where({ otp })
+    const dbPasswordReset = await passwordReset.query().where({ otp })
 
-    if (checkOTP.length === 0) {
+    if (dbPasswordReset.length === 0) {
       return res.status(401).send({
         otp: false
       })
     }
 
-    if (checkOTP[0].expired === 1) {
+    if (dbPasswordReset[0].expired === 1) {
       return res.status(409).send({
         otp: 'expired'
       })
+    }
+
+    if (role === 'panitia') {
+      await panitia.query()
+        .update({
+          password: bcrypt.hashSync(password, 8)
+        })
+        .where({ nim: dbPasswordReset[0].nim })
+    } else if (role === 'organizator') {
+      await organizator.query()
+        .update({
+          password: bcrypt.hashSync(password, 8)
+        })
+        .where({ nim: dbPasswordReset[0].nim })
     }
 
     await passwordReset.query().update({
@@ -82,6 +108,7 @@ exports.verifyOtp = async (req, res) => {
     }).where({ otp })
 
     return res.status(200).send({
+      message: 'password berhasil di update',
       otp: true
     })
   } catch (err) {
