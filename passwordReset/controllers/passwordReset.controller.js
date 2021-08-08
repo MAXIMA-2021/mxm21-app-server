@@ -45,7 +45,7 @@ exports.createPasswordReset = async (req, res) => {
         role = 'panitia'
         break
       case dbPanitia.length === 0 && dbOrganizator.length === 0 :
-        res.send({
+        res.status(400).send({
           message: 'Akun Tidak Ditemukan'
         })
         break
@@ -102,7 +102,7 @@ exports.verifyOtp = async (req, res) => {
         })
         .where({ nim: dbPasswordReset[0].nim })
     } else {
-      res.send({
+      res.status(400).send({
         message: 'nim tidak terdaftar'
       })
     }

@@ -70,7 +70,7 @@ exports.signUp = async (req, res) => {
     const checkState = await stateActivities.query().where('stateID', stateID)
 
     if (checkState.length === 0) {
-      return res.send({
+      return res.status(400).send({
         message: 'State tidak terdaftar'
       })
     }
@@ -103,7 +103,7 @@ exports.signIn = async (req, res) => {
   try {
     const dbOrganizator = await organizator.query().where('nim', nim)
 
-    if (dbOrganizator.length === 0) { return res.send({ message: 'nim tidak terdaftar' }) }
+    if (dbOrganizator.length === 0) { return res.status(400).send({ message: 'nim tidak terdaftar' }) }
 
     if (dbOrganizator[0].verified === 0) { return res.status(401).send({ message: 'Maaf akun anda belum diverifikasi oleh pihak pusat' }) }
 
@@ -149,7 +149,7 @@ exports.verifyNim = async (req, res) => {
     const dbOrganizator = await organizator.query().where('nim', nimOrganizator)
 
     if (dbOrganizator.length === 0) {
-      return res.send({
+      return res.status(400).send({
         message: 'nim tidak terdaftar'
       })
     }

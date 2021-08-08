@@ -123,7 +123,7 @@ exports.signIn = async (req, res) => {
   try {
     const dbMahasiswa = await mahasiswa.query().where('nim', nim)
 
-    if (dbMahasiswa.length === 0) { return res.send({ message: 'nim tidak terdaftar' }) }
+    if (dbMahasiswa.length === 0) { return res.status(400).send({ message: 'nim tidak terdaftar' }) }
 
     const password2 = helper.createPassword(dbMahasiswa)
 
@@ -216,7 +216,7 @@ exports.advanceUpdate = async (req, res) => {
     const dbMahasiswa = await mahasiswa.query().where({ nim })
 
     if (dbMahasiswa.length === 0) {
-      return res.send({
+      return res.status(400).send({
         message: 'Akun tidak ditemukan'
       })
     }

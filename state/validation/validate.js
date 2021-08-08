@@ -126,7 +126,7 @@ exports.queryUpdateValidation = async (req, res, next) => {
   const isProvide = await stateActivities.query().where('stateID', stateID)
 
   if (isProvide.length === 0) {
-    return res.send({
+    return res.status(400).send({
       message: 'State tidak ditemukan'
     })
   }
@@ -201,7 +201,7 @@ exports.createRegisterValidation = async (req, res, next) => {
 
     // Validasi apakah ada statenya atau tidak
     if (dbActivities.length === 0) {
-      return res.send({
+      return res.status(400).send({
         message: 'Maaf state belum tersedia'
       })
     }

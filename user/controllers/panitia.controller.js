@@ -67,7 +67,7 @@ exports.signUp = async (req, res) => {
 
     const checkDivisi = await divisi.query().where('divisiID', divisiID)
 
-    if (checkDivisi.length === 0) { return res.send({ message: 'Divisi tidak tersedia' }) }
+    if (checkDivisi.length === 0) { return res.status(400).send({ message: 'Divisi tidak tersedia' }) }
 
     const fixPassword = bcrypt.hashSync(password, 8)
 
@@ -97,7 +97,7 @@ exports.signIn = async (req, res) => {
   try {
     const dbPanitia = await panitia.query().where('nim', nim)
 
-    if (dbPanitia.length === 0) { return res.send({ message: 'nim tidak terdaftar' }) }
+    if (dbPanitia.length === 0) { return res.status(400).send({ message: 'nim tidak terdaftar' }) }
 
     if (dbPanitia[0].verified !== 1) {
       return res.status(401).send({
@@ -147,7 +147,7 @@ exports.verifyNim = async (req, res) => {
     const dbPanitia = await panitia.query().where('nim', nimPanitia)
 
     if (dbPanitia.length === 0) {
-      return res.send({
+      return res.status(400).send({
         message: 'nim tidak terdaftar'
       })
     }

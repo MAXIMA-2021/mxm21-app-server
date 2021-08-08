@@ -28,7 +28,7 @@ exports.update = async (req, res) => {
         isOldPasswordValid = bcrypt.compareSync(oldPassword, dbOrganizator[0].password)
         break
       default :
-        return res.send({ message: 'nim tidak terdaftar' })
+        return res.status(400).send({ message: 'nim tidak terdaftar' })
     }
 
     if (!isOldPasswordValid) {

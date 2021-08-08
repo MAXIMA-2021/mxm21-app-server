@@ -549,7 +549,7 @@ exports.deleteMedia = async (req, res) => {
   try {
     const isProvide = await homeMedia.query().where({ photoID })
 
-    if (isProvide.length === 0) { return res.send({ message: 'Media tidak ditemukan' }) }
+    if (isProvide.length === 0) { return res.status(400).send({ message: 'Media tidak ditemukan' }) }
 
     await homeMedia.query().delete().where({ photoID })
 
@@ -578,7 +578,7 @@ exports.deleteHome = async (req, res) => {
   try {
     const isProvide = await homeInformation.query().where('homeID', homeID)
 
-    if (isProvide.length === 0) { return res.send({ message: 'Home tidak ditemukan' }) }
+    if (isProvide.length === 0) { return res.status(400).send({ message: 'Home tidak ditemukan' }) }
 
     await homeMedia.query().delete().where({ homeID })
 
