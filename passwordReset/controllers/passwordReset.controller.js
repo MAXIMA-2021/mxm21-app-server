@@ -101,6 +101,10 @@ exports.verifyOtp = async (req, res) => {
           password: bcrypt.hashSync(password, 8)
         })
         .where({ nim: dbPasswordReset[0].nim })
+    } else {
+      res.send({
+        message: 'nim tidak terdaftar'
+      })
     }
 
     await passwordReset.query().update({

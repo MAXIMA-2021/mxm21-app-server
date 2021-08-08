@@ -74,6 +74,8 @@ exports.signUp = async (req, res) => {
 exports.getGoogleToken = async (req, res) => {
   const { token } = req.body
 
+  console.log(token)
+
   try {
     const profile = await client.verifyIdToken({
       idToken: token,
