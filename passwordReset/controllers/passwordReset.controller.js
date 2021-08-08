@@ -45,10 +45,9 @@ exports.createPasswordReset = async (req, res) => {
         role = 'panitia'
         break
       case dbPanitia.length === 0 && dbOrganizator.length === 0 :
-        res.status(400).send({
-          message: 'Akun Tidak Ditemukan'
+        return res.status(400).send({
+          message: 'Akun tidak ditemukan atau belum terdaftar'
         })
-        break
     }
 
     await passwordReset.query().insert({
@@ -59,7 +58,7 @@ exports.createPasswordReset = async (req, res) => {
     })
 
     return res.status(200).send({
-      message: 'password reset!!',
+      message: 'Request reset password berhasil.',
       otp,
       role: role
     })
@@ -103,7 +102,7 @@ exports.verifyOtp = async (req, res) => {
         .where({ nim: dbPasswordReset[0].nim })
     } else {
       res.status(400).send({
-        message: 'nim tidak terdaftar'
+        message: 'Akun tidak ditemukan atau belum terdaftar'
       })
     }
 
@@ -112,7 +111,7 @@ exports.verifyOtp = async (req, res) => {
     }).where({ otp })
 
     return res.status(200).send({
-      message: 'password berhasil di update',
+      message: 'Password berhasil di update',
       otp: true
     })
   } catch (err) {

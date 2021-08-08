@@ -9,7 +9,7 @@ exports.getMalpunData = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -40,7 +40,7 @@ exports.registerMalpun = async (req, res) => {
     })
 
     return res.status(200).send({
-      message: 'Anda berhasil mendaftar'
+      message: 'Anda berhasil mendaftar malam puncak'
     })
   } catch (err) {
     logging.errorLogging('getMalpunData', 'Malpun', err.message)

@@ -18,7 +18,7 @@ exports.getToggle = async (req, res) => {
 
   if (!acceptedDivision.includes(divisiID)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukupn'
     })
   }
 
@@ -45,7 +45,7 @@ exports.updateToggle = async (req, res) => {
 
   if (!acceptedDivision.includes(divisiID)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 

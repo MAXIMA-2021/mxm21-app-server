@@ -65,7 +65,7 @@ exports.createHomeInformation = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup.'
     })
   }
 
@@ -182,7 +182,7 @@ exports.createHomeMedia = async (req, res, next) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup.'
     })
   }
 
@@ -201,8 +201,8 @@ exports.createHomeMedia = async (req, res, next) => {
   const dbHome = await homeInformation.query().where({ homeID })
 
   if (dbHome.length === 0) {
-    return res.status(404).send({
-      message: 'Maaf Home tidak tersedia'
+    return res.status(400).send({
+      message: 'Home tidak tersedia atau belum terdaftar'
     })
   }
 
@@ -272,7 +272,7 @@ exports.updateHome = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -455,7 +455,7 @@ exports.updateLinkMedia = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -524,7 +524,7 @@ exports.updateLinkMedia = async (req, res) => {
     logging.homeLogging('update/HoME_Media', nim, objectData, dateTime)
 
     return res.status(200).send({
-      message: 'berhasil update'
+      message: 'linkMedia berhasil diupdate'
     })
   } catch (err) {
     return res.status(500).send({
@@ -540,7 +540,7 @@ exports.deleteMedia = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -549,7 +549,7 @@ exports.deleteMedia = async (req, res) => {
   try {
     const isProvide = await homeMedia.query().where({ photoID })
 
-    if (isProvide.length === 0) { return res.status(400).send({ message: 'Media tidak ditemukan' }) }
+    if (isProvide.length === 0) { return res.status(400).send({ message: 'Media tidak dapat ditemukan' }) }
 
     await homeMedia.query().delete().where({ photoID })
 
@@ -569,7 +569,7 @@ exports.deleteHome = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -578,7 +578,7 @@ exports.deleteHome = async (req, res) => {
   try {
     const isProvide = await homeInformation.query().where('homeID', homeID)
 
-    if (isProvide.length === 0) { return res.status(400).send({ message: 'Home tidak ditemukan' }) }
+    if (isProvide.length === 0) { return res.status(400).send({ message: 'Home tidak ditemukan atau belum terdaftar' }) }
 
     await homeMedia.query().delete().where({ homeID })
 

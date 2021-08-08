@@ -8,7 +8,7 @@ exports.checkToggle = async (req, res, next) => {
 
     if (dbToggle[0].toggle === 0) {
       return res.status(409).send({
-        message: 'closed'
+        message: 'endpoint telah ditutup'
       })
     }
     next()
