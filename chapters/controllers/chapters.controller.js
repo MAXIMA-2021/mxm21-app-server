@@ -29,3 +29,33 @@ exports.getChapter = async (req, res) => {
     })
   }
 }
+
+exports.updateChapter = async (req, res) => {
+  const { homeChapterID } = req.params
+  const { title, message } = req.body
+
+  try {
+    const dbChapter = await chapterDialogues.query().where({ homeChapterID })
+
+    if (dbChapter.length === 0) {
+      return res.status(400).send({
+        message: 'Maaf chapter belum tersedia'
+      })
+    }
+
+    await chapterDialogues.query()
+      .update({
+        title,
+        message
+      })
+      .where({ homeChapterID })
+
+    return res.status(200).send({
+      message: 'Chapter berhasil diupdate'
+    })
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
