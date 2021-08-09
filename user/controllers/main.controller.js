@@ -10,12 +10,33 @@ exports.update = async (req, res) => {
 
   const {
     name,
-    password
+    password,
+    oldPassword
   } = req.body
 
-  const fixPassword = bcrypt.hashSync(password, 8)
-
   try {
+    const dbPanitia = await panitia.query().where({ nim })
+    const dbOrganizator = await organizator.query().where({ nim })
+
+    let isOldPasswordValid
+
+    switch (true) {
+      case dbPanitia.length !== 0 :
+        isOldPasswordValid = bcrypt.compareSync(oldPassword, dbPanitia[0].password)
+        break
+      case dbOrganizator.length !== 0 :
+        isOldPasswordValid = bcrypt.compareSync(oldPassword, dbOrganizator[0].password)
+        break
+      default :
+        return res.status(400).send({ message: 'Akun tidak ditemukan atau belum terdaftar' })
+    }
+
+    if (!isOldPasswordValid) {
+      return res.status(403).send({ message: 'Password tidak sesuai dengan password lama, mohon melakukan pengecekan ulang dan mencoba lagi' })
+    }
+
+    const fixPassword = bcrypt.hashSync(password, 8)
+
     switch (true) {
       case !password && role === 'panitia':
         await panitia.query()

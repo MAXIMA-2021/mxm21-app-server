@@ -51,4 +51,10 @@ module.exports = function (app) {
     authJWT.verifyToken, authJWT.isMahasiswa,
     mahasiswaController.checkToken
   )
+
+  app.post(
+    '/api/mhs/acc/gauth',
+    validation.mhsSignInGoogleValidation, validation.runValidation,
+    mahasiswaController.getGoogleToken
+  )
 }

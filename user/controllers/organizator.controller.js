@@ -63,15 +63,15 @@ exports.signUp = async (req, res) => {
 
     if (result.length !== 0) {
       return res.status(409).send({
-        message: 'nim sudah terdaftar'
+        message: 'nim sudah terdaftar sebelumnya'
       })
     }
 
     const checkState = await stateActivities.query().where('stateID', stateID)
 
     if (checkState.length === 0) {
-      return res.send({
-        message: 'State tidak terdaftar'
+      return res.status(400).send({
+        message: 'State tidak ditemukan atau belum terdaftar'
       })
     }
 
@@ -87,7 +87,7 @@ exports.signUp = async (req, res) => {
     })
 
     res.status(200).send({
-      message: 'Data berhasil ditambahkan'
+      message: 'Akun berhasil dibuat!'
     })
   } catch (err) {
     logging.errorLogging('signUp', 'Organizator', err.message)
@@ -103,13 +103,13 @@ exports.signIn = async (req, res) => {
   try {
     const dbOrganizator = await organizator.query().where('nim', nim)
 
-    if (dbOrganizator.length === 0) { return res.send({ message: 'nim tidak terdaftar' }) }
+    if (dbOrganizator.length === 0) { return res.status(400).send({ message: 'Akun tidak ditemukan atau belum terdaftar' }) }
 
     if (dbOrganizator[0].verified === 0) { return res.status(401).send({ message: 'Maaf akun anda belum diverifikasi oleh pihak pusat' }) }
 
     const isPasswordValid = bcrypt.compareSync(password, dbOrganizator[0].password)
 
-    if (!isPasswordValid) { return res.status(401).send({ message: 'Password Invalid' }) }
+    if (!isPasswordValid) { return res.status(401).send({ message: 'Nim atau password tidak sesuai, mohon melakukan pengecekan ulang dan mencoba kembali' }) }
 
     const token = jwt.sign({ nim: dbOrganizator[0].nim, stateID: dbOrganizator[0].stateID }, authConfig.jwt_key, {
       expiresIn: 21600
@@ -139,7 +139,7 @@ exports.verifyNim = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -149,8 +149,8 @@ exports.verifyNim = async (req, res) => {
     const dbOrganizator = await organizator.query().where('nim', nimOrganizator)
 
     if (dbOrganizator.length === 0) {
-      return res.send({
-        message: 'nim tidak terdaftar'
+      return res.status(400).send({
+        message: 'Akun tidak ditemukan atau belum terdaftar'
       })
     }
 
@@ -168,35 +168,6 @@ exports.verifyNim = async (req, res) => {
     })
   } catch (err) {
     logging.errorLogging('verifyNim', 'Organizator', err.message)
-    return res.status(500).send({
-      message: err.message
-    })
-  }
-}
-
-exports.update = async (req, res) => {
-  const nim = req.nim
-
-  const {
-    name,
-    password
-  } = req.body
-
-  const fixPassword = bcrypt.hashSync(password, 8)
-
-  try {
-    await organizator.query()
-      .update({
-        name,
-        password: fixPassword
-      })
-      .where({ nim })
-
-    return res.status(200).send({
-      message: 'Update Profile Berhasil'
-    })
-  } catch (err) {
-    logging.errorLogging('update', 'Organizator', err.message)
     return res.status(500).send({
       message: err.message
     })

@@ -172,7 +172,7 @@ exports.addRegistration = async (req, res) => {
       })
 
     return res.status(200).send({
-      message: 'Anda berhasil mendaftar'
+      message: 'Registrasi pada state berhasil'
     })
   } catch (err) {
     logging.errorLogging('addRegistration', 'State_Registration', err.message)
@@ -193,7 +193,7 @@ exports.attendanceState = async (req, res) => {
     })
 
     if (checkRegistration.length === 0) {
-      return res.send({ message: 'Anda tidak terdaftar!' })
+      return res.status(400).send({ message: 'Anda tidak terdaftar pada STATE tersebut.' })
     }
 
     await stateRegistration.query()
@@ -225,7 +225,7 @@ exports.updateAttendance = async (req, res) => {
     })
 
     if (checkRegistration.length === 0) {
-      return res.send({ message: 'Peserta belum mendaftar' })
+      return res.status(400).send({ message: 'Peserta tidak mendaftar pada STATE tersebut' })
     }
 
     await stateRegistration.query()
@@ -268,14 +268,14 @@ exports.verifyAttendanceCode = async (req, res) => {
       )
 
     if (stateAttendanceDB.length === 0) {
-      return res.send({
-        message: 'Anda belum mendaftar'
+      return res.status(400).send({
+        message: 'Anda tidak terdaftar pada STATE tersebut.'
       })
     }
 
     if (stateAttendanceDB[0].inEventAttendance === 0) {
       return res.status(403).send({
-        message: 'Anda tidak mengikuti state hingga akhir'
+        message: 'Anda tidak mengikuti kegiatan STATE hingga selesai'
       })
     }
 
@@ -286,7 +286,7 @@ exports.verifyAttendanceCode = async (req, res) => {
 
       return res.status(200).send({ message: 'Proses Absensi Selesai' })
     } else {
-      return res.status(406).send({ message: 'Kode presensi salah' })
+      return res.status(406).send({ message: 'Kode presensi yang dimasukan tidak sesuai, Mohon memeriksa ulang kode dan mencoba kembali' })
     }
   } catch (err) {
     logging.errorLogging('verifyAttendance', 'State_Registration', err.message)
@@ -303,8 +303,8 @@ exports.deleteRegistration = async (req, res) => {
       .where({ nim, stateID })
 
     if (checkRegistration.length === 0) {
-      return res.send({
-        message: 'Anda belum mendaftar'
+      return res.status(400).send({
+        message: 'Anda belum mendaftar pada STATE tersebut'
       })
     }
 
@@ -320,7 +320,7 @@ exports.deleteRegistration = async (req, res) => {
         registered: registeredState[0].registered - 1
       })
 
-    return res.status(200).send({ message: 'Data Registrasi Berhasil Dihapus' })
+    return res.status(200).send({ message: 'Data Registrasi STATE Berhasil Dihapus' })
   } catch (err) {
     logging.errorLogging('deleteRegistration', 'State_Registration', err.message)
     return res.status(500).send({ message: err.message })

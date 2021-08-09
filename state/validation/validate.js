@@ -126,14 +126,14 @@ exports.queryUpdateValidation = async (req, res, next) => {
   const isProvide = await stateActivities.query().where('stateID', stateID)
 
   if (isProvide.length === 0) {
-    return res.send({
-      message: 'State tidak ditemukan'
+    return res.status(400).send({
+      message: 'State tidak ditemukan atau belum terdaftar'
     })
   }
 
   if (parseInt(quota) <= isProvide[0].registered) {
     return res.status(409).send({
-      message: 'Jumlah Quota melebihi dari jumlah yang terdaftar'
+      message: 'Jumlah Quota state lebih sedikit daripada jumlah yang telah mendaftar'
     })
   }
 
@@ -201,7 +201,7 @@ exports.createRegisterValidation = async (req, res, next) => {
 
     // Validasi apakah ada statenya atau tidak
     if (dbActivities.length === 0) {
-      return res.send({
+      return res.status(400).send({
         message: 'Maaf state belum tersedia'
       })
     }
@@ -222,7 +222,7 @@ exports.createRegisterValidation = async (req, res, next) => {
     for (let i = 0; i < dbRegistrationDay.length; i++) {
       if (registeredDay[i] === dbActivities[0].day) {
         return res.status(409).send({
-          message: 'Anda hanya dapat mendaftar satu state pada hari yang sama'
+          message: 'Anda hanya dapat mendaftar pada satu STATE pada hari yang sama'
         })
       }
     }
@@ -230,7 +230,7 @@ exports.createRegisterValidation = async (req, res, next) => {
     // Validasi 1 orang hanya bisa pesan maks 3 state
     if (dbRegistrationNim.length >= 3) {
       return res.status(409).send({
-        message: 'Maaf Anda hanya dapat memesan maksimal 3 state'
+        message: 'Maaf setiap mahasiswa hanya diperbolehkan mendaftar pada 3 state'
       })
     }
 

@@ -9,10 +9,10 @@ exports.verifyToken = async (req, res, next) => {
   try {
     const token = req.headers['x-access-token']
 
-    if (!token) return res.status(401).send({ message: 'Belum Login' })
+    if (!token) return res.status(401).send({ message: 'Harap login terlebih dahulu' })
 
     jwt.verify(token, authConfig.jwt_key, (err, decoded) => {
-      if (err) return res.status(403).send({ message: 'Token Invalid' })
+      if (err) return res.status(403).send({ message: 'Session anda habis, harap melakukan login ulang' })
 
       if (decoded.stateID) {
         req.query.param = decoded.stateID
@@ -41,7 +41,7 @@ exports.isMahasiswa = async (req, res, next) => {
   try {
     const result = await mahasiswa.query().where('nim', nim)
 
-    if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
+    if (result.length === 0) return res.status(403).send({ message: 'Maaf anda tidak memiliki akses' })
 
     next()
   } catch (err) {
@@ -58,7 +58,7 @@ exports.isPanitia = async (req, res, next) => {
   try {
     const result = await panitia.query().where('nim', nim)
 
-    if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
+    if (result.length === 0) return res.status(403).send({ message: 'Maaf anda tidak memiliki akses' })
 
     req.division = result[0].divisiID
 
@@ -77,7 +77,7 @@ exports.isOrganizator = async (req, res, next) => {
   try {
     const result = await organizator.query().where('nim', nim)
 
-    if (result.length === 0) return res.status(403).send({ message: 'Forbidden' })
+    if (result.length === 0) return res.status(403).send({ message: 'Maaf anda tidak memiliki akses' })
 
     next()
   } catch (err) {

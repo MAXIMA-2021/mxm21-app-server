@@ -18,6 +18,13 @@ app.use(express.static('pages'))
 // Configure Mongo DB
 require('./config/mongo.config')()
 
+// untuk FE cobain
+app.set('view engine', 'ejs')
+
+app.get('/login', (req, res) => {
+  res.render('login')
+})
+
 require('./user/routes/mahasiswa.route')(app)
 require('./user/routes/panitia.route')(app)
 require('./user/routes/organizator.route')(app)

@@ -2,14 +2,9 @@
 
 const { check, validationResult } = require('express-validator')
 
-exports.forgetPassword = [
-  check('nim').notEmpty().withMessage('Nim tidak boleh kosong')
-]
-
-exports.verifyOTP = [
-  check('otp').notEmpty().withMessage('OTP tidak boleh kosong'),
-  check('role').notEmpty().withMessage('Role tidak boleh kosong'),
-  check('password').notEmpty().withMessage('Password tidak boleh kosong')
+exports.chapterUpdateValidation = [
+  check('title').notEmpty().withMessage('Judul tidak boleh kosong'),
+  check('message').notEmpty().withMessage('Isi chapter tidak boleh kosong')
 ]
 
 exports.runValidation = (req, res, next) => {

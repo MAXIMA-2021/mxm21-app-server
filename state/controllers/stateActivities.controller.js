@@ -83,7 +83,7 @@ exports.addState = async (req, res) => {
 
   if (!acceptedDivisi.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -166,7 +166,7 @@ exports.addState = async (req, res) => {
     logging.stateLogging('insert/STATE', nim, insertResult, dateTime)
 
     res.status(200).send({
-      message: 'Data berhasil ditambahkan'
+      message: 'Data STATE berhasil ditambahkan'
     })
   } catch (err) {
     logging.errorLogging('addState', 'State_Activities', err.message)
@@ -193,7 +193,7 @@ exports.updateState = async (req, res) => {
 
   if (!acceptedDivisi.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -209,7 +209,7 @@ exports.updateState = async (req, res) => {
 
   if (checkName[0] && checkName[0].name !== isProvide[0].name) {
     return res.status(409).send({
-      message: 'Maaf nama State sudah terdaftar'
+      message: 'Maaf nama State sudah terdaftar sebelumnya'
     })
   } else if (!checkName[0]) {
     attendanceCode = helper.createAttendanceCode(name)
@@ -403,7 +403,7 @@ exports.updateState = async (req, res) => {
     logging.stateLogging('update/STATE', nim, fixObject, dateTime)
 
     return res.status(200).send({
-      message: 'Data berhasil diupdate'
+      message: 'Data STATE berhasil diupdate'
     })
   } catch (err) {
     logging.errorLogging('updateState', 'State_Activities', err.message)
@@ -418,7 +418,7 @@ exports.deleteState = async (req, res) => {
 
   if (!acceptedDivisi.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -426,7 +426,7 @@ exports.deleteState = async (req, res) => {
 
   const isProvide = await stateActivities.query().where('stateID', stateID)
 
-  if (isProvide.length === 0) return res.send({ message: 'State tidak ditemukan' })
+  if (isProvide.length === 0) return res.status(400).send({ message: 'State tidak ditemukan atau belum terdaftar' })
 
   try {
     await stateRegistration.query()

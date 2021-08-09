@@ -1,3 +1,5 @@
+const { OAuth2Client } = require('google-auth-library')
+const client = new OAuth2Client(process.env.CLIENT_ID)
 const mahasiswa = require('../models/mahasiswa.model')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
@@ -36,7 +38,8 @@ exports.signUp = async (req, res) => {
     prodi,
     whatsapp,
     idLine,
-    idInstagram
+    idInstagram,
+    GoogleID
   } = req.body
 
   const fixName = helper.toTitleCase(name)
@@ -44,11 +47,11 @@ exports.signUp = async (req, res) => {
   try {
     const result = await mahasiswa.query().where('nim', nim)
 
-    if (result.length !== 0) return res.status(409).send({ message: 'nim sudah terdaftar' })
+    if (result.length !== 0) return res.status(409).send({ message: `Akun dengan nim ${nim} sudah terdaftar` })
 
     await mahasiswa.query().insert({
       nim,
-      GoogleID: '',
+      GoogleID,
       name: fixName,
       email,
       tempatLahir,
@@ -60,12 +63,63 @@ exports.signUp = async (req, res) => {
       idInstagram
     })
 
+    if (GoogleID) {
+      const dbMahasiswa = await mahasiswa.query().where('nim', nim)
+      const token = jwt.sign({ nim: dbMahasiswa[0].nim }, authConfig.jwt_key, {
+        expiresIn: 21600
+      })
+      return res.status(200).send({
+        message: 'Berhasil Login',
+        token: token,
+        name: dbMahasiswa[0].name,
+        role: 'mahasiswa'
+      })
+    }
+
     res.status(200).send({
-      message: 'Data berhasil ditambahkan'
+      message: 'Akun berhasil dibuat!'
     })
   } catch (err) {
     logging.errorLogging('signUp', 'Mahasiswa', err.message)
     res.status(500).send({ message: err.message })
+  }
+}
+
+exports.getGoogleToken = async (req, res) => {
+  const { token } = req.body
+
+  try {
+    const profile = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.CLIENT_ID
+    })
+    const payload = profile.getPayload()
+    const userid = payload.sub
+
+    const dbMahasiswa = await mahasiswa.query()
+      .where({
+        GoogleID: userid
+      })
+
+    if (dbMahasiswa.length === 0) {
+      return res.status(200).send({
+        message: 'no GoogleID'
+      })
+    } else {
+      const token = jwt.sign({ nim: dbMahasiswa[0].nim }, authConfig.jwt_key, {
+        expiresIn: 21600
+      })
+      return res.status(200).send({
+        message: 'Berhasil Login',
+        token: token,
+        name: dbMahasiswa[0].name,
+        role: 'mahasiswa'
+      })
+    }
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
   }
 }
 
@@ -77,12 +131,12 @@ exports.signIn = async (req, res) => {
   try {
     const dbMahasiswa = await mahasiswa.query().where('nim', nim)
 
-    if (dbMahasiswa.length === 0) { return res.send({ message: 'nim tidak terdaftar' }) }
+    if (dbMahasiswa.length === 0) { return res.status(400).send({ message: 'Akun tidak ditemukan atau belum terdaftar' }) }
 
     const password2 = helper.createPassword(dbMahasiswa)
 
     if (password !== password2) {
-      return res.status(401).send({ message: 'Password is invalid' })
+      return res.status(401).send({ message: 'Nim atau password salah, mohon melakukan pengecekan ulang dan mencoba lagi' })
     }
 
     const token = jwt.sign({ nim: dbMahasiswa[0].nim }, authConfig.jwt_key, {
@@ -151,7 +205,7 @@ exports.advanceUpdate = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Forbidden'
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
     })
   }
 
@@ -170,8 +224,8 @@ exports.advanceUpdate = async (req, res) => {
     const dbMahasiswa = await mahasiswa.query().where({ nim })
 
     if (dbMahasiswa.length === 0) {
-      return res.send({
-        message: 'Akun tidak ditemukan'
+      return res.status(400).send({
+        message: 'Akun tidak ditemukan atau belum terdaftar'
       })
     }
 
@@ -215,7 +269,7 @@ exports.advanceUpdate = async (req, res) => {
     logging.studentEditLogging('Edit/Mahasiswa', req.nim, nim, fixObject)
 
     return res.status(200).send({
-      message: 'Update Mahasiswa Success'
+      message: 'Update Data Mahasiswa Berhasil!'
     })
   } catch (err) {
     logging.errorLogging('advanceUpdate', 'Mahasiswa', err.message)

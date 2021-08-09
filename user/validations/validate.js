@@ -2,6 +2,10 @@
 
 const { check, validationResult } = require('express-validator')
 
+exports.mhsSignInGoogleValidation = [
+  check('token').notEmpty().withMessage('Token tidak boleh kosong')
+]
+
 exports.mhsSignUpValidation = [
   check('nim').notEmpty().withMessage('Nim tidak boleh kosong'),
   check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
