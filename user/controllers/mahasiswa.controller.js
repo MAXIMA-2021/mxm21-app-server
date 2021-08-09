@@ -63,6 +63,19 @@ exports.signUp = async (req, res) => {
       idInstagram
     })
 
+    if (GoogleID) {
+      const dbMahasiswa = await mahasiswa.query().where('nim', nim)
+      const token = jwt.sign({ nim: dbMahasiswa[0].nim }, authConfig.jwt_key, {
+        expiresIn: 21600
+      })
+      return res.status(200).send({
+        message: 'Berhasil Login',
+        token: token,
+        name: dbMahasiswa[0].name,
+        role: 'mahasiswa'
+      })
+    }
+
     res.status(200).send({
       message: 'Akun berhasil dibuat!'
     })
@@ -75,8 +88,6 @@ exports.signUp = async (req, res) => {
 exports.getGoogleToken = async (req, res) => {
   const { token } = req.body
 
-  console.log(token)
-
   try {
     const profile = await client.verifyIdToken({
       idToken: token,
@@ -85,10 +96,6 @@ exports.getGoogleToken = async (req, res) => {
     const payload = profile.getPayload()
     const userid = payload.sub
 
-    console.log(payload.sub)
-    console.log(payload.name)
-    console.log(payload.email)
-
     const dbMahasiswa = await mahasiswa.query()
       .where({
         GoogleID: userid
@@ -96,7 +103,7 @@ exports.getGoogleToken = async (req, res) => {
 
     if (dbMahasiswa.length === 0) {
       return res.status(200).send({
-        message: 'no Token'
+        message: 'no GoogleID'
       })
     } else {
       const token = jwt.sign({ nim: dbMahasiswa[0].nim }, authConfig.jwt_key, {
