@@ -38,7 +38,8 @@ exports.signUp = async (req, res) => {
     prodi,
     whatsapp,
     idLine,
-    idInstagram
+    idInstagram,
+    GoogleID
   } = req.body
 
   const fixName = helper.toTitleCase(name)
@@ -50,7 +51,7 @@ exports.signUp = async (req, res) => {
 
     await mahasiswa.query().insert({
       nim,
-      GoogleID: '',
+      GoogleID,
       name: fixName,
       email,
       tempatLahir,
