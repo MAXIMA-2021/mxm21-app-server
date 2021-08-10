@@ -4,6 +4,11 @@ const validation = require('../validation/validate')
 
 module.exports = (app) => {
   app.get(
+    '/api/panit/chapter',
+    chapterController.getAllChapter
+  )
+
+  app.get(
     '/api/public/chapter/:homeChapterID',
     chapterController.getChapter
   )

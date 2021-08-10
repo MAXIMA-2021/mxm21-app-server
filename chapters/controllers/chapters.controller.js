@@ -30,6 +30,28 @@ exports.getChapter = async (req, res) => {
   }
 }
 
+exports.getAllChapter = async (req, res) => {
+  try {
+    const dbChapter = await chapterDialogues.query()
+
+    for (let i = 0; i < dbChapter.length; i++) {
+      const dbHome = await homeInformation.query().where({ kategori: dbChapter[i].homeChapterID })
+      for (let j = 0; j < dbHome.length; j++) {
+        const dbHomeMedia = await homeMedia.query()
+          .select('photoID', 'linkMedia')
+          .where({ homeID: dbHome[j].homeID })
+        dbHome[j].home_media = dbHomeMedia
+      }
+      dbChapter[i].home = dbHome
+    }
+    return res.status(200).send(dbChapter)
+  } catch (err) {
+    return res.status(500).send({
+      message: err.message
+    })
+  }
+}
+
 exports.updateChapter = async (req, res) => {
   const { homeChapterID } = req.params
   const { title, message } = req.body
