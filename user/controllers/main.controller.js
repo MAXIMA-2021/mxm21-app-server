@@ -20,16 +20,13 @@ exports.update = async (req, res) => {
 
     let isOldPasswordValid = true
 
-    switch (true) {
-      case dbPanitia.length !== 0 && oldPassword !== undefined:
-        isOldPasswordValid = bcrypt.compareSync(oldPassword, dbPanitia[0].password)
-        break
-      case dbOrganizator.length !== 0 && oldPassword !== undefined:
-        isOldPasswordValid = bcrypt.compareSync(oldPassword, dbOrganizator[0].password)
-        break
+    if (dbPanitia.length !== 0 && oldPassword) {
+      isOldPasswordValid = bcrypt.compareSync(oldPassword, dbPanitia[0].password)
+    } else if (dbOrganizator.length !== 0 && oldPassword) {
+      isOldPasswordValid = bcrypt.compareSync(oldPassword, dbOrganizator[0].password)
     }
 
-    if (!isOldPasswordValid) {
+    if (isOldPasswordValid === false) {
       return res.status(403).send({ message: 'Password tidak sesuai dengan password lama, mohon melakukan pengecekan ulang dan mencoba lagi' })
     }
 
@@ -42,6 +39,7 @@ exports.update = async (req, res) => {
           .where({ nim })
         break
       case !password && role === 'organizator':
+        console.log(2)
         await organizator.query()
           .update({
             name
@@ -49,6 +47,7 @@ exports.update = async (req, res) => {
           .where({ nim })
         break
       case role === 'panitia':
+        console.log(3)
         await panitia.query()
           .update({
             name,
@@ -57,6 +56,7 @@ exports.update = async (req, res) => {
           .where({ nim })
         break
       case role === 'organizator':
+        console.log(4)
         await organizator.query()
           .update({
             name,
