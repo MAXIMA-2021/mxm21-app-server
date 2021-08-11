@@ -100,7 +100,7 @@ exports.getRegistration = async (req, res) => {
             'state_activities.stateID',
             'state_registration.stateID'
           )
-          .where('state_registration.stateID', 6)
+          .where('state_registration.stateID', stateID)
         break
       case nim !== undefined :
         dbState = await stateRegistration.query()
