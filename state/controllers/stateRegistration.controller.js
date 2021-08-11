@@ -100,7 +100,7 @@ exports.getRegistration = async (req, res) => {
             'state_activities.stateID',
             'state_registration.stateID'
           )
-          .where('state_registration.stateID', stateID)
+          .where('state_registration.stateID', 6)
         break
       case nim !== undefined :
         dbState = await stateRegistration.query()
@@ -186,12 +186,21 @@ exports.attendanceState = async (req, res) => {
       return res.status(400).send({ message: 'Anda tidak terdaftar pada STATE tersebut.' })
     }
 
-    await stateRegistration.query()
-      .where({ stateID, nim })
-      .patch({
-        attendanceTime,
-        inEventAttendance
-      })
+    if (checkRegistration[0].queueNo === 0) {
+      const lastQueueNumber = await stateRegistration.query().where({ stateID }).orderBy('queueNo')
+      const queueNo = lastQueueNumber[lastQueueNumber.length - 1].queueNo + 1
+
+      await stateRegistration.query()
+        .where({
+          stateID,
+          nim
+        })
+        .patch({
+          attendanceTime,
+          inEventAttendance,
+          queueNo
+        })
+    }
 
     return res.status(200).send({ message: 'Hadir' })
   } catch (err) {

@@ -77,6 +77,8 @@ exports.isOrganizator = async (req, res, next) => {
   try {
     const result = await organizator.query().where('nim', nim)
 
+    req.query.stateID = result[0].stateID
+
     if (result.length === 0) return res.status(403).send({ message: 'Maaf anda tidak memiliki akses' })
 
     next()
