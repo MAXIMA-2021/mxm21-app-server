@@ -18,24 +18,17 @@ exports.update = async (req, res) => {
     const dbPanitia = await panitia.query().where({ nim })
     const dbOrganizator = await organizator.query().where({ nim })
 
-    let isOldPasswordValid
+    let isOldPasswordValid = true
 
-    switch (true) {
-      case dbPanitia.length !== 0 :
-        isOldPasswordValid = bcrypt.compareSync(oldPassword, dbPanitia[0].password)
-        break
-      case dbOrganizator.length !== 0 :
-        isOldPasswordValid = bcrypt.compareSync(oldPassword, dbOrganizator[0].password)
-        break
-      default :
-        return res.status(400).send({ message: 'Akun tidak ditemukan atau belum terdaftar' })
+    if (dbPanitia.length !== 0 && oldPassword) {
+      isOldPasswordValid = bcrypt.compareSync(oldPassword, dbPanitia[0].password)
+    } else if (dbOrganizator.length !== 0 && oldPassword) {
+      isOldPasswordValid = bcrypt.compareSync(oldPassword, dbOrganizator[0].password)
     }
 
-    if (!isOldPasswordValid) {
+    if (isOldPasswordValid === false) {
       return res.status(403).send({ message: 'Password tidak sesuai dengan password lama, mohon melakukan pengecekan ulang dan mencoba lagi' })
     }
-
-    const fixPassword = bcrypt.hashSync(password, 8)
 
     switch (true) {
       case !password && role === 'panitia':
@@ -46,6 +39,7 @@ exports.update = async (req, res) => {
           .where({ nim })
         break
       case !password && role === 'organizator':
+        console.log(2)
         await organizator.query()
           .update({
             name
@@ -53,18 +47,20 @@ exports.update = async (req, res) => {
           .where({ nim })
         break
       case role === 'panitia':
+        console.log(3)
         await panitia.query()
           .update({
             name,
-            password: fixPassword
+            password: bcrypt.hashSync(password, 8)
           })
           .where({ nim })
         break
       case role === 'organizator':
+        console.log(4)
         await organizator.query()
           .update({
             name,
-            password: fixPassword
+            password: bcrypt.hashSync(password, 8)
           })
           .where({ nim })
         break

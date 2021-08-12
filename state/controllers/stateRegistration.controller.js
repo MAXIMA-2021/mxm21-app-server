@@ -49,15 +49,7 @@ exports.getRegistrationMhs = async (req, res) => {
       return res.status(200).send(result)
     }
 
-    // JavaScript counts months from 0 to 11. January 0 December 11
     const dateNow = new Date(Date.now())
-    // const dateNow = new Date(2021, 7, 23, 10, 0, 0, 0) // 23 agustus 2021 10:00
-    // const dateNow = new Date(2021, 7, 23, 17, 15, 0, 0) // 23 agustus 2021 17:15
-    // const dateNow = new Date(2021, 7, 23, 22, 0, 0, 0) // 23 agustus 2021 22:00
-    // const dateNow = new Date(2021, 7, 24, 17, 15, 0, 0) // 24 agustus 2021 17:15
-    // const dateNow = new Date(2021, 7, 24, 22, 0, 0, 0) // 24 agustus 2021 22:00
-    // const dateNow = new Date(2021, 7, 25, 17, 15, 0, 0) // 25 agustus 2021 17:15
-    // const dateNow = new Date(2021, 7, 25, 22, 0, 0, 0) // 25 agustus 2021 22:00
 
     const remainingToken = 3 - dbState.length
 
@@ -66,7 +58,7 @@ exports.getRegistrationMhs = async (req, res) => {
 
       const jam = helper.createTime(dbState[i].date)
 
-      const dateOpen = new Date(2021, 7, 23, 10, 0, 0, 0) // 23 agustus 2021 10:00
+      const dateOpen = new Date(2021, 7, 23, 10, 0, 0, 0)
 
       const dateState = dbState[i].date
 
@@ -149,7 +141,6 @@ exports.addRegistration = async (req, res) => {
   const { stateID } = req.body
   const { nim } = req.query
   const queueNo = 0
-  const attendanceTime = 0
   const inEventAttendance = 0
   const exitAttendance = 0
 
@@ -159,7 +150,6 @@ exports.addRegistration = async (req, res) => {
         stateID,
         nim,
         queueNo,
-        attendanceTime,
         inEventAttendance,
         exitAttendance
       })
@@ -196,12 +186,21 @@ exports.attendanceState = async (req, res) => {
       return res.status(400).send({ message: 'Anda tidak terdaftar pada STATE tersebut.' })
     }
 
-    await stateRegistration.query()
-      .where({ stateID, nim })
-      .patch({
-        attendanceTime,
-        inEventAttendance
-      })
+    if (checkRegistration[0].queueNo === 0) {
+      const lastQueueNumber = await stateRegistration.query().where({ stateID }).orderBy('queueNo')
+      const queueNo = lastQueueNumber[lastQueueNumber.length - 1].queueNo + 1
+
+      await stateRegistration.query()
+        .where({
+          stateID,
+          nim
+        })
+        .patch({
+          attendanceTime,
+          inEventAttendance,
+          queueNo
+        })
+    }
 
     return res.status(200).send({ message: 'Hadir' })
   } catch (err) {

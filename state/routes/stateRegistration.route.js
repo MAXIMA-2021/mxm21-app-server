@@ -16,6 +16,12 @@ module.exports = function (app) {
     stateRegistrationController.getRegistration
   )
 
+  app.get(
+    '/api/organizator/state/registration',
+    authjwtMiddleware.verifyToken, authjwtMiddleware.isOrganizator,
+    stateRegistrationController.getRegistration
+  )
+
   app.post(
     '/api/mhs/state/registration/registerState',
     toggle.stateRegistration, toggle.checkToggle,

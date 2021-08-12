@@ -6,14 +6,14 @@ module.exports = (app) => {
   app.put(
     '/api/organizator/acc/editProfile',
     authJwt.verifyToken, authJwt.isOrganizator,
-    validation.notMhsUpdatedValidation, validation.runValidation,
+    validation.notMhsUpdatedValidation, validation.passwordValidation, validation.runValidation,
     mainController.update
   )
 
   app.put(
     '/api/panitia/acc/editProfile',
     authJwt.verifyToken, authJwt.isPanitia,
-    validation.notMhsUpdatedValidation, validation.runValidation,
+    validation.notMhsUpdatedValidation, validation.passwordValidation, validation.runValidation,
     mainController.update
   )
 }

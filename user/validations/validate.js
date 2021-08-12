@@ -55,8 +55,29 @@ exports.signInValidation = [
   check('password').notEmpty().withMessage('Password tidak boleh kosong')
 ]
 
+exports.passwordValidation = (req, res, next) => {
+  const { password, oldPassword } = req.body
+  const passwordErrors = []
+
+  if (!oldPassword && password) {
+    passwordErrors.push({
+      key: 'oldPassword',
+      message: 'Password yang lama harap diisi'
+    })
+  } else if (oldPassword && !password) {
+    passwordErrors.push({
+      key: 'password',
+      message: 'Password yang baru harap diisi'
+    })
+  }
+
+  req.passwordErrors = passwordErrors
+
+  next()
+}
 exports.runValidation = (req, res, next) => {
   const errors = validationResult(req).errors
+  const passwordErrors = req.passwordErrors
   const listErrors = []
   if (errors.length !== 0) {
     errors.map(error => {
@@ -65,6 +86,12 @@ exports.runValidation = (req, res, next) => {
         message: error.msg
       })
     })
+  }
+  if (passwordErrors !== undefined && passwordErrors.length !== 0) {
+    listErrors.push(passwordErrors[0])
+  }
+
+  if (listErrors.length !== 0) {
     return res.status(400).send(listErrors)
   }
   next()
