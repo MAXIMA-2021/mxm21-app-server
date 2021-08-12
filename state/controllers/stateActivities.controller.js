@@ -165,7 +165,7 @@ exports.addState = async (req, res) => {
 
     logging.stateLogging('insert/STATE', nim, insertResult, dateTime)
 
-    res.status(200).send({
+    return res.status(200).send({
       message: 'Data STATE berhasil ditambahkan'
     })
   } catch (err) {
