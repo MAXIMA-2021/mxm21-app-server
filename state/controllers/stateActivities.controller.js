@@ -104,9 +104,10 @@ exports.addState = async (req, res) => {
   const dateTime = helper.createAttendanceTime()
 
   // format filename = nama state + nama file + datetime upload file
-  const uuid = uuidv4()
-  const fileNameLogo = `${name.trim().split(' ').join('-')}_${uuid}_${stateLogo.name.trim().split(' ').join('-')}`
-  const fileNameCover = `${name.trim().split(' ').join('-')}_${uuid}_${coverPhoto.name.trim().split(' ').join('-')}`
+  const uuidLogo = uuidv4()
+  const uuidCover = uuidv4()
+  const fileNameLogo = `${name.trim().split(' ').join('-')}_${uuidLogo}_${stateLogo.name.trim().split(' ').join('-')}`
+  const fileNameCover = `${name.trim().split(' ').join('-')}_${uuidCover}_${coverPhoto.name.trim().split(' ').join('-')}`
 
   const uploadPathLogo = './stateLogo/' + fileNameLogo
   const uploadPathCover = './stateLogo/' + fileNameCover
@@ -228,8 +229,8 @@ exports.updateState = async (req, res) => {
   if (req.files && req.files.stateLogo) {
     stateLogo = req.files.stateLogo
 
-    const uuid = uuidv4()
-    fileNameLogo = `${name.trim().split(' ').join('-')}_${uuid}_${stateLogo.name.trim().split(' ').join('-')}`
+    const uuidLogo = uuidv4()
+    fileNameLogo = `${name.trim().split(' ').join('-')}_${uuidLogo}_${stateLogo.name.trim().split(' ').join('-')}`
 
     uploadPathLogo = './stateLogo/' + fileNameLogo
 
@@ -241,8 +242,8 @@ exports.updateState = async (req, res) => {
   if (req.files && req.files.coverPhoto) {
     coverPhoto = req.files.coverPhoto
 
-    const uuid = uuidv4()
-    fileNameCover = `${name.trim().split(' ').join('-')}_${uuid}_${coverPhoto.name.trim().split(' ').join('-')}`
+    const uuidCover = uuidv4()
+    fileNameCover = `${name.trim().split(' ').join('-')}_${uuidCover}_${coverPhoto.name.trim().split(' ').join('-')}`
 
     uploadPathCover = './stateLogo/' + fileNameCover
 

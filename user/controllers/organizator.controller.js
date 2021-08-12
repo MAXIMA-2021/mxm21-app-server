@@ -86,12 +86,12 @@ exports.signUp = async (req, res) => {
       verified
     })
 
-    res.status(200).send({
+    return res.status(200).send({
       message: 'Akun berhasil dibuat!'
     })
   } catch (err) {
     logging.errorLogging('signUp', 'Organizator', err.message)
-    res.status(500).send({ message: err.message })
+    return res.status(500).send({ message: err.message })
   }
 }
 
@@ -117,7 +117,7 @@ exports.signIn = async (req, res) => {
 
     logging.loginLogging(nim, ip)
 
-    res.status(200).send({
+    return res.status(200).send({
       message: 'Berhasil Login',
       token: token,
       nama: dbOrganizator[0].name,
@@ -126,7 +126,7 @@ exports.signIn = async (req, res) => {
     })
   } catch (err) {
     logging.errorLogging('signIn', 'Organizator', err.message)
-    res.status(500).send({ message: err.message })
+    return res.status(500).send({ message: err.message })
   }
 }
 
