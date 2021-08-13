@@ -154,7 +154,9 @@ exports.runValidation = (req, res, next) => {
     req.mediaErrors = []
   }
 
-  const linkErrors = req.linkErrors
+  if (!req.linkErrors) {
+    req.linkErrors = []
+  }
 
   const fileErrors = req.logoErrors.concat(req.mediaErrors)
 
@@ -169,7 +171,7 @@ exports.runValidation = (req, res, next) => {
     })
   }
 
-  listErrors = listErrors.concat(linkErrors)
+  listErrors = listErrors.concat(req.linkErrors)
 
   listErrors = listErrors.concat(fileErrors)
 
