@@ -2,6 +2,7 @@ const panitia = require('../models/panitia.model')
 const organizator = require('../models/organizator.model')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 const bcrypt = require('bcryptjs')
+const helper = require('../../helpers/helper')
 
 exports.update = async (req, res) => {
   const nim = req.nim
@@ -13,6 +14,8 @@ exports.update = async (req, res) => {
     password,
     oldPassword
   } = req.body
+
+  const fixName = helper.toTitleCase(name).trim()
 
   try {
     const dbPanitia = await panitia.query().where({ nim })
@@ -34,7 +37,7 @@ exports.update = async (req, res) => {
       case !password && role === 'panitia':
         await panitia.query()
           .update({
-            name
+            name: fixName
           })
           .where({ nim })
         break
@@ -42,7 +45,7 @@ exports.update = async (req, res) => {
         console.log(2)
         await organizator.query()
           .update({
-            name
+            name: fixName
           })
           .where({ nim })
         break
@@ -50,7 +53,7 @@ exports.update = async (req, res) => {
         console.log(3)
         await panitia.query()
           .update({
-            name,
+            name: fixName,
             password: bcrypt.hashSync(password, 8)
           })
           .where({ nim })
@@ -59,7 +62,7 @@ exports.update = async (req, res) => {
         console.log(4)
         await organizator.query()
           .update({
-            name,
+            name: fixName,
             password: bcrypt.hashSync(password, 8)
           })
           .where({ nim })

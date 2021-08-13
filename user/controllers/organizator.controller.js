@@ -56,7 +56,7 @@ exports.signUp = async (req, res) => {
 
   const verified = 0
 
-  const fixName = helper.toTitleCase(name)
+  const fixName = helper.toTitleCase(name).trim()
 
   try {
     const result = await organizator.query().where('nim', nim)

@@ -3,6 +3,7 @@ const logging = require('../../mongoose/controllers/logging.mongoose')
 const helper = require('../../helpers/helper')
 const panitia = require('../../user/models/panitia.model')
 const organizator = require('../../user/models/organizator.model')
+const mahasiswa = require('../../user/models/mahasiswa.model')
 const bcrypt = require('bcryptjs')
 
 exports.getPasswordReset = async (req, res) => {
@@ -37,14 +38,19 @@ exports.createPasswordReset = async (req, res) => {
 
     const dbOrganizator = await organizator.query().where({ nim })
 
+    const dbMahasiswa = await mahasiswa.query().where({ nim })
+
     switch (true) {
       case dbPanitia.length !== 0 :
         role = 'panitia'
         break
       case dbOrganizator.length !== 0 :
-        role = 'panitia'
+        role = 'organizator'
         break
-      case dbPanitia.length === 0 && dbOrganizator.length === 0 :
+      case dbMahasiswa.length !== 0 :
+        role = 'mahasiswa'
+        break
+      case dbPanitia.length === 0 && dbOrganizator.length === 0 && dbMahasiswa.length !== 0 :
         return res.status(400).send({
           message: 'Akun tidak ditemukan atau belum terdaftar'
         })
@@ -96,6 +102,12 @@ exports.verifyOtp = async (req, res) => {
         .where({ nim: dbPasswordReset[0].nim })
     } else if (role === 'organizator') {
       await organizator.query()
+        .update({
+          password: bcrypt.hashSync(password, 8)
+        })
+        .where({ nim: dbPasswordReset[0].nim })
+    } else if (role === 'mahasiswa') {
+      await mahasiswa.query()
         .update({
           password: bcrypt.hashSync(password, 8)
         })

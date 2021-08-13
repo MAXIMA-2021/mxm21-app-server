@@ -1,11 +1,10 @@
-const { OAuth2Client } = require('google-auth-library')
-const client = new OAuth2Client(process.env.CLIENT_ID)
 const mahasiswa = require('../models/mahasiswa.model')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../../config/auth.config')
 const helper = require('../../helpers/helper')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 const address = require('address')
+const bcrypt = require('bcryptjs')
 
 exports.getMahasiswa = async (req, res) => {
   const { param } = req.query
@@ -29,52 +28,41 @@ exports.getMahasiswa = async (req, res) => {
 
 exports.signUp = async (req, res) => {
   const {
-    nim,
     name,
+    nim,
+    password,
+    whatsapp,
     email,
+    idInstagram,
+    idLine,
     tempatLahir,
     tanggalLahir,
     jenisKelamin,
-    prodi,
-    whatsapp,
-    idLine,
-    idInstagram,
-    GoogleID
+    prodi
   } = req.body
 
-  const fixName = helper.toTitleCase(name)
+  const fixName = helper.toTitleCase(name).trim()
 
   try {
     const result = await mahasiswa.query().where('nim', nim)
 
     if (result.length !== 0) return res.status(409).send({ message: `Akun dengan nim ${nim} sudah terdaftar` })
 
+    const fixPassword = bcrypt.hashSync(password, 8)
+
     await mahasiswa.query().insert({
-      nim,
-      GoogleID,
       name: fixName,
+      nim,
+      password: fixPassword,
+      whatsapp,
       email,
+      idInstagram,
+      idLine,
       tempatLahir,
       tanggalLahir,
       jenisKelamin,
-      prodi,
-      whatsapp,
-      idLine,
-      idInstagram
+      prodi
     })
-
-    if (GoogleID) {
-      const dbMahasiswa = await mahasiswa.query().where('nim', nim)
-      const token = jwt.sign({ nim: dbMahasiswa[0].nim }, authConfig.jwt_key, {
-        expiresIn: 21600
-      })
-      return res.status(200).send({
-        message: 'Berhasil Login',
-        token: token,
-        name: dbMahasiswa[0].name,
-        role: 'mahasiswa'
-      })
-    }
 
     return res.status(200).send({
       message: 'Akun berhasil dibuat!'
@@ -82,44 +70,6 @@ exports.signUp = async (req, res) => {
   } catch (err) {
     logging.errorLogging('signUp', 'Mahasiswa', err.message)
     return res.status(500).send({ message: err.message })
-  }
-}
-
-exports.getGoogleToken = async (req, res) => {
-  const { token } = req.body
-
-  try {
-    const profile = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.CLIENT_ID
-    })
-    const payload = profile.getPayload()
-    const userid = payload.sub
-
-    const dbMahasiswa = await mahasiswa.query()
-      .where({
-        GoogleID: userid
-      })
-
-    if (dbMahasiswa.length === 0) {
-      return res.status(200).send({
-        message: 'no GoogleID'
-      })
-    } else {
-      const token = jwt.sign({ nim: dbMahasiswa[0].nim }, authConfig.jwt_key, {
-        expiresIn: 21600
-      })
-      return res.status(200).send({
-        message: 'Berhasil Login',
-        token: token,
-        name: dbMahasiswa[0].name,
-        role: 'mahasiswa'
-      })
-    }
-  } catch (err) {
-    return res.status(500).send({
-      message: err.message
-    })
   }
 }
 
@@ -131,11 +81,13 @@ exports.signIn = async (req, res) => {
   try {
     const dbMahasiswa = await mahasiswa.query().where('nim', nim)
 
-    if (dbMahasiswa.length === 0) { return res.status(400).send({ message: 'Akun tidak ditemukan atau belum terdaftar' }) }
+    if (dbMahasiswa.length === 0) {
+      return res.status(401).send({ message: 'Nim atau password salah, mohon melakukan pengecekan ulang dan mencoba lagi' })
+    }
 
-    const password2 = helper.createPassword(dbMahasiswa)
+    const checkPassword = bcrypt.compareSync(password, dbMahasiswa[0].password)
 
-    if (password !== password2) {
+    if (!checkPassword) {
       return res.status(401).send({ message: 'Nim atau password salah, mohon melakukan pengecekan ulang dan mencoba lagi' })
     }
 
@@ -171,10 +123,12 @@ exports.update = async (req, res) => {
     idInstagram
   } = req.body
 
+  const fixName = helper.toTitleCase(name).trim()
+
   try {
     await mahasiswa.query()
       .update({
-        name,
+        name: fixName,
         tempatLahir,
         tanggalLahir,
         jenisKelamin,
@@ -220,6 +174,8 @@ exports.advanceUpdate = async (req, res) => {
     idInstagram
   } = req.body
 
+  const fixName = helper.toTitleCase(name).trim()
+
   try {
     const dbMahasiswa = await mahasiswa.query().where({ nim })
 
@@ -231,7 +187,7 @@ exports.advanceUpdate = async (req, res) => {
 
     await mahasiswa.query()
       .update({
-        name,
+        name: fixName,
         tempatLahir,
         tanggalLahir,
         jenisKelamin,
@@ -254,7 +210,7 @@ exports.advanceUpdate = async (req, res) => {
     }
 
     const object2 = {
-      name,
+      name: fixName,
       tempatLahir,
       tanggalLahir: helper.createDateNumber(new Date(tanggalLahir)),
       jenisKelamin,
