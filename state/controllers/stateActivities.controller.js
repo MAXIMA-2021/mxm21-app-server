@@ -99,26 +99,29 @@ exports.addState = async (req, res) => {
 
   const { stateLogo, coverPhoto } = req.files
 
-  const attendanceCode = helper.createAttendanceCode(name)
+  const fixName = helper.toTitleCase(name).trim()
+
+  const attendanceCode = helper.createAttendanceCode(fixName)
 
   const dateTime = helper.createAttendanceTime()
 
   // format filename = nama state + nama file + datetime upload file
-  const uuid = uuidv4()
-  const fileNameLogo = `${name.trim().split(' ').join('-')}_${uuid}_${stateLogo.name.trim().split(' ').join('-')}`
-  const fileNameCover = `${name.trim().split(' ').join('-')}_${uuid}_${coverPhoto.name.trim().split(' ').join('-')}`
+  const uuidLogo = uuidv4()
+  const uuidCover = uuidv4()
+  const fileNameLogo = `${name.trim().split(' ').join('-')}_${uuidLogo}_${stateLogo.name.trim().split(' ').join('-')}`
+  const fileNameCover = `${name.trim().split(' ').join('-')}_${uuidCover}_${coverPhoto.name.trim().split(' ').join('-')}`
 
   const uploadPathLogo = './stateLogo/' + fileNameLogo
   const uploadPathCover = './stateLogo/' + fileNameCover
 
-  const bucketName = 'mxm21-bucket-playground'
+  const bucketName = 'mxm21-state'
 
   const urlFileLogo = `https://storage.googleapis.com/${bucketName}/${fileNameLogo}`
   const urlFileCover = `https://storage.googleapis.com/${bucketName}/${fileNameCover}`
 
   try {
     const insertResult = await stateActivities.query().insert({
-      name,
+      name: fixName,
       zoomLink,
       day: `D${day}`,
       stateLogo: urlFileLogo,
@@ -165,7 +168,7 @@ exports.addState = async (req, res) => {
 
     logging.stateLogging('insert/STATE', nim, insertResult, dateTime)
 
-    res.status(200).send({
+    return res.status(200).send({
       message: 'Data STATE berhasil ditambahkan'
     })
   } catch (err) {
@@ -197,13 +200,15 @@ exports.updateState = async (req, res) => {
     })
   }
 
+  const fixName = helper.toTitleCase(name).trim()
+
   const dateTime = helper.createAttendanceTime()
 
   const stateID = req.params.stateID
 
   const isProvide = await stateActivities.query().where('stateID', stateID)
 
-  const checkName = await stateActivities.query().where('name', name)
+  const checkName = await stateActivities.query().where('name', fixName)
 
   let attendanceCode = isProvide[0].attendanceCode
 
@@ -212,7 +217,7 @@ exports.updateState = async (req, res) => {
       message: 'Maaf nama State sudah terdaftar sebelumnya'
     })
   } else if (!checkName[0]) {
-    attendanceCode = helper.createAttendanceCode(name)
+    attendanceCode = helper.createAttendanceCode(fixName)
   }
 
   let stateLogo = null
@@ -228,12 +233,12 @@ exports.updateState = async (req, res) => {
   if (req.files && req.files.stateLogo) {
     stateLogo = req.files.stateLogo
 
-    const uuid = uuidv4()
-    fileNameLogo = `${name.trim().split(' ').join('-')}_${uuid}_${stateLogo.name.trim().split(' ').join('-')}`
+    const uuidLogo = uuidv4()
+    fileNameLogo = `${name.trim().split(' ').join('-')}_${uuidLogo}_${stateLogo.name.trim().split(' ').join('-')}`
 
     uploadPathLogo = './stateLogo/' + fileNameLogo
 
-    bucketName = 'mxm21-bucket-playground'
+    bucketName = 'mxm21-state'
 
     urlFileLogo = `https://storage.googleapis.com/${bucketName}/${fileNameLogo}`
   }
@@ -241,12 +246,12 @@ exports.updateState = async (req, res) => {
   if (req.files && req.files.coverPhoto) {
     coverPhoto = req.files.coverPhoto
 
-    const uuid = uuidv4()
-    fileNameCover = `${name.trim().split(' ').join('-')}_${uuid}_${coverPhoto.name.trim().split(' ').join('-')}`
+    const uuidCover = uuidv4()
+    fileNameCover = `${name.trim().split(' ').join('-')}_${uuidCover}_${coverPhoto.name.trim().split(' ').join('-')}`
 
     uploadPathCover = './stateLogo/' + fileNameCover
 
-    bucketName = 'mxm21-bucket-playground'
+    bucketName = 'mxm21-state'
 
     urlFileCover = `https://storage.googleapis.com/${bucketName}/${fileNameCover}`
   }
@@ -257,7 +262,7 @@ exports.updateState = async (req, res) => {
   try {
     if (uploadPathLogo) {
       await stateActivities.query().where('stateID', stateID).patch({
-        name,
+        name: fixName,
         zoomLink,
         day: `D${day}`,
         stateLogo: urlFileLogo,
@@ -281,7 +286,7 @@ exports.updateState = async (req, res) => {
       }
 
       object2 = {
-        name: name,
+        name: fixName,
         zoomLink: zoomLink,
         day: `D${day}`,
         stateLogo: urlFileLogo,
@@ -311,7 +316,7 @@ exports.updateState = async (req, res) => {
 
     if (uploadPathCover) {
       await stateActivities.query().where('stateID', stateID).patch({
-        name,
+        name: fixName,
         zoomLink,
         day: `D${day}`,
         coverPhoto: urlFileCover,
@@ -335,7 +340,7 @@ exports.updateState = async (req, res) => {
       }
 
       object2 = {
-        name: name,
+        name: fixName,
         zoomLink: zoomLink,
         day: `D${day}`,
         coverPhoto: urlFileCover,
@@ -365,7 +370,7 @@ exports.updateState = async (req, res) => {
 
     if (!req.files) {
       await stateActivities.query().where('stateID', stateID).patch({
-        name,
+        name: fixName,
         zoomLink,
         day: `D${day}`,
         quota,
@@ -387,7 +392,7 @@ exports.updateState = async (req, res) => {
       }
 
       object2 = {
-        name: name,
+        name: fixName,
         zoomLink: zoomLink,
         day: `D${day}`,
         quota: parseInt(quota),

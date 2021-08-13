@@ -89,13 +89,13 @@ exports.createHomeInformation = async (req, res) => {
 
   const dateTime = helper.createAttendanceTime()
 
-  const fixName = helper.toTitleCase(name)
+  const fixName = helper.toTitleCase(name).trim()
 
-  const searchKey = name.toLowerCase().split(' ').join('-')
+  const searchKey = fixName.toLowerCase().split(' ').join('-')
 
   const { linkLogo } = req.files
 
-  const bucketName = 'mxm21-bucket-playground'
+  const bucketName = 'mxm21-home'
 
   const logoUuid = uuidv4()
 
@@ -206,7 +206,7 @@ exports.createHomeMedia = async (req, res, next) => {
     })
   }
 
-  const bucketName = 'mxm21-bucket-playground'
+  const bucketName = 'mxm21-home'
 
   let objectData = []
 
@@ -296,7 +296,9 @@ exports.updateHome = async (req, res) => {
     })
   }
 
-  const searchKey = name.toLowerCase().split(' ').join('-')
+  const fixName = helper.toTitleCase(name).trim()
+
+  const searchKey = fixName.toLowerCase().split(' ').join('-')
 
   let linkLogo = null
   let dateFile = ''
@@ -305,7 +307,7 @@ exports.updateHome = async (req, res) => {
   let logoUploadPath = ''
   let logoUrlFile = ''
 
-  const bucketName = 'mxm21-bucket-playground'
+  const bucketName = 'mxm21-home'
 
   const dateTime = helper.createAttendanceTime()
 
@@ -344,7 +346,7 @@ exports.updateHome = async (req, res) => {
         .patch({
           search_key: searchKey,
           linkLogo: logoUrlFile,
-          name,
+          name: fixName,
           kategori,
           shortDesc,
           longDesc,
@@ -388,7 +390,7 @@ exports.updateHome = async (req, res) => {
       object2 = {
         search_key: searchKey,
         linkLogo: logoUrlFile,
-        name: name,
+        name: fixName,
         kategori: kategori,
         shortDesc: shortDesc,
         longDesc: longDesc,
@@ -401,7 +403,7 @@ exports.updateHome = async (req, res) => {
         .where({ homeID })
         .patch({
           search_key: searchKey,
-          name,
+          name: fixName,
           kategori,
           shortDesc,
           longDesc,
@@ -423,7 +425,7 @@ exports.updateHome = async (req, res) => {
 
       object2 = {
         search_key: searchKey,
-        name: name,
+        name: fixName,
         kategori: kategori,
         shortDesc: shortDesc,
         longDesc: longDesc,
@@ -463,7 +465,7 @@ exports.updateLinkMedia = async (req, res) => {
 
   const { photoID } = req.body
 
-  const bucketName = 'mxm21-bucket-playground'
+  const bucketName = 'mxm21-home'
 
   const dateTime = helper.createAttendanceTime()
 

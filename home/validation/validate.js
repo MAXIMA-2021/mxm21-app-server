@@ -28,6 +28,23 @@ exports.insertLogoValidation = (req, res, next) => {
   next()
 }
 
+exports.linkValidation = async (req, res, next) => {
+  const linkErrors = []
+  const linkYoutube = req.body.linkYoutube
+  const match = linkYoutube.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
+
+  if (match === null) {
+    linkErrors.push({
+      key: 'link',
+      message: 'Link video youtube tidak valid'
+    })
+  }
+
+  req.linkErrors = linkErrors
+
+  next()
+}
+
 exports.insertMediaValidation = async (req, res, next) => {
   const mediaErrors = []
   const acceptedType = ['image/png', 'image/jpg', 'image/jpeg']
@@ -137,6 +154,10 @@ exports.runValidation = (req, res, next) => {
     req.mediaErrors = []
   }
 
+  if (!req.linkErrors) {
+    req.linkErrors = []
+  }
+
   const fileErrors = req.logoErrors.concat(req.mediaErrors)
 
   let listErrors = []
@@ -149,6 +170,8 @@ exports.runValidation = (req, res, next) => {
       })
     })
   }
+
+  listErrors = listErrors.concat(req.linkErrors)
 
   listErrors = listErrors.concat(fileErrors)
 
