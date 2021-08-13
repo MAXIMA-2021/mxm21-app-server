@@ -9,8 +9,8 @@ exports.mhsSignInGoogleValidation = [
 exports.mhsSignUpValidation = [
   check('nim').notEmpty().withMessage('Nim tidak boleh kosong'),
   check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
-  check('password').notEmpty().withMessage('Email tidak boleh kosong'),
   check('email').notEmpty().withMessage('Email tidak boleh kosong'),
+  check('password').notEmpty().withMessage('Email tidak boleh kosong'),
   check('tempatLahir').notEmpty().withMessage('Tempat Lahir tidak boleh kosong'),
   check('tanggalLahir').notEmpty().withMessage('Tanggal Lahir tidak boleh kosong'),
   check('jenisKelamin').notEmpty().withMessage('Jenis kelamin tidak boleh kosong'),
