@@ -1,5 +1,6 @@
 const stateActivities = require('../models/stateActivities.model')
 const stateRegistration = require('../models/stateRegistration.model')
+const mahasiswa = require('../../user/models/mahasiswa.model')
 const helper = require('../../helpers/helper')
 const logging = require('../../mongoose/controllers/logging.mongoose')
 
@@ -126,6 +127,11 @@ exports.getRegistration = async (req, res) => {
             'state_activities.stateID',
             'state_registration.stateID'
           )
+    }
+
+    for (let i = 0; i < dbState.length; i++) {
+      const dbMahasiswa = await mahasiswa.query().where({ nim: dbState[i].nim })
+      dbState[i].mahasiswa = dbMahasiswa[0].name
     }
 
     return res.status(200).send(dbState)
