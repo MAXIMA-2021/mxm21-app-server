@@ -89,7 +89,7 @@ exports.createHomeInformation = async (req, res) => {
 
   const dateTime = helper.createAttendanceTime()
 
-  const fixName = helper.toTitleCase(name).trim()
+  const fixName = name.trim()
 
   const searchKey = fixName.toLowerCase().split(' ').join('-')
 
@@ -296,7 +296,7 @@ exports.updateHome = async (req, res) => {
     })
   }
 
-  const fixName = helper.toTitleCase(name).trim()
+  const fixName = name.trim()
 
   const searchKey = fixName.toLowerCase().split(' ').join('-')
 

@@ -98,7 +98,7 @@ exports.addState = async (req, res) => {
 
   const { stateLogo, coverPhoto } = req.files
 
-  const fixName = helper.toTitleCase(name).trim()
+  const fixName = name.trim()
 
   const attendanceCode = helper.createAttendanceCode(fixName)
 
@@ -197,7 +197,7 @@ exports.updateState = async (req, res) => {
     })
   }
 
-  const fixName = helper.toTitleCase(name).trim()
+  const fixName = name.trim()
 
   const dateTime = helper.createAttendanceTime()
 
