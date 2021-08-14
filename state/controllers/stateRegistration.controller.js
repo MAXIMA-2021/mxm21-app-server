@@ -311,7 +311,7 @@ exports.deleteRegistration = async (req, res) => {
       .delete()
       .where({ nim, stateID })
 
-    const registeredState = await stateActivities.query().select('registered')
+    const registeredState = await stateActivities.query().select('registered').where({ stateID })
 
     await stateActivities.query()
       .where({ stateID })
