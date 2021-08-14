@@ -92,7 +92,6 @@ exports.addState = async (req, res) => {
     zoomLink,
     day,
     quota,
-    identifier,
     category,
     shortDesc
   } = req.body
@@ -128,7 +127,6 @@ exports.addState = async (req, res) => {
       quota,
       registered: 0,
       attendanceCode,
-      identifier,
       category,
       shortDesc,
       coverPhoto: urlFileCover
@@ -183,7 +181,6 @@ exports.updateState = async (req, res) => {
     zoomLink,
     day,
     quota,
-    identifier,
     category,
     shortDesc
   } = req.body
@@ -268,7 +265,6 @@ exports.updateState = async (req, res) => {
         stateLogo: urlFileLogo,
         quota,
         attendanceCode,
-        identifier,
         category,
         shortDesc
       })
@@ -280,7 +276,6 @@ exports.updateState = async (req, res) => {
         stateLogo: isProvide[0].stateLogo,
         quota: isProvide[0].quota,
         attendanceCode: isProvide[0].attendanceCode,
-        identifier: isProvide[0].identifier,
         category: isProvide[0].category,
         shortDesc: isProvide[0].shortDesc
       }
@@ -292,7 +287,6 @@ exports.updateState = async (req, res) => {
         stateLogo: urlFileLogo,
         quota: parseInt(quota),
         attendanceCode: attendanceCode,
-        identifier: identifier,
         category: category,
         shortDesc: shortDesc
       }
@@ -322,7 +316,6 @@ exports.updateState = async (req, res) => {
         coverPhoto: urlFileCover,
         quota,
         attendanceCode,
-        identifier,
         category,
         shortDesc
       })
@@ -334,7 +327,6 @@ exports.updateState = async (req, res) => {
         coverPhoto: isProvide[0].coverPhoto,
         quota: isProvide[0].quota,
         attendanceCode: isProvide[0].attendanceCode,
-        identifier: isProvide[0].identifier,
         category: isProvide[0].category,
         shortDesc: isProvide[0].shortDesc
       }
@@ -346,7 +338,6 @@ exports.updateState = async (req, res) => {
         coverPhoto: urlFileCover,
         quota: parseInt(quota),
         attendanceCode: attendanceCode,
-        identifier: identifier,
         category: category,
         shortDesc: shortDesc
       }
@@ -375,7 +366,6 @@ exports.updateState = async (req, res) => {
         day: `D${day}`,
         quota,
         attendanceCode,
-        identifier,
         category,
         shortDesc
       })
@@ -386,7 +376,6 @@ exports.updateState = async (req, res) => {
         day: isProvide[0].day,
         quota: isProvide[0].quota,
         attendanceCode: isProvide[0].attendanceCode,
-        identifier: isProvide[0].identifier,
         category: isProvide[0].category,
         shortDesc: isProvide[0].shortDesc
       }
@@ -397,7 +386,6 @@ exports.updateState = async (req, res) => {
         day: `D${day}`,
         quota: parseInt(quota),
         attendanceCode: attendanceCode,
-        identifier: identifier,
         category: category,
         shortDesc: shortDesc
       }
