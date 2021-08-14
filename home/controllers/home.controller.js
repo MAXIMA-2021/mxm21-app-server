@@ -89,7 +89,7 @@ exports.createHomeInformation = async (req, res) => {
 
   const dateTime = helper.createAttendanceTime()
 
-  const fixName = helper.toTitleCase(name).trim()
+  const fixName = name.trim()
 
   const searchKey = fixName.toLowerCase().split(' ').join('-')
 
@@ -296,7 +296,7 @@ exports.updateHome = async (req, res) => {
     })
   }
 
-  const fixName = helper.toTitleCase(name).trim()
+  const fixName = name.trim()
 
   const searchKey = fixName.toLowerCase().split(' ').join('-')
 
@@ -542,7 +542,7 @@ exports.deleteMedia = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Divisi anda tidak memiliki otoritas yang cukup'
+      message: 'Silakan kontak divisi Web MAXIMA untuk melakukan penghapusan HoME.'
     })
   }
 
@@ -571,7 +571,7 @@ exports.deleteHome = async (req, res) => {
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
-      message: 'Divisi anda tidak memiliki otoritas yang cukup'
+      message: 'Silakan kontak divisi Web MAXIMA untuk melakukan penghapusan HoME.'
     })
   }
 
