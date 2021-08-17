@@ -64,6 +64,33 @@ exports.signUp = async (req, res) => {
       prodi
     })
 
+    const mailjet = require ('node-mailjet')
+    .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
+    const request = mailjet
+        .post("send", {'version': 'v3.1'})
+        .request({
+            Messages:[
+                {
+                    From: {
+                        "Email": "web@mxm.one",
+                        "Name": "MAXIMA UMN 2021"
+                    },
+                    To: [
+                        {
+                            "Email": `${email}`,
+                            "Name": `${name}`
+                        }
+                    ],
+                    TemplateID: 3103958,
+                    TemplateLanguage: true,
+                    Subject: "Pendaftaran Akun Berhasil",
+                    Variables: {
+                        "name": `${name}`
+                        }
+                }
+            ]
+        })
+
     return res.status(200).send({
       message: 'Akun berhasil dibuat!'
     })
