@@ -40,7 +40,7 @@ exports.registerMalpun = async (req, res) => {
     })
 
     return res.status(200).send({
-      message: 'Anda berhasil mendaftar malam puncak'
+      message: 'Kamu berhasil mendaftar malam puncak'
     })
   } catch (err) {
     logging.errorLogging('getMalpunData', 'Malpun', err.message)

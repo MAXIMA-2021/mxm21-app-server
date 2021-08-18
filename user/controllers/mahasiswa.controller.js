@@ -46,7 +46,7 @@ exports.signUp = async (req, res) => {
   try {
     const result = await mahasiswa.query().where('nim', nim)
 
-    if (result.length !== 0) return res.status(409).send({ message: `Akun dengan nim ${nim} sudah terdaftar` })
+    if (result.length !== 0) return res.status(409).send({ message: `Alô, Dreamers! NIM kamu sudah terdaftar, silakan melakukan login ya!` })
 
     const fixPassword = bcrypt.hashSync(password, 8)
 
@@ -92,7 +92,7 @@ exports.signUp = async (req, res) => {
       })
 
     return res.status(200).send({
-      message: 'Akun berhasil dibuat!'
+      message: 'Akun kamu berhasil dibuat!'
     })
   } catch (err) {
     logging.errorLogging('signUp', 'Mahasiswa', err.message)
@@ -109,13 +109,13 @@ exports.signIn = async (req, res) => {
     const dbMahasiswa = await mahasiswa.query().where('nim', nim)
 
     if (dbMahasiswa.length === 0) {
-      return res.status(401).send({ message: 'Nim atau password salah, mohon melakukan pengecekan ulang dan mencoba lagi' })
+      return res.status(401).send({ message: 'Alô, Dreamers! NIM atau password yang kamu masukkan masih kurang tepat, dicek lagi ya!' })
     }
 
     const checkPassword = bcrypt.compareSync(password, dbMahasiswa[0].password)
 
     if (!checkPassword) {
-      return res.status(401).send({ message: 'Nim atau password salah, mohon melakukan pengecekan ulang dan mencoba lagi' })
+      return res.status(401).send({ message: 'Alô, Dreamers! NIM atau password yang kamu masukkan masih kurang tepat, dicek lagi ya!' })
     }
 
     const token = jwt.sign({ nim: dbMahasiswa[0].nim }, authConfig.jwt_key, {
@@ -125,7 +125,7 @@ exports.signIn = async (req, res) => {
     logging.loginLogging(nim, ip)
 
     return res.status(200).send({
-      message: 'Berhasil Login',
+      message: 'Kamu berhasil login!',
       token: token,
       nama: dbMahasiswa[0].name,
       role: 'mahasiswa'
@@ -133,47 +133,6 @@ exports.signIn = async (req, res) => {
   } catch (err) {
     logging.errorLogging('signIn', 'Mahasiswa', err.message)
     return res.status(500).send({ message: err.message })
-  }
-}
-
-exports.update = async (req, res) => {
-  const nim = req.nim
-
-  const {
-    name,
-    tempatLahir,
-    tanggalLahir,
-    jenisKelamin,
-    prodi,
-    whatsapp,
-    idLine,
-    idInstagram
-  } = req.body
-
-  const fixName = helper.toTitleCase(name).trim()
-
-  try {
-    await mahasiswa.query()
-      .update({
-        name: fixName,
-        tempatLahir,
-        tanggalLahir,
-        jenisKelamin,
-        prodi,
-        whatsapp,
-        idLine,
-        idInstagram
-      })
-      .where({ nim })
-
-    return res.status(200).send({
-      message: 'Update Profile Berhasil'
-    })
-  } catch (err) {
-    logging.errorLogging('update', 'Mahasiswa', err.message)
-    return res.status(500).send({
-      message: err.message
-    })
   }
 }
 
