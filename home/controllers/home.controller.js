@@ -81,7 +81,7 @@ exports.createHomeInformation = async (req, res) => {
     instagram
   } = req.body
 
-  if (name.match(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi)) {
+  if (name.match(/[~!@#$%^&*()_|+\-=?;:,.<>\{\}\[\]\\\/]/gi)) {
     return res.status(400).send({
       message: 'Nama diharapkan tidak terdapat unsur _ \ / : * ? " \' < > |'
     })
@@ -91,8 +91,8 @@ exports.createHomeInformation = async (req, res) => {
 
   const fixName = name.trim()
 
-  const searchKey = fixName.toLowerCase().split(' ').join('-')
-
+  const searchKey = (fixName.toLowerCase().split(' ').join('-')).replace(/[~!@#$%^&*()_|+\='"?;:,.<>\{\}\[\]\\\/]/gi, '')
+  
   const { linkLogo } = req.files
 
   const bucketName = 'mxm21-home'
