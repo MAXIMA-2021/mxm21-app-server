@@ -27,7 +27,7 @@ module.exports = function (app) {
 
   app.post(
     '/api/mhs/acc/signin',
-    validation.signInValidation,
+    validation.mhsSignInValidation,
     toggle.signInMahasiswa, toggle.checkToggle,
     validation.runValidation, mahasiswaController.signIn
   )

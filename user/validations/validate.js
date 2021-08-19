@@ -7,17 +7,17 @@ exports.mhsSignInGoogleValidation = [
 ]
 
 exports.mhsSignUpValidation = [
-  check('nim').notEmpty().withMessage('Nim tidak boleh kosong'),
-  check('name').notEmpty().withMessage('Nama tidak boleh kosong'),
-  check('email').notEmpty().withMessage('Email tidak boleh kosong'),
-  check('password').notEmpty().withMessage('Email tidak boleh kosong'),
-  check('tempatLahir').notEmpty().withMessage('Tempat Lahir tidak boleh kosong'),
-  check('tanggalLahir').notEmpty().withMessage('Tanggal Lahir tidak boleh kosong'),
-  check('jenisKelamin').notEmpty().withMessage('Jenis kelamin tidak boleh kosong'),
-  check('prodi').notEmpty().withMessage('Prodi tidak boleh kosong'),
-  check('whatsapp').notEmpty().withMessage('Nomor Whatsapp tidak boleh kosong'),
-  check('idLine').notEmpty().withMessage('Id Line tidak boleh kosong'),
-  check('idInstagram').notEmpty().withMessage('Id Instagram tidak boleh kosong')
+  check('nim').notEmpty().withMessage('Alô, Dreamers! NIM tidak boleh kosong, dicek lagi ya!'),
+  check('name').notEmpty().withMessage('Alô, Dreamers! Nama tidak boleh kosong, dicek lagi ya!'),
+  check('email').notEmpty().withMessage('Alô, Dreamers! Email tidak boleh kosong, dicek lagi ya!'),
+  check('password').notEmpty().withMessage('Alô, Dreamers! Password tidak boleh kosong, dicek lagi ya!'),
+  check('tempatLahir').notEmpty().withMessage('Alô, Dreamers! Tempat lahir tidak boleh kosong, dicek lagi ya!'),
+  check('tanggalLahir').notEmpty().withMessage('Alô, Dreamers! Tanggal lahir tidak boleh kosong, dicek lagi ya!'),
+  check('jenisKelamin').notEmpty().withMessage('Alô, Dreamers! Jenis kelamin tidak boleh kosong, dicek lagi ya!'),
+  check('prodi').notEmpty().withMessage('Alô, Dreamers! Prodi tidak boleh kosong, dicek lagi ya!'),
+  check('whatsapp').notEmpty().withMessage('Alô, Dreamers! Nomor Whatsapp tidak boleh kosong, dicek lagi ya!'),
+  check('idLine').notEmpty().withMessage('Alô, Dreamers! ID Line tidak boleh kosong, dicek lagi ya!'),
+  check('idInstagram').notEmpty().withMessage('Alô, Dreamers! Username Instagram tidak boleh kosong, dicek lagi ya!')
 ]
 
 exports.mhsUpdatedValidation = [
@@ -54,6 +54,11 @@ exports.notMhsUpdatedValidation = [
 exports.signInValidation = [
   check('nim').notEmpty().withMessage('Nim tidak boleh kosong'),
   check('password').notEmpty().withMessage('Password tidak boleh kosong')
+]
+
+exports.mhsSignInValidation = [
+  check('nim').notEmpty().withMessage('Alô, Dreamers! NIM tidak boleh kosong, dicek lagi ya!'),
+  check('password').notEmpty().withMessage('Alô, Dreamers! Password tidak boleh kosong, dicek lagi ya!')
 ]
 
 exports.passwordValidation = (req, res, next) => {

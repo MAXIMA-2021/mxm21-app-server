@@ -202,14 +202,14 @@ exports.createRegisterValidation = async (req, res, next) => {
     // Validasi apakah ada statenya atau tidak
     if (dbActivities.length === 0) {
       return res.status(400).send({
-        message: 'Maaf state belum tersedia'
+        message: 'Alô, Dreamers! Maaf, STATE ini belum tersedia'
       })
     }
 
     // Validasi State penuh
     if (dbActivities[0].registered >= dbActivities[0].quota) {
       return res.status(409).send({
-        message: 'Maaf, State sudah penuh!'
+        message: 'Alô, Dreamers! Maaf, STATE ini sudah penuh!'
       })
     }
 
@@ -222,7 +222,7 @@ exports.createRegisterValidation = async (req, res, next) => {
     for (let i = 0; i < dbRegistrationDay.length; i++) {
       if (registeredDay[i] === dbActivities[0].day) {
         return res.status(409).send({
-          message: 'Anda hanya dapat mendaftar pada satu STATE pada hari yang sama'
+          message: 'Alô, Dreamers! Kamu hanya dapat mendaftar pada satu STATE pada hari yang sama'
         })
       }
     }
@@ -230,13 +230,13 @@ exports.createRegisterValidation = async (req, res, next) => {
     // Validasi 1 orang hanya bisa pesan maks 3 state
     if (dbRegistrationNim.length >= 3) {
       return res.status(409).send({
-        message: 'Maaf setiap mahasiswa hanya diperbolehkan mendaftar pada 3 state'
+        message: 'Alô, Dreamers! Maaf, kamu hanya dapat mendaftar maksimal 3 STATE'
       })
     }
 
     next()
   } catch (err) {
-    return res.status(500).send({ message: err.message })
+    return res.status(500).send({ message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server' })
   }
 }
 

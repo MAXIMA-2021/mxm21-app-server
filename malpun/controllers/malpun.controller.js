@@ -45,7 +45,7 @@ exports.registerMalpun = async (req, res) => {
   } catch (err) {
     logging.errorLogging('getMalpunData', 'Malpun', err.message)
     return res.status(500).send({
-      message: err.message
+      message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server'
     })
   }
 }

@@ -96,7 +96,7 @@ exports.signUp = async (req, res) => {
     })
   } catch (err) {
     logging.errorLogging('signUp', 'Mahasiswa', err.message)
-    return res.status(500).send({ message: err.message })
+    return res.status(500).send({ message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server' })
   }
 }
 
@@ -132,7 +132,7 @@ exports.signIn = async (req, res) => {
     })
   } catch (err) {
     logging.errorLogging('signIn', 'Mahasiswa', err.message)
-    return res.status(500).send({ message: err.message })
+    return res.status(500).send({ message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server' })
   }
 }
 

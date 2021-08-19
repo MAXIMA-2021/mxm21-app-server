@@ -78,7 +78,7 @@ exports.getRegistrationMhs = async (req, res) => {
   } catch (err) {
     logging.errorLogging('getRegistrationMhs', 'Read/State_Registration', err.message)
     return res.status(500).send({
-      message: err.message
+      message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server'
     })
   }
 }
@@ -172,7 +172,7 @@ exports.addRegistration = async (req, res) => {
     })
   } catch (err) {
     logging.errorLogging('addRegistration', 'State_Registration', err.message)
-    return res.status(500).send({ message: err.message })
+    return res.status(500).send({ message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server' })
   }
 }
 
@@ -212,7 +212,7 @@ exports.attendanceState = async (req, res) => {
   } catch (err) {
     logging.errorLogging('attendanceState', 'State_Registration', err.message)
     return res.status(500).send({
-      message: err.message
+      message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server'
     })
   }
 }
@@ -295,7 +295,7 @@ exports.verifyAttendanceCode = async (req, res) => {
     }
   } catch (err) {
     logging.errorLogging('verifyAttendance', 'State_Registration', err.message)
-    return res.status(500).send({ message: err.message })
+    return res.status(500).send({ message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server' })
   }
 }
 
@@ -328,6 +328,6 @@ exports.deleteRegistration = async (req, res) => {
     return res.status(200).send({ message: 'Kamu berhasil menghapus registrasi pada STATE ini' })
   } catch (err) {
     logging.errorLogging('deleteRegistration', 'State_Registration', err.message)
-    return res.status(500).send({ message: err.message })
+    return res.status(500).send({ message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server' })
   }
 }
