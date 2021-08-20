@@ -179,15 +179,15 @@ exports.verifyNim = async (req, res) => {
                   },
                   To: [
                       {
-                          Email: `${dbPanitia[0].email}`,
-                          Name: `${dbPanitia[0].name}`
+                          Email: `${dbOrganizator[0].email}`,
+                          Name: `${dbOrganizator[0].name}`
                       }
                   ],
                   TemplateID: 3112959,
                   TemplateLanguage: true,
                   Subject: "Pendaftaran Akun Panitia / Organisator Berhasil",
                   Variables: {
-                    name: `${dbPanitia[0].name}`,
+                    name: `${dbOrganizator[0].name}`,
                     jenis_akun: "Organisator"
                   }
               }
