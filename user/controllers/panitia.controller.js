@@ -142,6 +142,7 @@ exports.verifyNim = async (req, res) => {
   }
 
   let verified = 1
+  let checkVerify = true
 
   try {
     const dbPanitia = await panitia.query().where('nim', nimPanitia)
@@ -154,12 +155,43 @@ exports.verifyNim = async (req, res) => {
 
     if (dbPanitia[0].verified === 1) {
       verified = 0
+      checkVerify = false
     }
 
     await panitia.query().where('nim', nimPanitia)
       .patch({
         verified
       })
+
+    if (checkVerify) {
+      const mailjet = require ('node-mailjet')
+      .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
+      await mailjet
+      .post("send", {'version': 'v3.1'})
+      .request({
+          Messages:[
+              {
+                  From: {
+                      Email: "web@mxm.one",
+                      Name: "MAXIMA UMN 2021"
+                  },
+                  To: [
+                      {
+                          Email: `${dbPanitia[0].email}`,
+                          Name: `${dbPanitia[0].name}`
+                      }
+                  ],
+                  TemplateID: 3112959,
+                  TemplateLanguage: true,
+                  Subject: "Pendaftaran Akun Panitia / Organisator Berhasil",
+                  Variables: {
+                    name: `${dbPanitia[0].name}`,
+                    jenis_akun: "Panitia"
+                  }
+              }
+          ]
+      })
+    }
 
     return res.status(200).send({
       verify: verified

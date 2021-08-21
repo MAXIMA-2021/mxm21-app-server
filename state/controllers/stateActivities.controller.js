@@ -69,7 +69,7 @@ exports.getPublicStateData = async (req, res) => {
   } catch (err) {
     logging.errorLogging('getPublicStateData', 'State_Activities', err.message)
     return res.status(500).send({
-      message: err.message
+      message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server'
     })
   }
 }

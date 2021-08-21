@@ -53,7 +53,7 @@ exports.getPublicHomeData = async (req, res) => {
   } catch (err) {
     logging.errorLogging('getPublicHomeData', 'HoME', err.message)
     return res.status(500).send({
-      message: err.message
+      message: 'Alô, Dreamers! Maaf, terjadi kesalahan pada server'
     })
   }
 }
