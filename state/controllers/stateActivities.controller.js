@@ -405,7 +405,7 @@ exports.updateState = async (req, res) => {
 }
 
 exports.deleteState = async (req, res) => {
-  const acceptedDivisi = ['D01', 'D02']
+  const acceptedDivisi = ['D01', 'D02', 'D03']
 
   const division = req.division
 

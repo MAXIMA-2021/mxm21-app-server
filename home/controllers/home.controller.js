@@ -536,7 +536,7 @@ exports.updateLinkMedia = async (req, res) => {
 }
 
 exports.deleteMedia = async (req, res) => {
-  const acceptedDivision = ['D01', 'D02']
+  const acceptedDivision = ['D01', 'D02', 'D03']
 
   const division = req.division
 
@@ -565,7 +565,7 @@ exports.deleteMedia = async (req, res) => {
 }
 
 exports.deleteHome = async (req, res) => {
-  const acceptedDivision = ['D01', 'D02']
+  const acceptedDivision = ['D01', 'D02', 'D03']
 
   const division = req.division
 
