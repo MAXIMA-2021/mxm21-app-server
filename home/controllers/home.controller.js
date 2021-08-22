@@ -91,7 +91,7 @@ exports.createHomeInformation = async (req, res) => {
 
   const fixName = name.trim()
 
-  const searchKey = (fixName.toLowerCase().split(' ').join('-')).replace(/[~!@#$%^&*()_|+\='"?;:,.<>\{\}\[\]\\\/]/gi, '')
+  const searchKey = (fixName.toLowerCase().replace(/\(/g, '').replace(/\)/g, '').replace(/\./g, '').replace(/\'/g, '').replace(/\&/, 'and').split(' ').join('-'))
   
   const { linkLogo } = req.files
 
@@ -298,7 +298,7 @@ exports.updateHome = async (req, res) => {
 
   const fixName = name.trim()
 
-  const searchKey = fixName.toLowerCase().split(' ').join('-')
+  const searchKey = (fixName.toLowerCase().replace(/\(/g, '').replace(/\)/g, '').replace(/\./g, '').replace(/\'/g, '').replace(/\&/, 'and').split(' ').join('-'))
 
   let linkLogo = null
   let dateFile = ''
