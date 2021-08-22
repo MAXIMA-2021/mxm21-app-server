@@ -14,6 +14,9 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/pages/index.html'))
 })
 app.use(express.static('pages'))
+app.get('/is_run', (req, res) => {
+  res.status(200).send({ server: process.env.SERVER_NO, zone: process.env.SERVER_ZONE })
+})
 
 // Configure Mongo DB
 require('./config/mongo.config')()
