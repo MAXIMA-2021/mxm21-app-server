@@ -1,5 +1,6 @@
 const stateActivities = require('../models/stateActivities.model')
 const stateRegistration = require('../models/stateRegistration.model')
+const dayManagement = require('../models/dayManagement.model')
 const mahasiswa = require('../../user/models/mahasiswa.model')
 const helper = require('../../helpers/helper')
 const logging = require('../../mongoose/controllers/logging.mongoose')
@@ -45,6 +46,7 @@ exports.getRegistrationMhs = async (req, res) => {
         'state_activities.day'
       )
       .where('state_registration.nim', nim)
+      .orderBy('day_management.day')
 
     if (dbState.length === 0) {
       return res.status(200).send(result)
@@ -59,7 +61,7 @@ exports.getRegistrationMhs = async (req, res) => {
 
       const jam = helper.createTime(dbState[i].date)
 
-      const dateOpen = new Date(2021, 7, 23, 10, 0, 0, 0)
+      const dateOpen = (await dayManagement.query().where('day', 'D1'))[0].date
 
       const dateState = dbState[i].date
 
