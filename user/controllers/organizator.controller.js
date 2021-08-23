@@ -75,7 +75,7 @@ exports.signUp = async (req, res) => {
       })
     }
 
-    const fixPassword = bcrypt.hashSync(password, 8)
+    const fixPassword = await bcrypt.hash(password, 8)
 
     await organizator.query().insert({
       nim,
@@ -107,7 +107,7 @@ exports.signIn = async (req, res) => {
 
     if (dbOrganizator[0].verified === 0) { return res.status(401).send({ message: 'Maaf akun anda belum diverifikasi oleh pihak pusat' }) }
 
-    const isPasswordValid = bcrypt.compareSync(password, dbOrganizator[0].password)
+    const isPasswordValid = await bcrypt.compare(password, dbOrganizator[0].password)
 
     if (!isPasswordValid) { return res.status(401).send({ message: 'Nim atau password tidak sesuai, mohon melakukan pengecekan ulang dan mencoba kembali' }) }
 
@@ -194,6 +194,8 @@ exports.verifyNim = async (req, res) => {
           ]
         })
     }
+
+    logging.verificationAccount('Organizator/Verify', req.nim, nimOrganizator, verified)
 
     return res.status(200).send({
       verify: verified

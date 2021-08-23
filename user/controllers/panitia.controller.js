@@ -69,7 +69,7 @@ exports.signUp = async (req, res) => {
 
     if (checkDivisi.length === 0) { return res.status(400).send({ message: 'Divisi tidak tersedia' }) }
 
-    const fixPassword = bcrypt.hashSync(password, 8)
+    const fixPassword = await bcrypt.hash(password, 8)
 
     await panitia.query().insert({
       nim,
@@ -105,7 +105,7 @@ exports.signIn = async (req, res) => {
       })
     }
 
-    const isPasswordValid = bcrypt.compareSync(password, dbPanitia[0].password)
+    const isPasswordValid = await bcrypt.compare(password, dbPanitia[0].password)
 
     if (!isPasswordValid) { return res.status(401).send({ message: 'Nim atau password tidak sesuai, mohon melakukan pengecekan ulang dan mencoba kembali' }) }
 
@@ -131,7 +131,7 @@ exports.signIn = async (req, res) => {
 exports.verifyNim = async (req, res) => {
   const nimPanitia = req.params.nim
 
-  const acceptedDivision = ['D01']
+  const acceptedDivision = ['D01', 'D02']
 
   const division = req.division
 
@@ -192,6 +192,8 @@ exports.verifyNim = async (req, res) => {
           ]
         })
     }
+
+    logging.verificationAccount('Panitia/Verify', req.nim, nimPanitia, verified)
 
     return res.status(200).send({
       verify: verified
