@@ -133,7 +133,7 @@ exports.signIn = async (req, res) => {
 exports.verifyNim = async (req, res) => {
   const nimOrganizator = req.params.nim
 
-  const acceptedDivision = ['D01']
+  const acceptedDivision = ['D01', 'D02']
 
   const division = req.division
 
@@ -166,33 +166,33 @@ exports.verifyNim = async (req, res) => {
       })
 
     if (checkVerify) {
-      const mailjet = require ('node-mailjet')
-      .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
+      const mailjet = require('node-mailjet')
+        .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
       await mailjet
-      .post("send", {'version': 'v3.1'})
-      .request({
-          Messages:[
-              {
-                  From: {
-                      Email: "web@mxm.one",
-                      Name: "MAXIMA UMN 2021"
-                  },
-                  To: [
-                      {
-                          Email: `${dbOrganizator[0].email}`,
-                          Name: `${dbOrganizator[0].name}`
-                      }
-                  ],
-                  TemplateID: 3112959,
-                  TemplateLanguage: true,
-                  Subject: "Pendaftaran Akun Panitia / Organisator Berhasil",
-                  Variables: {
-                    name: `${dbOrganizator[0].name}`,
-                    jenis_akun: "Organisator"
-                  }
+        .post('send', { version: 'v3.1' })
+        .request({
+          Messages: [
+            {
+              From: {
+                Email: 'web@mxm.one',
+                Name: 'MAXIMA UMN 2021'
+              },
+              To: [
+                {
+                  Email: `${dbOrganizator[0].email}`,
+                  Name: `${dbOrganizator[0].name}`
+                }
+              ],
+              TemplateID: 3112959,
+              TemplateLanguage: true,
+              Subject: 'Pendaftaran Akun Panitia / Organisator Berhasil',
+              Variables: {
+                name: `${dbOrganizator[0].name}`,
+                jenis_akun: 'Organisator'
               }
+            }
           ]
-      })
+        })
     }
 
     return res.status(200).send({

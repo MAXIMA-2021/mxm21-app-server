@@ -92,7 +92,7 @@ exports.createHomeInformation = async (req, res) => {
   const fixName = name.trim()
 
   const searchKey = (fixName.toLowerCase().replace(/\(/g, '').replace(/\)/g, '').replace(/\./g, '').replace(/\'/g, '').replace(/\&/, 'and').split(' ').join('-'))
-  
+
   const { linkLogo } = req.files
 
   const bucketName = 'mxm21-home'

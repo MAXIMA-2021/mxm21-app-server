@@ -46,7 +46,7 @@ exports.signUp = async (req, res) => {
   try {
     const result = await mahasiswa.query().where('nim', nim)
 
-    if (result.length !== 0) return res.status(409).send({ message: `Alô, Dreamers! NIM kamu sudah terdaftar, silakan melakukan login ya!` })
+    if (result.length !== 0) return res.status(409).send({ message: 'Alô, Dreamers! NIM kamu sudah terdaftar, silakan melakukan login ya!' })
 
     const fixPassword = bcrypt.hashSync(password, 8)
 
