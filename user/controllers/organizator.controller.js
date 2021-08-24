@@ -75,7 +75,7 @@ exports.signUp = async (req, res) => {
       })
     }
 
-    const fixPassword = bcrypt.hashSync(password, 8)
+    const fixPassword = await bcrypt.hash(password, 8)
 
     await organizator.query().insert({
       nim,
@@ -107,7 +107,7 @@ exports.signIn = async (req, res) => {
 
     if (dbOrganizator[0].verified === 0) { return res.status(401).send({ message: 'Maaf akun anda belum diverifikasi oleh pihak pusat' }) }
 
-    const isPasswordValid = bcrypt.compareSync(password, dbOrganizator[0].password)
+    const isPasswordValid = await bcrypt.compare(password, dbOrganizator[0].password)
 
     if (!isPasswordValid) { return res.status(401).send({ message: 'Nim atau password tidak sesuai, mohon melakukan pengecekan ulang dan mencoba kembali' }) }
 
@@ -133,7 +133,7 @@ exports.signIn = async (req, res) => {
 exports.verifyNim = async (req, res) => {
   const nimOrganizator = req.params.nim
 
-  const acceptedDivision = ['D01']
+  const acceptedDivision = ['D01', 'D02']
 
   const division = req.division
 
@@ -166,34 +166,36 @@ exports.verifyNim = async (req, res) => {
       })
 
     if (checkVerify) {
-      const mailjet = require ('node-mailjet')
-      .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
+      const mailjet = require('node-mailjet')
+        .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
       await mailjet
-      .post("send", {'version': 'v3.1'})
-      .request({
-          Messages:[
-              {
-                  From: {
-                      Email: "web@mxm.one",
-                      Name: "MAXIMA UMN 2021"
-                  },
-                  To: [
-                      {
-                          Email: `${dbOrganizator[0].email}`,
-                          Name: `${dbOrganizator[0].name}`
-                      }
-                  ],
-                  TemplateID: 3112959,
-                  TemplateLanguage: true,
-                  Subject: "Pendaftaran Akun Panitia / Organisator Berhasil",
-                  Variables: {
-                    name: `${dbOrganizator[0].name}`,
-                    jenis_akun: "Organisator"
-                  }
+        .post('send', { version: 'v3.1' })
+        .request({
+          Messages: [
+            {
+              From: {
+                Email: 'web@mxm.one',
+                Name: 'MAXIMA UMN 2021'
+              },
+              To: [
+                {
+                  Email: `${dbOrganizator[0].email}`,
+                  Name: `${dbOrganizator[0].name}`
+                }
+              ],
+              TemplateID: 3112959,
+              TemplateLanguage: true,
+              Subject: 'Pendaftaran Akun Panitia / Organisator Berhasil',
+              Variables: {
+                name: `${dbOrganizator[0].name}`,
+                jenis_akun: 'Organisator'
               }
+            }
           ]
-      })
+        })
     }
+
+    logging.verificationAccount('Organizator/Verify', req.nim, nimOrganizator, verified)
 
     return res.status(200).send({
       verify: verified

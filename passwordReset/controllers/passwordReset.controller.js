@@ -55,7 +55,7 @@ exports.createPasswordReset = async (req, res) => {
           message: 'Akun tidak ditemukan atau belum terdaftar'
         })
     }
-    
+
     await passwordReset.query().insert({
       nim,
       otp,
@@ -65,7 +65,7 @@ exports.createPasswordReset = async (req, res) => {
 
     let dbPasswordReset
 
-    switch(role){
+    switch (role) {
       case 'panitia' :
         dbPasswordReset = await panitia.query().where({ nim })
         break
@@ -76,33 +76,33 @@ exports.createPasswordReset = async (req, res) => {
         dbPasswordReset = await mahasiswa.query().where({ nim })
     }
 
-    const mailjet = require ('node-mailjet')
-    .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
+    const mailjet = require('node-mailjet')
+      .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
     await mailjet
-    .post("send", {'version': 'v3.1'})
-    .request({
-        "Messages":[
-            {
-                "From": {
-                    "Email": "web@mxm.one",
-                    "Name": "MAXIMA UMN 2021"
-                },
-                "To": [
-                    {
-                        "Email": `${dbPasswordReset[0].email}`,
-                        "Name": `${dbPasswordReset[0].name}`
-                    }
-                ],
-                "TemplateID": 3112779,
-                "TemplateLanguage": true,
-                "Subject": "Permohonan Penggantian Kata Sandi",
-                "Variables": {
-      "name": `${dbPasswordReset[0].name}`,
-      "otp_code": `${otp}`
-    }
+      .post('send', { version: 'v3.1' })
+      .request({
+        Messages: [
+          {
+            From: {
+              Email: 'web@mxm.one',
+              Name: 'MAXIMA UMN 2021'
+            },
+            To: [
+              {
+                Email: `${dbPasswordReset[0].email}`,
+                Name: `${dbPasswordReset[0].name}`
+              }
+            ],
+            TemplateID: 3112779,
+            TemplateLanguage: true,
+            Subject: 'Permohonan Penggantian Kata Sandi',
+            Variables: {
+              name: `${dbPasswordReset[0].name}`,
+              otp_code: `${otp}`
             }
+          }
         ]
-    })
+      })
 
     return res.status(200).send({
       message: 'Request reset password berhasil.',

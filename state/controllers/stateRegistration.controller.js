@@ -1,5 +1,6 @@
 const stateActivities = require('../models/stateActivities.model')
 const stateRegistration = require('../models/stateRegistration.model')
+const dayManagement = require('../models/dayManagement.model')
 const mahasiswa = require('../../user/models/mahasiswa.model')
 const helper = require('../../helpers/helper')
 const logging = require('../../mongoose/controllers/logging.mongoose')
@@ -45,6 +46,7 @@ exports.getRegistrationMhs = async (req, res) => {
         'state_activities.day'
       )
       .where('state_registration.nim', nim)
+      .orderBy('day_management.day')
 
     if (dbState.length === 0) {
       return res.status(200).send(result)
@@ -59,7 +61,7 @@ exports.getRegistrationMhs = async (req, res) => {
 
       const jam = helper.createTime(dbState[i].date)
 
-      const dateOpen = new Date(2021, 7, 23, 10, 0, 0, 0)
+      const dateOpen = (await dayManagement.query().where('day', 'D1'))[0].date
 
       const dateState = dbState[i].date
 
@@ -161,22 +163,22 @@ exports.addRegistration = async (req, res) => {
       })
 
     const dbActivities = await stateActivities.query()
-    .select(
-      'state_activities.*',
-      'day_management.date',
-      'state_registration.exitAttendance'
-    )
-    .join(
-      'state_registration',
-      'state_registration.stateID',
-      'state_activities.stateID'
-    )
-    .join(
-      'day_management',
-      'day_management.day',
-      'state_activities.day'
-    )
-    .where('state_activities.stateID', stateID)
+      .select(
+        'state_activities.*',
+        'day_management.date',
+        'state_registration.exitAttendance'
+      )
+      .join(
+        'state_registration',
+        'state_registration.stateID',
+        'state_activities.stateID'
+      )
+      .join(
+        'day_management',
+        'day_management.day',
+        'state_activities.day'
+      )
+      .where('state_activities.stateID', stateID)
 
     await stateActivities.query()
       .where('stateID', stateID)
@@ -186,34 +188,34 @@ exports.addRegistration = async (req, res) => {
 
     const dbMahasiswa = await mahasiswa.query().where('nim', nim)
 
-    const mailjet = require ('node-mailjet')
-    .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
+    const mailjet = require('node-mailjet')
+      .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
     await mailjet
-    .post("send", {'version': 'v3.1'})
-    .request({
-        Messages:[
-            {
-                From: {
-                    Email: "web@mxm.one",
-                    Name: "MAXIMA UMN 2021"
-                },
-                To: [
-                    {
-                        Email: `${dbMahasiswa[0].email}`,
-                        Name: `${dbMahasiswa[0].name}`
-                    }
-                ],
-                TemplateID: 3103966,
-                TemplateLanguage: true,
-                Subject: "Pendaftaran STATE Berhasil",
-                Variables: {
-                  nama_maba: `${dbMahasiswa[0].name}`,
-                  nama_ukm: `${dbActivities[0].name}`,
-                  tanggal_state: `${helper.createDate(dbActivities[0].date)}`
-                }
+      .post('send', { version: 'v3.1' })
+      .request({
+        Messages: [
+          {
+            From: {
+              Email: 'web@mxm.one',
+              Name: 'MAXIMA UMN 2021'
+            },
+            To: [
+              {
+                Email: `${dbMahasiswa[0].email}`,
+                Name: `${dbMahasiswa[0].name}`
+              }
+            ],
+            TemplateID: 3103966,
+            TemplateLanguage: true,
+            Subject: 'Pendaftaran STATE Berhasil',
+            Variables: {
+              nama_maba: `${dbMahasiswa[0].name}`,
+              nama_ukm: `${dbActivities[0].name}`,
+              tanggal_state: `${helper.createDate(dbActivities[0].date)}`
             }
+          }
         ]
-    })
+      })
 
     return res.status(200).send({
       message: 'Kamu berhasil melakukan registrasi pada STATE ini'
@@ -375,35 +377,35 @@ exports.deleteRegistration = async (req, res) => {
 
     const dbMahasiswa = await mahasiswa.query().where('nim', nim)
 
-    const mailjet = require ('node-mailjet')
-    .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
+    const mailjet = require('node-mailjet')
+      .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
 
     await mailjet
-    .post("send", {'version': 'v3.1'})
-    .request({
-        Messages:[
-            {
-                From: {
-                    Email: "web@mxm.one",
-                    Name: "MAXIMA UMN 2021"
-                },
-                To: [
-                    {
-                        Email: `${dbMahasiswa[0].email}`,
-                        Name: `${dbMahasiswa[0].name}`
-                    }
-                ],
-                TemplateID: 3112985,
-                TemplateLanguage: true,
-                Subject: "Pembatalan STATE Berhasil",
-                Variables: {
-                  nama_maba: `${dbMahasiswa[0].name}`,
-                  nama_ukm: `${registeredState[0].name}`
-                }
+      .post('send', { version: 'v3.1' })
+      .request({
+        Messages: [
+          {
+            From: {
+              Email: 'web@mxm.one',
+              Name: 'MAXIMA UMN 2021'
+            },
+            To: [
+              {
+                Email: `${dbMahasiswa[0].email}`,
+                Name: `${dbMahasiswa[0].name}`
+              }
+            ],
+            TemplateID: 3112985,
+            TemplateLanguage: true,
+            Subject: 'Pembatalan STATE Berhasil',
+            Variables: {
+              nama_maba: `${dbMahasiswa[0].name}`,
+              nama_ukm: `${registeredState[0].name}`
             }
+          }
         ]
-    })
-    
+      })
+
     return res.status(200).send({ message: 'Kamu berhasil menghapus registrasi pada STATE ini' })
   } catch (err) {
     logging.errorLogging('deleteRegistration', 'State_Registration', err.message)

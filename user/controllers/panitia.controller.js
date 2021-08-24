@@ -69,7 +69,7 @@ exports.signUp = async (req, res) => {
 
     if (checkDivisi.length === 0) { return res.status(400).send({ message: 'Divisi tidak tersedia' }) }
 
-    const fixPassword = bcrypt.hashSync(password, 8)
+    const fixPassword = await bcrypt.hash(password, 8)
 
     await panitia.query().insert({
       nim,
@@ -105,7 +105,7 @@ exports.signIn = async (req, res) => {
       })
     }
 
-    const isPasswordValid = bcrypt.compareSync(password, dbPanitia[0].password)
+    const isPasswordValid = await bcrypt.compare(password, dbPanitia[0].password)
 
     if (!isPasswordValid) { return res.status(401).send({ message: 'Nim atau password tidak sesuai, mohon melakukan pengecekan ulang dan mencoba kembali' }) }
 
@@ -131,7 +131,7 @@ exports.signIn = async (req, res) => {
 exports.verifyNim = async (req, res) => {
   const nimPanitia = req.params.nim
 
-  const acceptedDivision = ['D01']
+  const acceptedDivision = ['D01', 'D02']
 
   const division = req.division
 
@@ -164,34 +164,36 @@ exports.verifyNim = async (req, res) => {
       })
 
     if (checkVerify) {
-      const mailjet = require ('node-mailjet')
-      .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
+      const mailjet = require('node-mailjet')
+        .connect(process.env.MJ_APIKEY_PUBLIC, process.env.MJ_APIKEY_PRIVATE)
       await mailjet
-      .post("send", {'version': 'v3.1'})
-      .request({
-          Messages:[
-              {
-                  From: {
-                      Email: "web@mxm.one",
-                      Name: "MAXIMA UMN 2021"
-                  },
-                  To: [
-                      {
-                          Email: `${dbPanitia[0].email}`,
-                          Name: `${dbPanitia[0].name}`
-                      }
-                  ],
-                  TemplateID: 3112959,
-                  TemplateLanguage: true,
-                  Subject: "Pendaftaran Akun Panitia / Organisator Berhasil",
-                  Variables: {
-                    name: `${dbPanitia[0].name}`,
-                    jenis_akun: "Panitia"
-                  }
+        .post('send', { version: 'v3.1' })
+        .request({
+          Messages: [
+            {
+              From: {
+                Email: 'web@mxm.one',
+                Name: 'MAXIMA UMN 2021'
+              },
+              To: [
+                {
+                  Email: `${dbPanitia[0].email}`,
+                  Name: `${dbPanitia[0].name}`
+                }
+              ],
+              TemplateID: 3112959,
+              TemplateLanguage: true,
+              Subject: 'Pendaftaran Akun Panitia / Organisator Berhasil',
+              Variables: {
+                name: `${dbPanitia[0].name}`,
+                jenis_akun: 'Panitia'
               }
+            }
           ]
-      })
+        })
     }
+
+    logging.verificationAccount('Panitia/Verify', req.nim, nimPanitia, verified)
 
     return res.status(200).send({
       verify: verified

@@ -46,9 +46,9 @@ exports.signUp = async (req, res) => {
   try {
     const result = await mahasiswa.query().where('nim', nim)
 
-    if (result.length !== 0) return res.status(409).send({ message: `Alô, Dreamers! NIM kamu sudah terdaftar, silakan melakukan login ya!` })
+    if (result.length !== 0) return res.status(409).send({ message: 'Alô, Dreamers! NIM kamu sudah terdaftar, silakan melakukan login ya!' })
 
-    const fixPassword = bcrypt.hashSync(password, 8)
+    const fixPassword = await bcrypt.hash(password, 8)
 
     await mahasiswa.query().insert({
       name: fixName,
@@ -112,7 +112,7 @@ exports.signIn = async (req, res) => {
       return res.status(401).send({ message: 'Alô, Dreamers! NIM atau password yang kamu masukkan masih kurang tepat, dicek lagi ya!' })
     }
 
-    const checkPassword = bcrypt.compareSync(password, dbMahasiswa[0].password)
+    const checkPassword = await bcrypt.compare(password, dbMahasiswa[0].password)
 
     if (!checkPassword) {
       return res.status(401).send({ message: 'Alô, Dreamers! NIM atau password yang kamu masukkan masih kurang tepat, dicek lagi ya!' })

@@ -4,6 +4,7 @@ const StateLogging = require('../models/stateLogging.model')
 const HomeLogging = require('../models/homeLogging.model')
 const ErrorLogging = require('../models/errorLogging.model')
 const StudentEditLogging = require('../models/studentEditDataLogging.model')
+const VerifyLogging = require('../models/verifyLogging.model')
 const helper = require('../../helpers/helper')
 
 exports.loginLogging = async (nim, ip) => {
@@ -87,6 +88,22 @@ exports.studentEditLogging = async (type, nim_panit, nim_maba, data) => {
       nim_panit: nim_panit,
       nim_maba: nim_maba,
       data: data
+    })
+
+    await logging.save()
+  } catch (err) {
+    console.log(err)
+  }
+}
+
+exports.verificationAccount = async (type, nim_verifying, nim_isVerified, status) => {
+  try {
+    const logging = new VerifyLogging({
+      type: type,
+      verifying: `${nim_verifying}`,
+      isVerified: nim_isVerified,
+      verify: `${status}`,
+      time: helper.createAttendanceTime()
     })
 
     await logging.save()
