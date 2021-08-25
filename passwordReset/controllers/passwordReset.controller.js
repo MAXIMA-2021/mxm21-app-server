@@ -40,6 +40,8 @@ exports.createPasswordReset = async (req, res) => {
 
     const dbMahasiswa = await mahasiswa.query().where({ nim })
 
+    console.log(dbPanitia, dbOrganizator, dbMahasiswa)
+
     switch (true) {
       case dbPanitia.length !== 0 :
         role = 'panitia'
@@ -50,7 +52,7 @@ exports.createPasswordReset = async (req, res) => {
       case dbMahasiswa.length !== 0 :
         role = 'mahasiswa'
         break
-      case dbPanitia.length === 0 && dbOrganizator.length === 0 && dbMahasiswa.length !== 0 :
+      case dbPanitia.length === 0 && dbOrganizator.length === 0 && dbMahasiswa.length === 0 :
         return res.status(400).send({
           message: 'Akun tidak ditemukan atau belum terdaftar'
         })
