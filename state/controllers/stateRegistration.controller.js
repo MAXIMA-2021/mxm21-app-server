@@ -283,6 +283,16 @@ exports.updateAttendance = async (req, res) => {
 
   const nim_panit = req.nim
 
+  const division = req.division
+
+  const acceptedDivisi = ['D01', 'D02', 'D03']
+
+  if (!acceptedDivisi.includes(division)) {
+    return res.status(403).send({
+      message: 'Divisi anda tidak memiliki otoritas yang cukup'
+    })
+  }
+
   try {
     const checkRegistration = await stateRegistration.query().where({
       stateID,
