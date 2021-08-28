@@ -233,10 +233,18 @@ exports.attendanceState = async (req, res) => {
   const inEventAttendance = 1
 
   try {
-    const checkRegistration = await stateRegistration.query().where({
-      stateID,
-      nim
-    })
+    const checkRegistration = await stateRegistration.query()
+      .select(
+        'state_registration.*',
+        'mahasiswa.name',
+        'state_activities.zoomLink'
+      )
+      .join('mahasiswa', 'mahasiswa.nim', 'state_registration.nim')
+      .join('state_activities', 'state_activities.stateID', 'state_registration.stateID')
+      .where({
+        'state_registration.stateID': stateID,
+        'state_registration.nim': nim
+      })
 
     if (checkRegistration.length === 0) {
       return res.status(400).send({ message: 'Alô, Dreamers! Kamu tidak terdaftar pada STATE tersebut, dicek lagi ya!' })
@@ -245,7 +253,6 @@ exports.attendanceState = async (req, res) => {
     if (checkRegistration[0].queueNo === 0) {
       const lastQueueNumber = await stateRegistration.query().where({ stateID }).orderBy('queueNo')
       const queueNo = lastQueueNumber[lastQueueNumber.length - 1].queueNo + 1
-
       await stateRegistration.query()
         .where({
           stateID,
@@ -257,8 +264,11 @@ exports.attendanceState = async (req, res) => {
           queueNo
         })
     }
+    const uname = `${checkRegistration[0].queueNo} - ${checkRegistration[0].name} - ${checkRegistration[0].nim}`
+    const link = checkRegistration[0].zoomLink
+    const zoom = `${link}&uname=${uname.split(' ').join('%20')}`
 
-    return res.status(200).send({ message: 'Hadir' })
+    return res.status(200).send({ message: zoom })
   } catch (err) {
     logging.errorLogging('attendanceState', 'State_Registration', err.message)
     return res.status(500).send({
