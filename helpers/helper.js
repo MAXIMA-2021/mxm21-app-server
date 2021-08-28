@@ -113,7 +113,8 @@ exports.createStatusState = (dateNow, dateOpen, dateState) => {
          Date.parse(`${dNow} ${tNow}`) < Date.parse(`${dState} ${tState}`) :
       status = 'ready'
       break
-    case Date.parse(`${dNow} ${tNow}`) === Date.parse(`${dState} ${tState}`) :
+    case Date.parse(`${dNow} ${tNow}`) >= Date.parse(`${dState} ${tState}`) &&
+         Date.parse(`${dNow} ${tNow}`) < Date.parse(`${dState} 22:00`):
       status = 'open'
       break
     case Date.parse(`${dNow} ${tNow}`) >= Date.parse(`${dState} 22:00`) :
