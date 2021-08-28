@@ -33,6 +33,8 @@ exports.getRegistrationMhs = async (req, res) => {
       .select(
         'state_activities.*',
         'day_management.date',
+        'state_registration.attendanceTime',
+        'state_registration.inEventAttendance',
         'state_registration.exitAttendance'
       )
       .join(
@@ -328,10 +330,11 @@ exports.verifyAttendanceCode = async (req, res) => {
   const { nim } = req.query
   const { attendanceCode } = req.body
   const exitAttendance = 1
+  const tokenTime = helper.createAttendanceTime()
 
   try {
     const stateAttendanceDB = await stateRegistration.query()
-      .select('state_activities.attendanceCode', 'state_registration.inEventAttendance')
+      .select('state_activities.attendanceCode', 'state_registration.*')
       .where({
         'state_registration.stateID': stateID,
         'state_registration.nim': nim
@@ -348,6 +351,12 @@ exports.verifyAttendanceCode = async (req, res) => {
       })
     }
 
+    if (stateAttendanceDB[0].attendanceTime === undefined) {
+      return res.status(403).send({
+        message: 'Alô, Dreamers! Kamu perlu masuk ke ZOOM terlebih dahulu sebelum melakukan absen!'
+      })
+    }
+
     if (stateAttendanceDB[0].inEventAttendance === 0) {
       return res.status(403).send({
         message: 'Alô, Dreamers! Kamu tidak mengikuti kegiatan STATE hingga selesai'
@@ -356,7 +365,7 @@ exports.verifyAttendanceCode = async (req, res) => {
 
     if (attendanceCode === stateAttendanceDB[0].attendanceCode) {
       await stateRegistration.query()
-        .patch({ exitAttendance })
+        .patch({ exitAttendance, tokenTime })
         .where({ stateID, nim })
 
       return res.status(200).send({ message: 'Proses absensi selesai' })

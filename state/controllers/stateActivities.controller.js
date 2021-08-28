@@ -21,7 +21,17 @@ exports.getStateData = async (req, res) => {
     if (param === undefined) {
       result = await stateActivities.query()
         .select('day_management.date')
-        .select('state_activities.*')
+        .select('state_activities.stateID')
+        .select('state_activities.name')
+        .select('state_activities.zoomLink')
+        .select('state_activities.day')
+        .select('state_activities.stateLogo')
+        .select('state_activities.quota')
+        .select('state_activities.registered')
+        .select('state_activities.identifier')
+        .select('state_activities.category')
+        .select('state_activities.shortDesc')
+        .select('state_activities.coverPhoto')
         .join(
           'day_management',
           'day_management.day',
@@ -30,7 +40,17 @@ exports.getStateData = async (req, res) => {
     } else {
       result = await stateActivities.query()
         .select('day_management.date')
-        .select('state_activities.*')
+        .select('state_activities.stateID')
+        .select('state_activities.name')
+        .select('state_activities.zoomLink')
+        .select('state_activities.day')
+        .select('state_activities.stateLogo')
+        .select('state_activities.quota')
+        .select('state_activities.registered')
+        .select('state_activities.identifier')
+        .select('state_activities.category')
+        .select('state_activities.shortDesc')
+        .select('state_activities.coverPhoto')
         .join(
           'day_management',
           'day_management.day',
