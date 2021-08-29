@@ -53,6 +53,7 @@ module.exports = function (app) {
 
   app.delete(
     '/api/mhs/state/registration/cancelState/:stateID',
+    toggle.stateRegistration, toggle.checkToggle,
     authjwtMiddleware.verifyToken, authjwtMiddleware.isMahasiswa,
     stateRegistrationController.deleteRegistration
   )
