@@ -21,6 +21,7 @@ exports.getStateData = async (req, res) => {
     if (param === undefined) {
       result = await stateActivities.query()
         .select('day_management.date')
+        .select('state_activities.attendanceCode')
         .select('state_activities.stateID')
         .select('state_activities.name')
         .select('state_activities.zoomLink')
@@ -40,6 +41,7 @@ exports.getStateData = async (req, res) => {
     } else {
       result = await stateActivities.query()
         .select('day_management.date')
+        .select('state_activities.attendanceCode')
         .select('state_activities.stateID')
         .select('state_activities.name')
         .select('state_activities.zoomLink')
