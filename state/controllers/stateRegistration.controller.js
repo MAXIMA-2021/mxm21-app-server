@@ -266,8 +266,22 @@ exports.attendanceState = async (req, res) => {
           queueNo
         })
     }
-    const uname = `${checkRegistration[0].queueNo} - ${checkRegistration[0].name} - ${checkRegistration[0].nim}`
-    const link = checkRegistration[0].zoomLink
+
+    const status = await stateRegistration.query()
+      .select(
+        'state_registration.*',
+        'mahasiswa.name',
+        'state_activities.zoomLink'
+      )
+      .join('mahasiswa', 'mahasiswa.nim', 'state_registration.nim')
+      .join('state_activities', 'state_activities.stateID', 'state_registration.stateID')
+      .where({
+        'state_registration.stateID': stateID,
+        'state_registration.nim': nim
+      })
+
+    const uname = `${status[0].queueNo} - ${status[0].name}_${status[0].nim}`
+    const link = status[0].zoomLink
     const zoom = `${link}&uname=${uname.split(' ').join('%20')}`
 
     return res.status(200).send({ message: zoom })
