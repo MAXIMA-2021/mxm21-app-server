@@ -3,8 +3,10 @@
 const { check, validationResult } = require('express-validator')
 
 exports.registerMalpun = [
-  check('name').notEmpty().withMessage('Alô, Dreamers! Nama tidak boleh kosong, dicek lagi ya!'),
-  check('email').notEmpty().withMessage('Alô, Dreamers! Email tidak boleh kosong, dicek lagi ya!')
+  check('nim').notEmpty().withMessage('Alô, Dreamers! NIM tidak boleh kosong, dicek lagi ya!'),
+  check('nama').notEmpty().withMessage('Alô, Dreamers! Nama tidak boleh kosong, dicek lagi ya!'),
+  check('noTelp').notEmpty().withMessage('Alô, Dreamers! Nomor Telepon tidak boleh kosong, dicek lagi ya!'),
+  check('idLine').notEmpty().withMessage('Alô, Dreamers! ID Line tidak boleh kosong, dicek lagi ya!')
 ]
 
 exports.runValidation = (req, res, next) => {
