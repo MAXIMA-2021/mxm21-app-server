@@ -1,3 +1,5 @@
+/* eslint array-callback-return: "off" */
+
 const malpun = require('../models/malpun.model')
 const helper = require('../../helpers/helper')
 const logging = require('../../mongoose/controllers/logging.mongoose')
@@ -16,6 +18,12 @@ exports.getMalpunData = async (req, res) => {
   try {
     const result = await malpun.query()
 
+    result.map(r => {
+      r.lucky_number = r.malpunID
+    })
+
+    console.log(result)
+
     return res.status(200).send(result)
   } catch (err) {
     logging.errorLogging('getMalpunData', 'Malpun', err.message)
@@ -31,8 +39,10 @@ exports.getMalpunDataByNim = async (req, res) => {
 
     if (result.length === 0) return res.status(400).send({ message: 'NIM tidak ditemukan atau belum terdaftar' })
 
+    result[0].lucky_number = result[0].malpunID
+
     return res.status(200).send(result)
-  }catch(err){
+  } catch (err) {
     return res.status(500).send({
       message: err.message
     })
@@ -51,9 +61,9 @@ exports.registerMalpun = async (req, res) => {
 
   const createdAt = helper.createAttendanceTime()
 
-  const checkNim = await malpun.query().where({nim});
+  const checkNim = await malpun.query().where({ nim })
 
-  if (checkNim.length !== 0) {return res.status(409).send({ message: 'Alô, Dreamers! NIM kamu sudah terdaftar' })}
+  if (checkNim.length !== 0) { return res.status(409).send({ message: 'Alô, Dreamers! NIM kamu sudah terdaftar' }) }
 
   try {
     await malpun.query().insert({
