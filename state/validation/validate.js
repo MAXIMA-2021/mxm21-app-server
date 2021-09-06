@@ -131,7 +131,7 @@ exports.queryUpdateValidation = async (req, res, next) => {
     })
   }
 
-  if (parseInt(quota) <= isProvide[0].registered) {
+  if (parseInt(quota) < isProvide[0].registered) {
     return res.status(409).send({
       message: 'Jumlah Quota state lebih sedikit daripada jumlah yang telah mendaftar'
     })
