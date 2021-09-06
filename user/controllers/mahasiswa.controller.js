@@ -12,6 +12,15 @@ exports.getMahasiswa = async (req, res) => {
   let result
 
   try {
+    const acceptedDivisi = ['D01', 'D02', 'D03', 'D04']
+    const division = req.division
+
+    if (!acceptedDivisi.includes(division)) {
+      return res.status(403).send({
+        message: 'Kamu tidak diperbolehkan mengakses informasi ini.'
+      })
+    }
+
     if (param === undefined) {
       result = await mahasiswa.query()
     } else {
