@@ -66,7 +66,6 @@ exports.registerMalpun = async (req, res) => {
   if (checkNim.length !== 0) { return res.status(409).send({ message: 'Alô, Dreamers! NIM kamu sudah terdaftar' }) }
 
   try {
-    await malpun.query().insert({
       nim,
       nama,
       noTelp,
@@ -75,7 +74,8 @@ exports.registerMalpun = async (req, res) => {
     })
 
     return res.status(200).send({
-      message: 'Alô, Dreamers!, Kamu berhasil mendaftar malam puncak'
+      message: 'Alô, Dreamers!, Kamu berhasil mendaftar malam puncak',
+      lucky_number: malpunDB.id
     })
   } catch (err) {
     logging.errorLogging('getMalpunData', 'Malpun', err.message)
