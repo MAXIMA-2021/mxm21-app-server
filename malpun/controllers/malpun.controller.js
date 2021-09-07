@@ -66,6 +66,7 @@ exports.registerMalpun = async (req, res) => {
   if (checkNim.length !== 0) { return res.status(409).send({ message: 'Alô, Dreamers! NIM kamu sudah terdaftar' }) }
 
   try {
+    const malpunDB = await malpun.query().insert({
       nim,
       nama,
       noTelp,
