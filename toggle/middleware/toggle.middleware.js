@@ -76,11 +76,11 @@ exports.presensi = async (req, res, next) => {
 }
 
 exports.luckyNumber = async(req, res, next) => {
-  req.toggleID = 11
+  req.toggleID = 12
   next()
 }
 
 exports.malpunLink = async(req, res, next) => {
-  req.toggleID = 12
+  req.toggleID = 13
   next()
 }
