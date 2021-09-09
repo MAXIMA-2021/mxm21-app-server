@@ -74,3 +74,13 @@ exports.presensi = async (req, res, next) => {
   req.toggleID = 10
   next()
 }
+
+exports.luckyNumber = async(req, res, next) => {
+  req.toggleID = 11
+  next()
+}
+
+exports.malpunLink = async(req, res, next) => {
+  req.toggleID = 12
+  next()
+}
