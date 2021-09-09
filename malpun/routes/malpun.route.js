@@ -9,6 +9,12 @@ module.exports = function (app) {
     malpunController.getMalpunData
   )
 
+  app.get(
+    '/api/panit/malpun/:nim',
+    authjwtMiddleware.verifyToken, authjwtMiddleware.isPanitia,
+    malpunController.getMalpunDataByNim
+  )
+
   app.post(
     '/api/public/malpun',
     validation.registerMalpun, validation.runValidation,
