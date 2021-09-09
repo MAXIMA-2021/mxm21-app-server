@@ -8,6 +8,7 @@ exports.getMalpunData = async (req, res) => {
   const acceptedDivision = ['D01', 'D02', 'D03', 'D04']
 
   const division = req.division
+  console.log(division)
 
   if (!acceptedDivision.includes(division)) {
     return res.status(403).send({
@@ -63,7 +64,7 @@ exports.registerMalpun = async (req, res) => {
 
   const checkNim = await malpun.query().where({ nim })
 
-  if (checkNim.length !== 0) { return res.status(409).send({ message: 'Alô, Dreamers! NIM kamu sudah terdaftar' }) }
+  if (checkNim.length !== 0) { return res.status(409).send({ message: 'Alô, Dreamers! Mohon maaf, NIM kamu sudah terdaftar sebelumnya.' }) }
 
   try {
     const malpunDB = await malpun.query().insert({
